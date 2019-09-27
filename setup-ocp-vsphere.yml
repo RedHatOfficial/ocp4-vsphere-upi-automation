@@ -1,0 +1,81 @@
+- hosts: localhost
+  vars:
+    masterContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/master.64' )}}"
+    workerContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/worker.64' )}}"
+    appendBootstrapContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/append-bootstrap.64' )}}"
+  tasks:
+  
+  - name: Create bin, install-dir and downloads folders
+    file:
+      path: "{{ playbook_dir }}/{{ item }}"
+      state: directory
+      mode: '0755'
+    with_items: ["bin", "downloads", "install-dir"]  
+  
+  - name: Download the oc client
+    get_url:
+      url: "{{ download.oc_client }}"
+      dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
+
+  - name: Download the openshift-install CLI tool
+    get_url:
+      url: "{{ download.openshift_install }}"
+      dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
+
+  - name: Unarchive oc client
+    unarchive:
+      src: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
+      dest: "{{ playbook_dir }}/bin"
+      remote_src: yes
+
+  - name: Unarchive openshift-install 
+    unarchive:
+      src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
+      dest: "{{ playbook_dir }}/bin"
+      remote_src: yes
+
+  - name: Copy install-config.yaml file into install-dir
+    template:
+      src: "{{ playbook_dir }}/templates/install-config.yaml.j2"
+      dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
+
+  - name: Backup the install-config.yaml file 
+    copy:
+      src: "{{ playbook_dir }}/install-dir/install-config.yaml"
+      dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
+
+  - name: Generate the ignition configs
+    command: "{{ playbook_dir }}/bin/openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir"
+
+#  - copy:
+#      src: "{{ playbook_dir }}/install-dir/bootstrap.ign"
+#      dest: /var/www/html/ignition
+
+  - name: Copy append-bootstrap.ign file into install-dir
+    template: 
+      src: "{{ playbook_dir }}/templates/append-bootstrap.ign.j2"
+      dest: "{{ playbook_dir }}/install-dir/append-bootstrap.ign"
+
+  - name: Get base64 version of append-bootstrap.ign
+    shell: "base64 -w0 {{ playbook_dir }}/install-dir/append-bootstrap.ign > {{ playbook_dir }}/install-dir/append-bootstrap.64"
+
+  - name: Get base64 version of master.ign
+    shell: "base64 -w0 {{ playbook_dir }}/install-dir/master.ign > {{ playbook_dir }}/install-dir/master.64"
+
+  - name: Get base64 version of worker.ign
+    shell: "base64 -w0 {{ playbook_dir }}/install-dir/worker.ign > {{ playbook_dir }}/install-dir/worker.64"
+
+  - name:
+    template: 
+      src: "{{ playbook_dir }}/templates/master-vm-param.j2"
+      dest: "{{ playbook_dir }}/install-dir/master-vm-param.txt"
+
+  - name:
+    template: 
+      src: "{{ playbook_dir }}/templates/worker-vm-param.j2"
+      dest: "{{ playbook_dir }}/install-dir/worker-vm-param.txt"
+
+  - name:
+    template: 
+      src: "{{ playbook_dir }}/templates/append-bootstrap-vm-param.j2"
+      dest: "{{ playbook_dir }}/install-dir/append-bootstrap-vm-param.txt"

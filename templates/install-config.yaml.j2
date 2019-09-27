@@ -1,0 +1,21 @@
+apiVersion: v1
+baseDomain: {{ config.baseDomain }}
+compute:
+- hyperthreading: Enabled   
+  name: worker
+  replicas: 0 
+controlPlane:
+  hyperthreading: Enabled   
+  name: master
+  replicas: 3 
+metadata:
+  name: {{ config.clusterName }}
+platform:
+  vsphere:
+    vcenter: {{ vcenter.ip }}
+    username: {{ vcenter.username }}
+    password: {{ vcenter.password }}
+    datacenter: {{ vcenter.datacenter }}
+    defaultDatastore: {{ vcenter.datastore }}
+pullSecret: '{{ config.pullSecret | to_json }}'
+sshKey: '{{ config.sshKey }}'

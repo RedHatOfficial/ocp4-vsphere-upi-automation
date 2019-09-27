@@ -1,0 +1,19 @@
+---
+bootstrap:
+  ignHttpLocation: http://192.168.86.180:8080/ignition/bootstrap.ign 
+config:
+  baseDomain: example.com
+  clusterName: ocp4 
+  sshKey: ssh-rsa ...
+  pullSecret: {"auths": ... }
+vcenter:
+  ip: 192.168.86.100
+  datastore: datastore1
+  username: administrator@vsphere.local
+  password: Password123!
+  datacenter: dc
+download:
+  #oc_client: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/latest/openshift-client-linux-4.2.0-0.nightly-2019-09-25-233506.tar.gz"
+  #openshift_install: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/latest/openshift-install-linux-4.2.0-0.nightly-2019-09-25-233506.tar.gz"
+  oc_client: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux-4.1.16.tar.gz"
+  openshift_install: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux-4.1.16.tar.gz"
