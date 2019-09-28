@@ -8,6 +8,8 @@
     masterContent : "{{ lookup('file', '{{ playbook_dir }}/install-dir/master.64') }}"
     workerContent : "{{ lookup('file', '{{ playbook_dir }}/install-dir/worker.64') }}"
     templateName : rhcos-4.1.0-x86_64-vmware
+    folder : "/dc/vm/ocp4"
+    datastore: "datastore1"
   tasks:
     - name: "Bootstrap guest.ovfEnv"
       debug:
@@ -34,14 +36,14 @@
         password: "{{ vcenter.password }}"
         datacenter: dc
         validate_certs: no
-        folder: /dc/vm/ocp4
+        folder: "{{ folder }}"
         name: bootstrap 
         state: poweredoff
         template: "{{ templateName }}"
         disk:
         - size_gb: 120 
           type: thin
-          datastore: datastore1
+          datastore: "{{ datastore }}"
         hardware:
           memory_mb: 16384 
           num_cpus: 4
@@ -62,14 +64,14 @@
         password: "{{ vcenter.password }}"
         datacenter: dc
         validate_certs: no
-        folder: /dc/vm/ocp4
+        folder: "{{ folder }}"
         name: "{{ item.name }}"
         state: poweredoff
         template: "{{ templateName }}"
         disk:
         - size_gb: 120
           type: thin
-          datastore: datastore1
+          datastore: "{{ datastore }}" 
         hardware:
           memory_mb: 16384
           num_cpus: 4
@@ -94,14 +96,14 @@
         password: "{{ vcenter.password }}"
         datacenter: dc
         validate_certs: no
-        folder: /dc/vm/ocp4
+        folder: "{{ folder }}"
         name: "{{ item.name }}"
         state: poweredoff
         template: "{{ templateName }}"
         disk:
         - size_gb: 120
           type: thin
-          datastore: datastore1
+          datastore: "{{ datastore }}"
         hardware:
           memory_mb: 8192
           num_cpus: 2 
