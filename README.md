@@ -1,4 +1,4 @@
-# OCP4 on VMware vSphere Automation
+# OCP4 UPI on VMware vSphere Automation
 
 The goal of this repo is to make deploying and redeploying a new Openshift v4 cluster a snap. The document looks long but after you have used it till end once, you will appreciate how quickly VMs come up in vCenter for you to start working with. 
 
