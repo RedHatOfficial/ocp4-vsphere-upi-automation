@@ -9,13 +9,14 @@ Using the same repo and with minor tweaks, it can be applied to any version of O
 1. vSphere ESXi and vCenter 6.7 installed 
 2. A datacenter created with vSphere host added to it 
 3. **VM and Template folder** created with the same name as the **Openshift cluster name** you would like to use, as described in the [documentation](https://docs.openshift.com/container-platform/4.1/installing/installing_vsphere/installing-vsphere.html#installation-vsphere-machines_installing-vsphere)
-4. The OVF template deployed in the ***same folder*** from the OVA file [located here](https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.1/latest/rhcos-4.1.0-x86_64-vmware.ova) using instructions from **#6** step of the same documentation as in the previous step. Once deployed, edit the template such that:
-   * Under the VM Options 🠮 Advanced 🠮 Latency Sensitivity; set it to **High**
-   * Under the VM Options 🠮 Advanced 🠮 Configuration Parameters 🠮 Edit Configuration; add the following param (name, value) respectively:
-     1. disk.EnableUUID, TRUE
-     2. guestinfo.ignition.config.data.encoding, base64
-     3. guestinfo.ignition.config.data,  blah
-     4. guestinfo.ovfEnv, blah
+4. The OVF template deployed in the ***same folder*** from the OVA file [located here](https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.1/latest/rhcos-4.1.0-x86_64-vmware.ova) using instructions from **#6** step of the same documentation as in the previous step. Once deployed, on the template name, right-click and select **Edit Settings** and do the following:
+   * Under `Virtual Hardware` 🠮 `Network adapter 1` 🠮 Highlight and delete it by clicking on the x symbol on the right. ***This is an important step if you would like to use the mac addresses as defined in the file***
+   * Under the `VM Options` 🠮 `Advanced` 🠮 Latency Sensitivity; set it to **High**
+   * Under the `VM Options` 🠮 `Advanced` 🠮 `Configuration Parameters` 🠮 Edit Configuration; add the following param (name, value) respectively:
+     1. `disk.EnableUUID`, TRUE
+     2. `guestinfo.ignition.config.data.encoding`, base64
+     3. `guestinfo.ignition.config.data`,  blah
+     4. `guestinfo.ovfEnv`, blah
     * Save the template
 5. Ideally have [helper node](https://github.com/christianh814/ocp4-upi-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB/FTP Server]
 6. Ansible 2.8.5 installed on the machine where this repo is cloned
@@ -102,7 +103,7 @@ In vCenter all VMs (bootstrap, master0-2, worker0-2) generated in the designated
 
 In vCenter click on the ESXi Host (IP address) 🠮 Click on VMs tab 🠮 Cntrl-select all of the 7 machines 🠮 Right-click and choose Power 🠮 Power On
 
-If everything goes well you should be able to log into all of the machines using the private key generated in prerequistes. On **bootstrap** node running the following command will help understand if the masters are (being) setup:
+If everything goes well you should be able to log into all of the machines (from the machine which has the private key of the ssh key pair that was generated) using the private key generated in prerequistes. On **bootstrap** node running the following command will help understand if the masters are (being) setup:
 
 ```sh
 journalctl -b -f -u bootkube.service
