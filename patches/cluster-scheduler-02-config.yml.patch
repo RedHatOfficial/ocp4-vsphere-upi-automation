@@ -1,0 +1,11 @@
+--- cluster-scheduler-02-config.yml	2019-10-19 11:37:18.565233175 -0700
++++ cluster-scheduler-02-config.yml.fixed	2019-10-19 11:44:21.537311090 -0700
+@@ -4,7 +4,7 @@
+   creationTimestamp: null
+   name: cluster
+ spec:
+-  mastersSchedulable: true
++  mastersSchedulable: false
+   policy:
+     name: ""
+ status: {}

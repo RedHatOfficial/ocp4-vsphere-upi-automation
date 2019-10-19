@@ -44,12 +44,16 @@
       src: "{{ playbook_dir }}/install-dir/install-config.yaml"
       dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
 
+  - name: Generate the ignition manifests
+    command: "{{ playbook_dir }}/bin/openshift-install create manifests --dir={{ playbook_dir }}/install-dir"
+
+  - name: Apply the patch to set mastersSchedulable to false
+    patch:
+      src: "{{ playbook_dir }}/patches/cluster-scheduler-02-config.yml.patch"
+      dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
+
   - name: Generate the ignition configs
     command: "{{ playbook_dir }}/bin/openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir"
-
-#  - copy:
-#      src: "{{ playbook_dir }}/install-dir/bootstrap.ign"
-#      dest: /var/www/html/ignition
 
   - name: Copy append-bootstrap.ign file into install-dir
     template: 
