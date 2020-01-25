@@ -2,14 +2,14 @@
 
 The goal of this repo is to make deploying and redeploying a new Openshift v4 cluster a snap. The document looks long but after you have used it till the end once, you will appreciate how quickly VMs come up in vCenter for you to start working with. 
 
-Using the same repo and with minor tweaks, it can be applied to any version of Openshift higher than the current version of 4.2.
+Using the same repo and with minor tweaks, it can be applied to any version of Openshift higher than the current version of 4.3.
 
 ## Prerequisites
 
 1. vSphere ESXi and vCenter 6.7 installed 
 2. A datacenter created with a vSphere host added to it 
-3. **VM and Template folder** created with the same name as the **Openshift cluster name** you would like to use, as described in the [documentation](https://docs.openshift.com/container-platform/4.2/installing/installing_vsphere/installing-vsphere.html#installation-vsphere-machines_installing-vsphere)
-4. The OVF template deployed in the ***same folder*** from the OVA file [located here](https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/rhcos-4.2.0-x86_64-vmware.ova) using instructions from **#6** step of the same documentation as in the previous step. Once deployed, on the template name, right-click and select **Edit Settings** and do the following:
+3. **VM and Template folder** created with the same name as the **Openshift cluster name** you would like to use, as described in the [documentation](https://docs.openshift.com/container-platform/4.3/installing/installing_vsphere/installing-vsphere.html#installation-vsphere-machines_installing-vsphere)
+4. The OVF template deployed in the ***same folder*** from the OVA file [located here](https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-4.3.0-x86_64-vmware.ova) using instructions from **#6** step of the same documentation as in the previous step. Once deployed, on the template name, right-click and select **Edit Settings** and do the following:
    * Under `Virtual Hardware` 🠮  `Network adapter 1` 🠮  Highlight and delete it by clicking on the `x` symbol on the right. ***This is an important step if you would like to use the mac addresses as defined in the file***
    * Under the `VM Options` 🠮  `Advanced` 🠮  `Latency Sensitivity`; set it to **High**
    * Under the `VM Options` 🠮  `Advanced` 🠮  `Configuration Parameters` 🠮  `Edit Configuration`; add the following param (name, value) respectively:
@@ -26,13 +26,13 @@ Using the same repo and with minor tweaks, it can be applied to any version of O
 ### Prerequisites
 
 1. Get the ***pull secret*** from [here](https://cloud.redhat.com/openshift/install/vsphere/user-provisioned)
-2. Generate a SSH key pair as per [instructions](https://docs.openshift.com/container-platform/4.2/installing/installing_vsphere/installing-vsphere.html#ssh-agent-using_installing-vsphere). The private key will then be used to log into bootstrap/master and worker nodes 
+2. Generate a SSH key pair as per [instructions](https://docs.openshift.com/container-platform/4.3/installing/installing_vsphere/installing-vsphere.html#ssh-agent-using_installing-vsphere). The private key will then be used to log into bootstrap/master and worker nodes 
 3. Get the vCenter details:
    1. IP Address
    2. Username
    3. Password
    4. Datacenter name *(created in the earlier prerequisites)*
-4. Actual links to the Openshift Client and Install binaries *(prepopulated for 4.2.x)*
+4. Actual links to the Openshift Client and Install binaries *(prepopulated for 4.3.x)*
 5. Openshift cluster 
    1. base domain *(prepopulated with **example.com**)*
    2. cluster name *(prepopulated with **ocp4**)*
@@ -78,7 +78,7 @@ scp install-dir/bootstrap.ign root@192.168.86.180:/var/www/html/ignition
 
 ### Prereqisites
 
-1. Get the name of the OVF template as deployed in the vCenter folder *(prepopulated with name **rhcos-4.2.0-x86_64-vmware**)*
+1. Get the name of the OVF template as deployed in the vCenter folder *(prepopulated with name **rhcos-4.3.0-x86_64-vmware**)*
 2. Get the correct path of the vCenter folder *(prepopulated with an example path in **setup-vcenter-vms.yml**)*
 3. Get the vCenter datastore you want the VMs to use *(prepopulated with **datastore1**)*
 
