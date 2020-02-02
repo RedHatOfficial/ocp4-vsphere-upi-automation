@@ -1,0 +1,6 @@
+---
+- import_playbook: setup-local-resources-for-install.yml
+- import_playbook: setup-vcenter-for-install.yml
+- import_playbook: copy-bootstrap-ign-web-server.yml
+- import_playbook: deploy-vcenter-vms.yml
+

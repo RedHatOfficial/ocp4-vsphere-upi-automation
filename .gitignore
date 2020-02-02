@@ -1,4 +1,5 @@
 bin
 downloads
 install-dir
-**/*.bak
+**/*.yml.git
+**/*.yml.orig

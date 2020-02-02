@@ -12,6 +12,10 @@ vcenter:
   username: administrator@vsphere.local
   password: Password123!
   datacenter: dc
+  templateName: rhcos-4.3.0-x86_64-vmware
 download:
-  oc_client: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux-4.3.0.tar.gz"
-  openshift_install: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux-4.3.0.tar.gz"
+  openshiftClient: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux-4.3.0.tar.gz"
+  openshiftInstall: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux-4.3.0.tar.gz"
+  govc: "https://github.com/vmware/govmomi/releases/download/v0.22.1/govc_linux_amd64.gz"
+  ova: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest/rhcos-4.3.0-x86_64-vmware.ova"
+

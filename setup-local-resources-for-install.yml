@@ -1,26 +1,49 @@
 - hosts: localhost
-  vars:
-    masterContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/master.64' )}}"
-    workerContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/worker.64' )}}"
-    appendBootstrapContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/append-bootstrap.64' )}}"
+
+  environment: 
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+
   tasks:
-  
+
+  - name: Clean up existing bin, install-dir and downloads folders
+    file: 
+      path: "{{ playbook_dir }}/{{ item }}"
+      state: absent
+    with_items: ["bin", "install-dir", "downloads"]
+    when: clean is defined
+
+  - name: Must clean install-dir
+    file:
+      path: "{{ playbook_dir }}/{{ item }}"
+      state: absent
+    with_items: ["install-dir"]
+    when: clean is not defined
+
   - name: Create bin, install-dir and downloads folders
     file:
       path: "{{ playbook_dir }}/{{ item }}"
       state: directory
       mode: '0755'
     with_items: ["bin", "downloads", "install-dir"]  
-  
+
+  - name: Download the ova file 
+    get_url:
+      url: "{{ download.ova }}"
+      dest: "{{ playbook_dir }}/downloads/{{vcenter.templateName}}.ova"
+      validate_certs: no
+    when: vcenter_preqs_met is not defined
+
   - name: Download the oc client
     get_url:
-      url: "{{ download.oc_client }}"
+      url: "{{ download.openshiftClient }}"
       dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
+      validate_certs: no
 
-  - name: Download the openshift-install CLI tool
+  - name: Download the openshift-install 
     get_url:
-      url: "{{ download.openshift_install }}"
+      url: "{{ download.openshiftInstall }}"
       dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
+      validate_certs: no
 
   - name: Unarchive oc client
     unarchive:
@@ -45,7 +68,7 @@
       dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
 
   - name: Generate the ignition manifests
-    command: "{{ playbook_dir }}/bin/openshift-install create manifests --dir={{ playbook_dir }}/install-dir"
+    command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir"
 
   - name: Apply the patch to set mastersSchedulable to false
     patch:
@@ -53,7 +76,7 @@
       dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
 
   - name: Generate the ignition configs
-    command: "{{ playbook_dir }}/bin/openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir"
+    command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir"
 
   - name: Copy append-bootstrap.ign file into install-dir
     template: 
@@ -68,18 +91,3 @@
 
   - name: Get base64 version of worker.ign
     shell: "base64 -w0 {{ playbook_dir }}/install-dir/worker.ign > {{ playbook_dir }}/install-dir/worker.64"
-
-  - name:
-    template: 
-      src: "{{ playbook_dir }}/templates/master-vm-param.j2"
-      dest: "{{ playbook_dir }}/install-dir/master-vm-param.txt"
-
-  - name:
-    template: 
-      src: "{{ playbook_dir }}/templates/worker-vm-param.j2"
-      dest: "{{ playbook_dir }}/install-dir/worker-vm-param.txt"
-
-  - name:
-    template: 
-      src: "{{ playbook_dir }}/templates/append-bootstrap-vm-param.j2"
-      dest: "{{ playbook_dir }}/install-dir/append-bootstrap-vm-param.txt"

@@ -1,0 +1,43 @@
+- hosts: localhost
+
+  environment: 
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ vcenter.username }}"
+    GOVC_PASSWORD: "{{ vcenter.password }}"
+    GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_INSECURE: 1
+
+  vars:
+    folder : "/{{ vcenter.datacenter }}/vm/{{ config.clusterName }}"    
+
+  tasks:
+
+  - name: Download govc
+    get_url:
+      url: "{{ download.govc}}"
+      dest: "{{ playbook_dir }}/downloads/govc.gz"
+      validate_certs: no    
+
+  - name: Unarchive govc
+    shell: gzip -dkc "{{ playbook_dir }}/downloads/govc.gz" > "{{ playbook_dir }}/bin/govc"
+
+  - name: Make govc executable
+    file:
+      path: "{{ playbook_dir }}/bin/govc"
+      mode: '775'
+
+  - name: Create the vCenter folder by the same name as the cluster
+    command: "govc folder.create {{ folder }}"
+    when: vcenter_preqs_met is not defined
+
+  - name: Import the OVA file into the folder in vCenter 
+    command: "govc import.ova -options=vra.json -folder={{ folder }} -name={{ vcenter.templateName }} {{ playbook_dir }}/downloads/{{vcenter.templateName}}.ova"
+    when: vcenter_preqs_met is not defined
+
+  - name: Remove the Network Adapter  
+    command: "govc device.remove -vm {{ folder }}/{{ vcenter.templateName }} ethernet-0"
+    when: vcenter_preqs_met is not defined
+
+  - name: Update VM options on the template
+    command: "govc vm.change -vm {{ folder }}/{{ vcenter.templateName }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"
+    when: vcenter_preqs_met is not defined      

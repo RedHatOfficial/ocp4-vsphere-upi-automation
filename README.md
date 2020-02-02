@@ -1,101 +1,80 @@
 # OCP4 on VMware vSphere UPI Automation
 
-The goal of this repo is to make deploying and redeploying a new Openshift v4 cluster a snap. The document looks long but after you have used it till the end once, you will appreciate how quickly VMs come up in vCenter for you to start working with. 
+The goal of this repo is to make deploying and redeploying a new OpenShift v4 cluster a snap. The document looks long but after you have used it till the end once, you will appreciate how quickly VMs come up in vCenter for you to start working with. 
 
-Using the same repo and with minor tweaks, it can be applied to any version of Openshift higher than the current version of 4.3.
+Using the same repo and with minor tweaks, it can be applied to any version of OpenShift higher than the current version of 4.3.
 
 ## Prerequisites
 
 1. vSphere ESXi and vCenter 6.7 installed 
 2. A datacenter created with a vSphere host added to it 
-3. **VM and Template folder** created with the same name as the **Openshift cluster name** you would like to use, as described in the [documentation](https://docs.openshift.com/container-platform/4.3/installing/installing_vsphere/installing-vsphere.html#installation-vsphere-machines_installing-vsphere)
-4. The OVF template deployed in the ***same folder*** from the OVA file [located here](https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-4.3.0-x86_64-vmware.ova) using instructions from **#6** step of the same documentation as in the previous step. Once deployed, on the template name, right-click and select **Edit Settings** and do the following:
-   * Under `Virtual Hardware` 🠮  `Network adapter 1` 🠮  Highlight and delete it by clicking on the `x` symbol on the right. ***This is an important step if you would like to use the mac addresses as defined in the file***
-   * Under the `VM Options` 🠮  `Advanced` 🠮  `Latency Sensitivity`; set it to **High**
-   * Under the `VM Options` 🠮  `Advanced` 🠮  `Configuration Parameters` 🠮  `Edit Configuration`; add the following param (name, value) respectively:
-     1. `disk.EnableUUID`, TRUE
-     2. `guestinfo.ignition.config.data.encoding`, base64
-     3. `guestinfo.ignition.config.data`,  blah
-   * Save the template
-5. Ideally have [helper node](https://github.com/christianh814/ocp4-upi-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB/FTP Server]
-6. Ansible 2.8.5 installed on the machine where this repo is cloned 
-   * For this specific version of Ansible you can run the command `sudo dnf -y install ansible-2.8.5`
+3. Ideally have [helper node](https://github.com/christianh814/ocp4-upi-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB/FTP Server]
+4. Ansible 2.8.5 or 2.9.3 installed on the machine where this repo is cloned 
+   * To install a specific version of Ansible you can run a command like: `sudo dnf -y install ansible-2.8.5`
 
 ## Automatic generation of ignition and other supporting files
 
-### Prerequisites
-
-1. Get the ***pull secret*** from [here](https://cloud.redhat.com/openshift/install/vsphere/user-provisioned)
-2. Generate a SSH key pair as per [instructions](https://docs.openshift.com/container-platform/4.3/installing/installing_vsphere/installing-vsphere.html#ssh-agent-using_installing-vsphere). The private key will then be used to log into bootstrap/master and worker nodes 
+### Prerequisites 
+> Pre-populated entries in **vars.yml** are ready to be used unless you want to customize further
+1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned)
+2. Generate a SSH key pair as per [instructions](https://docs.OpenShift.com/container-platform/4.3/installing/installing_vsphere/installing-vsphere.html#ssh-agent-using_installing-vsphere). The private key will then be used to log into bootstrap/master and worker nodes 
 3. Get the vCenter details:
    1. IP Address
    2. Username
    3. Password
-   4. Datacenter name *(created in the earlier prerequisites)*
-4. Actual links to the Openshift Client and Install binaries *(prepopulated for 4.3.x)*
-5. Openshift cluster 
-   1. base domain *(prepopulated with **example.com**)*
-   2. cluster name *(prepopulated with **ocp4**)*
-6. HTTP URL of the ***bootstrap.ign*** file *(prepopulated with a example config pointing to helper node)*
+   4. Datacenter name *(created in the prerequisites mentioned above)*
+4. Actual links to the OpenShift Client, Install and .ova binaries *(pre-populated for 4.3.x)*
+5. Downloadable link to `govc` (vSphere CLI, *pre-populated*)
+6. OpenShift cluster 
+   1. base domain *(pre-populated with **example.com**)*
+   2. cluster name *(pre-populated with **ocp4**)*
+7. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with a example config pointing to helper node)*
+8. Update the **inventory** file and under the `[webservers]` entry use : 
+   * **localhost** : if this repo is being run on the same host  as the webserver that would eventually host **bootstrap.ign**,  
+   * the IP address or FQDN of the machine that would run the webserver. 
 
-The step **#6** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
+The step **#7** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
    
 ### Setup and Installation
 
-With all the details in hand from the prerequisites, populate the **vars.yml** in the root folder of this repo and trigger the installation with the following command 
+With all the details in hand from the prerequisites, populate the **vars.yml** in the root folder of this repo and trigger the installation with the following options:
 
-```sh 
-# Make sure to run this command in the root folder of the repo
-ansible-playbook -e @vars.yml setup-ocp-vsphere.yml
-```
+* If running for the very first time **OR** If you have already run (at least) once and want to re-run again without recreating `bin` and `downloads` folders, choose (**only**) one of the following:
+   ```sh 
+   # When you have not done a sudo in the session yet 
+   # The webserver is on localhost (as reflected by the entry in the inventory)
+   ansible-playbook -e @vars.yml install.yml --connection=local -b --ask-become-pass
 
-### Artifacts Generated 
+   # When you have done a sudo just recently 
+   # The webserver is on localhost (as reflected by the entry in the inventory)
+   ansible-playbook -e @vars.yml install.yml --connection=local -b     
+
+  # This is prompt for the SSH password for the root account of the remote host
+  # The webserver is on a remote host (as reflected by the entry in the inventory)
+  ansible-playbook -e @vars.yml install.yml --ask-pass
+  ```
+* If vCenter folder already exists with the template because you set the vCenter the last time you ran the ansible playbook but want a fresh deployment of VMs after you have erased all the existing VMs in the folder, append the following to the command you chose in the above step
+
+   ```sh 
+   --extra-vars "vcenter_preqs_met=true"
+   ```
+* If would rather want to clean all folders `bin`, `downloads`, `install-dir` and re-download all the artifacts, append the following to the command you chose in the first step
+   ```sh 
+   --extra-vars "clean=true"
+   ```
+### Expected Outcome
 
 1. Folders [bin, downloads, install-dir] created
-2. Openshift client and install binaries downloaded to the **downloads** folder
+2. OpenShift client, install and .ova binaries downloaded to the **downloads** folder
 3. Unzipped versions of the binaries installed in the **bin** folder
 4. In the **install-dir** folder:
    1. append-bootstrap.ign file with the HTTP URL of the **boostrap.ign** file
    2. master.ign and worker.ign
    3. base64 encoded files (append-bootstrap.64, master.64, worker.64) for (append-bootstrap.ign, master.ign, worker.ign) respectiviely. This step assumes you have **base64** installed and in your **$PATH**
-   4. vCenter configuration parameters in individual files :
-      * append-bootstrap-vm-param.txt
-      * master-vm-param.txt
-      * worker-vm-param.txt
-
-## Copy the bootstrap.ign file to the webserver 
-
-> This is an important step before you deploy/power-on the VMs
-
-If using the helper node, the following command might help!
-
-```sh 
-# Running from the root folder of this repo; below is just an example
-scp install-dir/bootstrap.ign root@192.168.86.180:/var/www/html/ignition
-```
-
-## Automatic creation of VMs in vCenter
-
-### Prereqisites
-
-1. Get the name of the OVF template as deployed in the vCenter folder *(prepopulated with name **rhcos-4.3.0-x86_64-vmware**)*
-2. Get the correct path of the vCenter folder *(prepopulated with an example path in **setup-vcenter-vms.yml**)*
-3. Get the vCenter datastore you want the VMs to use *(prepopulated with **datastore1**)*
-
-*All the prepopulated values are customizable and can be modified as required*
-
-### Setup and Installation
-
-With all the details in hand from the prerequisites, populate the **setup-vcenter-vms.yml** in the root folder of this repo and trigger the installation with the following command 
-
-```sh 
-# Make sure to run this command in the root folder of the repo
-ansible-playbook -e @vars.yml setup-vcenter-vms.yml
-```
-
-### Artifacts Generated 
-
-In vCenter all VMs (bootstrap, master0-2, worker0-2) generated in the designated folder but in **powered-off** state
+5. The **bootstrap.ign** is copied over to the web server in the designated location
+6. A folder is created in the vCenter under the mentioned datacenter and the template file is imported 
+7. The template file is edited to carry certain default settings and runtime parameters common to all the VMs
+8. VMs (bootstrap, master0-2, worker0-2) are generated in the designated folder but in **powered-off** state
 
 ## Final step: Power On
 
