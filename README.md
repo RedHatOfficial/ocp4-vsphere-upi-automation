@@ -1,14 +1,14 @@
 # OCP4 on VMware vSphere UPI Automation
 
-The goal of this repo is to make deploying and redeploying a new OpenShift v4 cluster a snap. The document looks long but after you have used it till the end once, you will appreciate how quickly VMs come up in vCenter for you to start working with. 
+The goal of this repo is to make deploying and redeploying a new OpenShift v4 cluster a snap. Using the same repo and with minor tweaks, it can be applied to any version of OpenShift higher than the current version of 4.3.
 
-Using the same repo and with minor tweaks, it can be applied to any version of OpenShift higher than the current version of 4.3.
+> This repo is most ideal for Home Lab and Proof-of-Concept scenarios. Having said that, if prerequistes (below) can be met and if the vCenter service account can be locked down to access only certain resources and perform only certain actions, the same repo can then be used for DEV or higher environments. Refer to this [link](https://vmware.github.io/vsphere-storage-for-kubernetes/documentation/vcp-roles.html) for more details on required permissions for a vCenter service account.
 
 ## Prerequisites
 
 1. vSphere ESXi and vCenter 6.7 installed 
-2. A datacenter created with a vSphere host added to it 
-3. Ideally have [helper node](https://github.com/christianh814/ocp4-upi-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB/FTP Server]
+2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
+3. Ideally have [helper node](https://github.com/christianh814/ocp4-upi-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB/FTP Server]. ***This repo/approach works only when DHCP provides IP addresses for VMs.*** 
 4. Ansible 2.8.5 or 2.9.3 installed on the machine where this repo is cloned 
    * To install a specific version of Ansible you can run a command like: `sudo dnf -y install ansible-2.8.5`
 
@@ -19,10 +19,11 @@ Using the same repo and with minor tweaks, it can be applied to any version of O
 1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned)
 2. Generate a SSH key pair as per [instructions](https://docs.OpenShift.com/container-platform/4.3/installing/installing_vsphere/installing-vsphere.html#ssh-agent-using_installing-vsphere). The private key will then be used to log into bootstrap/master and worker nodes 
 3. Get the vCenter details:
-   1. IP Address
-   2. Username
-   3. Password
+   1. IP address
+   2. Service account username
+   3. Service account password
    4. Datacenter name *(created in the prerequisites mentioned above)*
+   5. Datastore name
 4. Actual links to the OpenShift Client, Install and .ova binaries *(pre-populated for 4.3.x)*
 5. Downloadable link to `govc` (vSphere CLI, *pre-populated*)
 6. OpenShift cluster 
