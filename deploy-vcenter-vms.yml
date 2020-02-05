@@ -31,7 +31,7 @@
       validate_certs: no
       folder: "{{ folder }}"
       name: bootstrap 
-      state: poweredoff
+      state: poweredon
       template: "{{ vcenter.templateName }}"
       disk:
       - size_gb: 120 
@@ -58,7 +58,7 @@
       validate_certs: no
       folder: "{{ folder }}"
       name: "{{ item.name }}"
-      state: poweredoff
+      state: poweredon
       template: "{{ vcenter.templateName }}"
       disk:
       - size_gb: 120
@@ -89,7 +89,7 @@
       validate_certs: no
       folder: "{{ folder }}"
       name: "{{ item.name }}"
-      state: poweredoff
+      state: poweredon
       template: "{{ vcenter.templateName }}"
       disk:
       - size_gb: 120
@@ -107,6 +107,6 @@
        - key: guestinfo.ignition.config.data
          value: "{{ workerContent }}"
     loop:
-      - { name : "worker0", mac: "00:50:56:a8:aa:a6"}
-      - { name : "worker1", mac: "00:50:56:a8:aa:a7"}
-      - { name : "worker2", mac: "00:50:56:a8:aa:a8"}
+      - { name : "worker0", mac: "00:50:56:a8:aa:a5"}
+      - { name : "worker1", mac: "00:50:56:a8:aa:a6"}
+      - { name : "worker2", mac: "00:50:56:a8:aa:a7"}

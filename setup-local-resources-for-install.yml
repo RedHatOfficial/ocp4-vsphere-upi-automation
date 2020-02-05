@@ -3,7 +3,25 @@
   environment: 
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
 
+  vars:
+    sshKey: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
+
   tasks:
+
+  - name: Install the necessary linux packages which will be needed later in the ansible run
+    yum:
+      name:
+        - patch
+        - gzip
+        - python3
+        - python3-pip
+        - python3-pyvmomi
+    become: true
+
+  - name: Generate a SSH key-pair
+    openssh_keypair:
+      path: ~/.ssh/ocp4
+      force: false
 
   - name: Clean up existing bin, install-dir and downloads folders
     file: 
