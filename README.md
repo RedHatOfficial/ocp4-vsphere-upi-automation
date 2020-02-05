@@ -32,8 +32,8 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
    1. base domain *(pre-populated with **example.com**)*
    2. cluster name *(pre-populated with **ocp4**)*
 6. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with a example config pointing to helper node)*
-7. Update the **inventory** file and under the `[webservers]` entry use : 
-   * **localhost** : if the `ansible-playbook` is being run on the same host  as the webserver that would eventually host **bootstrap.ign**,  
+7. Update the **inventory** file and under the `[webservers]` entry use one of the below : 
+   * **localhost** : if the `ansible-playbook` is being run on the same host  as the webserver that would eventually host bootstrap.ign file
    * the IP address or FQDN of the machine that would run the webserver. 
 
 The step **#6** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
@@ -43,23 +43,27 @@ The step **#6** needn't exist at the time of running the setup/installation step
 With all the details in hand from the prerequisites, populate the **vars.yml** in the root folder of this repo and trigger the installation with the following options:
 
 * If running for the very first time **OR** If you have already run (at least) once and want to re-run again without recreating `bin` and `downloads` folders, choose (**only**) one of the following:
-   ```sh 
-   # When you have not done a sudo in the session yet 
-   # The webserver is on localhost (as reflected by the entry in the inventory)
+   >* **--ask-become-pass** will prompt for the sudoer's password for localhost
+   >* **--ask-pass** will prompt for SSH password of the root account of the remote server
+
+   #### Running the playbook as root
+
+   ```sh
+   # If the localhost runs the webserver as well; the inventory has localhost under [webservers]
+   ansible-playbook -e @vars.yml install.yml --connection=local
+
+   # If a remote host runs the webserver
+   ansible-playbook -e @vars.yml install.yml --ask-pass
+   ```
+
+   #### Running the playbook as non-root
+
+   ```sh    
+   # If the localhost runs the webserver as well; the inventory has localhost under [webservers]  
    ansible-playbook -e @vars.yml install.yml --connection=local -b --ask-become-pass
 
-   # When you have done a sudo just recently 
-   # The webserver is on localhost (as reflected by the entry in the inventory)
-   ansible-playbook -e @vars.yml install.yml --connection=local -b     
-
-   # This is prompt for the SSH password for the root account of the remote host
-   # The webserver is on a remote host (as reflected by the entry in the inventory)
-
-      #if running ansible-playbook as root
-      ansible-playbook -e @vars.yml install.yml --ask-pass 
-      
-      #if running ansible-playbook as a non-root account, will prompt for BECOME (sudo) password
-      ansible-playbook -e @vars.yml install.yml --ask-pass --ask-become-pass 
+   # If a remote host runs the webserver
+   ansible-playbook -e @vars.yml install.yml --ask-pass --ask-become-pass 
   ```
 * If vCenter folder already exists with the template because you set the vCenter the last time you ran the ansible playbook but want a fresh deployment of VMs **after** you have erased all the existing VMs in the folder, append the following to the command you chose in the above step
 
