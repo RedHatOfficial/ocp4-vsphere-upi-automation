@@ -4,7 +4,6 @@ bootstrap:
 config:
   baseDomain: example.com
   clusterName: ocp4
-  sshKey: ssh-rsa ...
   pullSecret: {"auths": ... }
 vcenter:
   ip: 192.168.86.100
