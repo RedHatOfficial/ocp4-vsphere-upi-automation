@@ -1,9 +1,0 @@
-- hosts: webservers
-  
-  tasks:
-  
-  - name: Copy the append-bootstrap.ign file over to the webserver
-    copy:
-      src: install-dir/bootstrap.ign
-      dest: /var/www/html/ignition/bootstrap.ign
-      owner: root

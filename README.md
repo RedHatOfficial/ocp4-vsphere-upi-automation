@@ -8,7 +8,7 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
 
 1. vSphere ESXi and vCenter 6.7 installed 
 2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
-3. Ideally have [helper node](https://github.com/christianh814/ocp4-upi-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. 
+3. Strongly recommend having a [helper node](https://github.com/christianh814/ocp4-upi-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. If using **helper node**, the MAC addresses for the machines should match between repos.
    * The necessary services such as [DHCP/DNS/HAProxy as LB] must be up and running before this repo can be used
    * This repo/approach works only when DHCP provides IP addresses for VMs.
 4. Ansible 2.8.5 or 2.9.3 installed, ideally with **Python 3** on the machine where this repo is cloned 

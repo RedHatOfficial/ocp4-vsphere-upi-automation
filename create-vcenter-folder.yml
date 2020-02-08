@@ -1,0 +1,17 @@
+- hosts: localhost
+
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ vcenter.username }}"
+    GOVC_PASSWORD: "{{ vcenter.password }}"
+    GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_INSECURE: 1
+
+  vars:
+    folder : "/{{ vcenter.datacenter }}/vm/{{ config.clusterName }}"
+
+  tasks:
+
+  - name: Create the vCenter folder by the same name as the cluster
+    command: "govc folder.create {{ folder }}"
+    when: vcenter_preqs_met is not defined

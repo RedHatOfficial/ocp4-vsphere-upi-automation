@@ -1,0 +1,11 @@
+- hosts: webservers
+  
+  tasks:
+  
+  - name: Copy the all the ignition files over to the webserver
+    copy:
+      src: "{{ item }}" 
+      dest: "/var/www/html/ignition/"
+      owner: root
+    with_fileglob:
+      - "install-dir/*.ign"

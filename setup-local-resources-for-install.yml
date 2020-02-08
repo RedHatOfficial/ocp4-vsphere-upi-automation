@@ -44,13 +44,6 @@
       mode: '0755'
     with_items: ["bin", "downloads", "install-dir"]  
 
-  - name: Download the ova file 
-    get_url:
-      url: "{{ download.ova }}"
-      dest: "{{ playbook_dir }}/downloads/{{vcenter.templateName}}.ova"
-      validate_certs: no
-    when: vcenter_preqs_met is not defined
-
   - name: Download the oc client
     get_url:
       url: "{{ download.openshiftClient }}"
@@ -74,6 +67,20 @@
       src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
       dest: "{{ playbook_dir }}/bin"
       remote_src: yes
+
+  - name: Download govc
+    get_url:
+      url: "{{ download.govc}}"
+      dest: "{{ playbook_dir }}/downloads/govc.gz"
+      validate_certs: no    
+
+  - name: Unarchive govc
+    shell: gzip -dkc "{{ playbook_dir }}/downloads/govc.gz" > "{{ playbook_dir }}/bin/govc"
+
+  - name: Make govc executable
+    file:
+      path: "{{ playbook_dir }}/bin/govc"
+      mode: '775'
 
   - name: Copy install-config.yaml file into install-dir
     template:
