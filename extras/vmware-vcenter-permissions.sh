@@ -10,7 +10,7 @@ export NETWORK="VM Network"
 # The following are vSphere Administator creds
 # Change the USER above and the Administrator creds below before executing
 export GOVC_USERNAME=administrator@vsphere.local
-export GOVC_PASSWORD=WierdPassword
+export GOVC_PASSWORD=WeirdPassword
 export GOVC_URL=https://192.168.86.100 # vCenter URL
 export GOVC_INSECURE=1
 
@@ -19,7 +19,7 @@ revoke () {
     govc permissions.remove -principal $USER /$DATACENTER
     govc permissions.remove -principal $USER /$DATACENTER/datastore/$DATASTORE
     govc permissions.remove -principal $USER /$DATACENTER/host/$HOST
-    govc permissions.remove -principal $USER /$DATACENTER/network/$NETWORK
+    govc permissions.remove -principal $USER "/$DATACENTER/network/$NETWORK"
     govc permissions.remove -principal $USER /$DATACENTER/vm/$FOLDER
     govc role.remove k8s-system-read-and-spbm-profile-view
     govc role.remove manage-k8s-volumes
@@ -56,7 +56,7 @@ add () {
         /$DATACENTER/datastore/$DATASTORE \
         /$DATACENTER/host/$HOST \
         /$DATACENTER/vm/$FOLDER \
-        /$DATACENTER/network/$NETWORK
+        "/$DATACENTER/network/$NETWORK"
 
     govc permissions.set -principal $USER \
         -role k8s-system-read-and-spbm-profile-view \
@@ -80,7 +80,7 @@ add () {
         -role ReadOnly \
         -role manage-k8s-network \
         -propagate=false \
-        /$DATACENTER/network/$NETWORK
+        "/$DATACENTER/network/$NETWORK"
 
     govc role.create manage-k8s-folder-permissions \
         $(govc role.ls Admin |
