@@ -28,7 +28,7 @@ revoke () {
     govc role.remove manage-k8s-folder-permissions
 }
 
-add() {
+add () {
     #------------------------------------------------------------------------------
     # As per the documentation provided here:
     # https://vmware.github.io/vsphere-storage-for-kubernetes/documentation/vcp-roles.html#static-provisioning
@@ -89,13 +89,23 @@ add() {
         -propagate=true /$DATACENTER/vm/$FOLDER
 }
 
-if [ "$1" = "add" ]
-then 
-    add
-elif [ "$1" = "revoke" ]
-then 
-    revoke
-else 
-    echo "Operation failed! Required parameter to the script was not passed" 
-    echo "Usage: vmware-vcenter-permissions.sh [add|revoke]"
-fi
+showhelp () {
+    echo "Usage: $(basename $0) [add|revoke|help]"
+}
+
+case "$1" in
+	add)
+	  add
+	  ;;
+	revoke)
+	  revoke
+	  ;;
+	help|-h)
+	  showhelp
+	  ;;
+	*)
+	  echo "Operation failed! Required parameter to the script was not passed" 
+	  showhelp
+	  exit 254
+	  ;;
+esac
