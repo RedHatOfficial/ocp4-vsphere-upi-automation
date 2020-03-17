@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/sh
 
 export DATACENTER="dc"
 export DATASTORE="datastore1"
