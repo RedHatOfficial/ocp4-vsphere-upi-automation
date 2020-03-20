@@ -1,13 +1,3 @@
-- hosts: localhost
-
-  environment: 
-    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
-
-  vars:
-    sshKey: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
-
-  tasks:
-
   - name: Install the necessary linux packages which will be needed later in the ansible run
     yum:
       name:
@@ -30,7 +20,7 @@
     with_items: ["bin", "install-dir", "downloads"]
     when: clean is defined
 
-  - name: Must clean install-dir
+  - name: Must always clean install-dir
     file:
       path: "{{ playbook_dir }}/{{ item }}"
       state: absent
@@ -44,13 +34,13 @@
       mode: '0755'
     with_items: ["bin", "downloads", "install-dir"]  
 
-  - name: Download the oc client
+  - name: Download the oc client binary
     get_url:
       url: "{{ download.openshiftClient }}"
       dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
       validate_certs: no
 
-  - name: Download the openshift-install 
+  - name: Download the openshift-install binary
     get_url:
       url: "{{ download.openshiftInstall }}"
       dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
@@ -60,13 +50,11 @@
     unarchive:
       src: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
       dest: "{{ playbook_dir }}/bin"
-      remote_src: yes
 
   - name: Unarchive openshift-install 
     unarchive:
       src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
       dest: "{{ playbook_dir }}/bin"
-      remote_src: yes
 
   - name: Download govc
     get_url:
@@ -75,7 +63,7 @@
       validate_certs: no    
 
   - name: Unarchive govc
-    shell: gzip -dkc "{{ playbook_dir }}/downloads/govc.gz" > "{{ playbook_dir }}/bin/govc"
+    shell: gzip -dc "{{ playbook_dir }}/downloads/govc.gz" > "{{ playbook_dir }}/bin/govc"
 
   - name: Make govc executable
     file:
@@ -84,7 +72,7 @@
 
   - name: Copy install-config.yaml file into install-dir
     template:
-      src: "{{ playbook_dir }}/templates/install-config.yaml.j2"
+      src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.j2"
       dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
 
   - name: Backup the install-config.yaml file 
@@ -97,22 +85,8 @@
 
   - name: Apply the patch to set mastersSchedulable to false
     patch:
-      src: "{{ playbook_dir }}/patches/cluster-scheduler-02-config.yml.patch"
+      src: "cluster-scheduler-02-config.yml.patch"
       dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
 
   - name: Generate the ignition configs
     command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir"
-
-  - name: Copy append-bootstrap.ign file into install-dir
-    template: 
-      src: "{{ playbook_dir }}/templates/append-bootstrap.ign.j2"
-      dest: "{{ playbook_dir }}/install-dir/append-bootstrap.ign"
-
-  - name: Get base64 version of append-bootstrap.ign
-    shell: "base64 -w0 {{ playbook_dir }}/install-dir/append-bootstrap.ign > {{ playbook_dir }}/install-dir/append-bootstrap.64"
-
-  - name: Get base64 version of master.ign
-    shell: "base64 -w0 {{ playbook_dir }}/install-dir/master.ign > {{ playbook_dir }}/install-dir/master.64"
-
-  - name: Get base64 version of worker.ign
-    shell: "base64 -w0 {{ playbook_dir }}/install-dir/worker.ign > {{ playbook_dir }}/install-dir/worker.64"
