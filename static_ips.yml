@@ -1,0 +1,18 @@
+---
+- hosts: localhost 
+  roles:
+    - common
+- hosts: webservers
+  roles:
+    - ignition
+- hosts: localhost 
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ vcenter.admin_username }}"
+    GOVC_PASSWORD: "{{ vcenter.admin_password }}"
+    GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_INSECURE: 1
+  roles:
+    - vmware
+    - dhcp_pxe
+    - static_ips

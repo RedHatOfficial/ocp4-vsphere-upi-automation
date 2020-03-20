@@ -1,0 +1,15 @@
+  - name: Download Openshift 4 ISO file
+    get_url:
+      url: "{{ download.iso }}"
+      dest: "{{ playbook_dir }}/downloads/rhcos.iso"
+
+  - name: Upload RHCOS ISO into the datastore
+    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ playbook_dir }}/downloads/rhcos.iso ./rhcos.iso"
+
+  - name: Add a cdrom device to all the OpenShift VMs
+    command: "govc device.cdrom.add -vm {{ item }}"
+    loop: ["bootstrap","master0","master1","master2","worker0","worker1","worker2"]
+
+  - name: Insert the uploaded ISO file as cdrom to all the OpenShift VMs
+    command: "govc device.cdrom.insert -vm {{ item }} -ds {{ vcenter.datastore }} ./rhcos.iso"
+    loop: ["bootstrap","master0","master1","master2","worker0","worker1","worker2"]
