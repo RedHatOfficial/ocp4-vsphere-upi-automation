@@ -4,6 +4,7 @@
       name:
         - patch
         - gzip
+        - python-pip
         - python3
         - python3-pip
     become: true
@@ -12,6 +13,12 @@
     pip: 
       name: pyvmomi
     become: true
+
+  - name: Create ~/.ssh directory if it does not exist
+    file:
+      path: ~/.ssh
+      state: directory
+      mode: '0755'
 
   - name: Generate a SSH key-pair
     openssh_keypair:
