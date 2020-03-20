@@ -136,4 +136,3 @@
       - { name : "worker0", mac: "00:50:56:a8:aa:a5"}
       - { name : "worker1", mac: "00:50:56:a8:aa:a6"}
       - { name : "worker2", mac: "00:50:56:a8:aa:a7"}
-

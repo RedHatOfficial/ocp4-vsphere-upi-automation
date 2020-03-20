@@ -22,4 +22,7 @@ download:
   openshiftInstall: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux-4.3.5.tar.gz"
   govc: "https://github.com/vmware/govmomi/releases/download/v0.22.1/govc_linux_amd64.gz"
   ova: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest/rhcos-4.3.0-x86_64-vmware.ova"
+  initramfs: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-4.3.0-x86_64-installer-initramfs.img"
+  kernel: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-4.3.0-x86_64-installer-kernel"
+  iso: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-4.3.0-x86_64-installer.iso"  
 

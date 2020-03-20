@@ -5,6 +5,7 @@
 - hosts: webservers
   roles:
     - ignition
+    - pxe
 - hosts: localhost 
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
@@ -14,4 +15,4 @@
     GOVC_INSECURE: 1
   roles:
     - vmware
-    - dhcp_ova
+    - dhcp_pxe

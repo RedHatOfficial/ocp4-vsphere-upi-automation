@@ -1,0 +1,83 @@
+  - name: Create bootstrap VM from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      guest_id: "rhel7_64Guest"
+      validate_certs: no
+      folder: "{{ folder }}"
+      name: bootstrap
+      state: "{{ vcenter.vm_power_state }}"
+      disk:
+      - size_gb: 120
+        type: thin
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: 16384
+        num_cpus: 4
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "00:50:56:a8:aa:a1"
+      wait_for_ip_address: no
+
+  - name: Create master VMs from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      guest_id: "rhel7_64Guest"
+      validate_certs: no
+      folder: "{{ folder }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      disk:
+      - size_gb: 120
+        type: thin
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: 16384
+        num_cpus: 4
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.mac }}"
+      wait_for_ip_address: no
+    loop:
+      - { name : "master0", mac: "00:50:56:a8:aa:a2"}
+      - { name : "master1", mac: "00:50:56:a8:aa:a3"}
+      - { name : "master2", mac: "00:50:56:a8:aa:a4"}
+
+  - name: Create worker VMs from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      guest_id: "rhel7_64Guest"
+      validate_certs: no
+      folder: "{{ folder }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      disk:
+      - size_gb: 120
+        type: thin
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: 16384
+        num_cpus: 4
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.mac }}"
+      wait_for_ip_address: no
+    loop:
+      - { name : "worker0", mac: "00:50:56:a8:aa:a5"}
+      - { name : "worker1", mac: "00:50:56:a8:aa:a6"}
+      - { name : "worker2", mac: "00:50:56:a8:aa:a7"}
+
+  - name: Update VM options on the template
+    command: "govc vm.change -vm {{ folder }}/{{ item }} -e=disk.EnableUUID=TRUE"
+    loop: ["bootstrap","master0","master1","master2","worker0","worker1","worker2"]
