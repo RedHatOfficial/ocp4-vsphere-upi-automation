@@ -1,0 +1,30 @@
+---
+- hosts: localhost 
+  tasks:
+    - name: Run all the common tasks
+      import_role:
+        name: common
+- hosts: webservers
+  tasks:
+    - name: Copy over generated ignition files to webserver
+      import_role:
+        name: webserver
+        tasks_from: copy_ign_files
+    - name: Download Openshift installer files needed for PXE boot
+      import_role:
+        name: webserver
+        tasks_from: download_pxe_installer_files
+- hosts: localhost 
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ vcenter.admin_username }}"
+    GOVC_PASSWORD: "{{ vcenter.admin_password }}"
+    GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_INSECURE: 1
+  tasks:
+    - name: Run the vmware role to setup vCenter folder
+      import_role:
+        name: vmware
+    - name: Run steps specific to DHCP and PXE boot
+      import_role:
+        name: dhcp_pxe

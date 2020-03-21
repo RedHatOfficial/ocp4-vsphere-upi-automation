@@ -1,0 +1,138 @@
+  - name: Copy append-bootstrap.ign file into install-dir
+    template:
+      src: "append-bootstrap.ign.j2"
+      dest: "{{ playbook_dir }}/install-dir/append-bootstrap.ign"
+  
+  - name: Download the ova file 
+    get_url:
+      url: "{{ download.ova }}"
+      dest: "{{ playbook_dir }}/downloads/{{vcenter.templateName}}.ova"
+      validate_certs: no
+    when: vcenter_preqs_met is not defined
+
+  - name: Deploy the OVF template into the folder
+    vmware_deploy_ovf:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.admin_username }}"
+      password: "{{ vcenter.admin_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      datastore: "{{ vcenter.datastore }}"
+      folder: "{{ folder }}"
+      name: '{{ vcenter.templateName }}'
+      allow_duplicates: False
+      disk_provisioning: thin
+      networks: "{u'VM Network':u'{{ vcenter.network }}'}"
+      ova: "{{ playbook_dir }}/downloads/{{vcenter.templateName}}.ova"
+      power_on: False
+      validate_certs: False
+    when: vcenter_preqs_met is not defined
+  
+  - name: Remove the Network Adapter  
+    command: "govc device.remove -vm {{ folder }}/{{ vcenter.templateName }} ethernet-0"
+    when: vcenter_preqs_met is not defined
+
+  - name: Update VM options on the template
+    command: "govc vm.change -vm {{ folder }}/{{ vcenter.templateName }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"
+    when: vcenter_preqs_met is not defined      
+
+  - name: "Bootstrap base64"
+    debug:
+      msg: "{{ appendBootstrapContent }}"
+      verbosity: 1
+  - name: "Master base64"
+    debug:
+      msg: "{{ masterContent }}"
+      verbosity: 1
+  - name: "Worker base64 "
+    debug:
+      msg: "{{ workerContent }}"
+      verbosity: 1
+
+  - name: Create bootstrap VM from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      validate_certs: no
+      folder: "{{ folder }}"
+      name: bootstrap
+      state: "{{ vcenter.vm_power_state }}"
+      template: "{{ vcenter.templateName }}"
+      disk:
+      - size_gb: 120
+        type: thin
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: 16384
+        num_cpus: 4
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "00:50:56:a8:aa:a1"
+      wait_for_ip_address: no
+      customvalues:
+        - key: guestinfo.ignition.config.data
+          value: "{{ appendBootstrapContent }}"
+
+  - name: Create master VMs from ther template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      validate_certs: no
+      folder: "{{ folder }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      template: "{{ vcenter.templateName }}"
+      disk:
+      - size_gb: 120
+        type: thin
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: 16384
+        num_cpus: 4
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.mac }}"
+      wait_for_ip_address: no
+      customvalues:
+       - key: guestinfo.ignition.config.data
+         value: "{{ masterContent }}"
+    loop:
+      - { name : "master0", mac: "00:50:56:a8:aa:a2"}
+      - { name : "master1", mac: "00:50:56:a8:aa:a3"}
+      - { name : "master2", mac: "00:50:56:a8:aa:a4"}
+
+  - name: Create worker VMs from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      validate_certs: no
+      folder: "{{ folder }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      template: "{{ vcenter.templateName }}"
+      disk:
+      - size_gb: 120
+        type: thin
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: 16384
+        num_cpus: 4
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.mac }}"
+      wait_for_ip_address: no
+      customvalues:
+       - key: guestinfo.ignition.config.data
+         value: "{{ workerContent }}"
+    loop:
+      - { name : "worker0", mac: "00:50:56:a8:aa:a5"}
+      - { name : "worker1", mac: "00:50:56:a8:aa:a6"}
+      - { name : "worker2", mac: "00:50:56:a8:aa:a7"}

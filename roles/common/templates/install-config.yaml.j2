@@ -13,9 +13,9 @@ metadata:
 platform:
   vsphere:
     vcenter: {{ vcenter.ip }}
-    username: {{ vcenter.username }}
-    password: {{ vcenter.password }}
+    username: {{ vcenter.service_account_username }}
+    password: {{ vcenter.service_account_password }}
     datacenter: {{ vcenter.datacenter }}
     defaultDatastore: {{ vcenter.datastore }}
 pullSecret: '{{ config.pullSecret | to_json }}'
-sshKey: '{{ sshKey }}'
+sshKey: '{{ config.sshKey }}'

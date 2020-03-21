@@ -1,0 +1,43 @@
+---
+disk: sda 
+helper:
+  name: "helper"
+  ipaddr: "192.168.86.180"
+  networkifacename: "ens192"
+dns:
+  domain: "example.com"
+  clusterid: "ocp4"
+  forwarder1: "8.8.8.8"
+  forwarder2: "8.8.4.4"
+dhcp:
+  router: "192.168.86.1"
+  bcast: "192.168.86.255"
+  netmask: "255.255.255.0"
+  poolstart: "192.168.86.181"
+  poolend: "192.168.86.187"
+  ipid: "192.168.86.0"
+  netmaskid: "255.255.255.0"
+bootstrap:
+  name: "bootstrap"
+  ipaddr: "192.168.86.181"
+  macaddr: "00:50:56:a8:aa:a1"
+masters:
+  - name: "master0"
+    ipaddr: "192.168.86.182"
+    macaddr: "00:50:56:a8:aa:a2"
+  - name: "master1"
+    ipaddr: "192.168.86.183"
+    macaddr: "00:50:56:a8:aa:a3"
+  - name: "master2"
+    ipaddr: "192.168.86.184"
+    macaddr: "00:50:56:a8:aa:a4"
+workers:
+  - name: "worker0"
+    ipaddr: "192.168.86.185"
+    macaddr: "00:50:56:a8:aa:a5"
+  - name: "worker1"
+    ipaddr: "192.168.86.186"
+    macaddr: "00:50:56:a8:aa:a6"
+  - name: "worker2"
+    ipaddr: "192.168.86.187"
+    macaddr: "00:50:56:a8:aa:a7"

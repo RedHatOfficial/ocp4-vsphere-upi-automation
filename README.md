@@ -8,7 +8,7 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
 
 1. vSphere ESXi and vCenter 6.7 installed 
 2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
-3. Strongly recommend having a [helper node](https://github.com/christianh814/ocp4-upi-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. If using **helper node**, the MAC addresses for the machines should match between repos.
+3. Strongly recommend having a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. If using **helper node**, the MAC addresses for the machines should match between repos.
    * The necessary services such as [DHCP/DNS/HAProxy as LB] must be up and running before this repo can be used
    * This repo/approach works only when DHCP provides IP addresses for VMs.
 4. Ansible 2.8.5 or 2.9.3 installed, ideally with **Python 3** on the machine where this repo is cloned 
@@ -18,21 +18,23 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
 ## Automatic generation of ignition and other supporting files
 
 ### Prerequisites 
-> Pre-populated entries in **vars.yml** are ready to be used unless you want to customize further
+> Pre-populated entries in **group_vars/all.yml** are ready to be used unless you want to customize further
 1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned)
 2. Get the vCenter details:
    1. IP address
-   2. Service account username
-   3. Service account password
-   4. Datacenter name *(created in the prerequisites mentioned above)*
-   5. Datastore name
+   2. Service account username (can be the same as admin)
+   3. Service account password (can be the same as admin)
+   4. Admin account username 
+   5. Admin account password
+   6. Datacenter name *(created in the prerequisites mentioned above)*
+   7. Datastore name
 3. Actual links to the OpenShift Client, Install and .ova binaries *(pre-populated for 4.3.x)*
 4. Downloadable link to `govc` (vSphere CLI, *pre-populated*)
 5. OpenShift cluster 
    1. base domain *(pre-populated with **example.com**)*
    2. cluster name *(pre-populated with **ocp4**)*
 6. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with a example config pointing to helper node)*
-7. Update the **inventory** file and under the `[webservers]` entry use one of the below : 
+7. Update the inventory file: **staging** and under the `webservers.hosts` entry, use one of the below : 
    * **localhost** : if the `ansible-playbook` is being run on the same host  as the webserver that would eventually host bootstrap.ign file
    * the IP address or FQDN of the machine that would run the webserver. 
 
@@ -40,31 +42,57 @@ The step **#6** needn't exist at the time of running the setup/installation step
    
 ### Setup and Installation
 
-With all the details in hand from the prerequisites, populate the **vars.yml** in the root folder of this repo and trigger the installation with the following options:
+With all the details in hand from the prerequisites, populate the **group_vars/all.yml**, configure `ansible.cfg` based on your environment and then follow one of the three options listed below.
 
-* If running for the very first time **OR** If you have already run (at least) once and want to re-run again without recreating `bin` and `downloads` folders, choose (**only**) one of the following:
-   >* **--ask-become-pass** will prompt for the sudoer's password for localhost
-   >* **--ask-pass** will prompt for SSH password of the root account of the remote server
+#### Update the `ansible.cfg` based on your needs
 
-   #### Running the playbook as root
+* Running the playbook as a **root** user
+  * If the localhost runs the webserver
+      ```
+      [defaults]
+      host_key_checking = False 
+      ```
+  * If the remote host runs the webserver
+      ```
+      [defaults]
+      host_key_checking = False
+      remote_user = root
+      ask_pass = True 
+      ```
+* Running the playbook as a **non-root** user
+  * If the localhost runs the webserver
+      ```
+      [defaults]
+      host_key_checking = False 
 
-   ```sh
-   # If the localhost runs the webserver as well; the inventory has localhost under [webservers]
-   ansible-playbook -e @vars.yml install.yml --connection=local
+      [privilege_escalation]
+      become_ask_pass = True
+      ```
+  * If the remote host runs the webserver
+      ```
+      [defaults]
+      host_key_checking = False 
+      remote_user = root
+      ask_pass = True
 
-   # If a remote host runs the webserver
-   ansible-playbook -e @vars.yml install.yml --ask-pass
-   ```
+      [privilege_escalation]
+      become_ask_pass = True
+      ```
 
-   #### Running the playbook as non-root
+#### Option 1: DHCP + use of OVA template
+```sh 
+ansible-playbook -i staging dhcp_ova.yml
+```
+#### Option 2: DHCP + PXE boot
+```sh 
+ansible-playbook -i staging dhcp_pxe.yml
+```
+#### Option 3: ISO + Static IPs
+```sh 
+ansible-playbook -i staging static_ips.yml
+```
 
-   ```sh    
-   # If the localhost runs the webserver as well; the inventory has localhost under [webservers]  
-   ansible-playbook -e @vars.yml install.yml --connection=local -b --ask-become-pass
-
-   # If a remote host runs the webserver
-   ansible-playbook -e @vars.yml install.yml --ask-pass --ask-become-pass 
-  ```
+#### Miscellaneous
 * If vCenter folder already exists with the template because you set the vCenter the last time you ran the ansible playbook but want a fresh deployment of VMs **after** you have erased all the existing VMs in the folder, append the following to the command you chose in the above step
 
    ```sh 

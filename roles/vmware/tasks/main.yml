@@ -1,0 +1,3 @@
+  - name: Create the vCenter folder by the same name as the cluster
+    command: "govc folder.create {{ folder }}"
+    when: vcenter_preqs_met is not defined

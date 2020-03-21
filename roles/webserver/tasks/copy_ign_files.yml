@@ -1,7 +1,3 @@
-- hosts: webservers
-  
-  tasks:
-  
   - name: Copy the all the ignition files over to the webserver
     copy:
       src: "{{ item }}" 

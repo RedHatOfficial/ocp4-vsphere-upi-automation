@@ -1,0 +1,13 @@
+  - name: Downloading OpenShift installer initramfs
+    get_url:
+      url: "{{ download.initramfs }}"
+      dest: /var/lib/tftpboot/rhcos/initramfs.img
+      force: yes
+      mode: 0555
+
+  - name: Downloading OpenShift installer kernel
+    get_url:
+      url: "{{ download.kernel }}"
+      dest: /var/lib/tftpboot/rhcos/kernel
+      force: yes
+      mode: 0555
