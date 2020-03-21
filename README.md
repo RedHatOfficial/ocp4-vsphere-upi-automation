@@ -89,8 +89,6 @@ ansible-playbook -i staging dhcp_pxe.yml
 ```
 #### Option 3: ISO + Static IPs
 ```sh 
-# The Ansible variable vcenter.vm_power_state should be set to poweredoff 
-# in group_vars/all.yml
 ansible-playbook -i staging static_ips.yml
 ```
 
