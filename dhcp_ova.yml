@@ -1,10 +1,15 @@
 ---
 - hosts: localhost 
-  roles:
-    - common
+  tasks:
+    - name: Run all the common tasks
+      import_role:
+        name: common
 - hosts: webservers
-  roles:
-    - ignition
+  tasks:
+    - name: Copy over generated ignition files to webserver
+      import_role:
+        name: webserver
+        tasks_from: copy_ign_files
 - hosts: localhost 
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
@@ -12,6 +17,10 @@
     GOVC_PASSWORD: "{{ vcenter.admin_password }}"
     GOVC_URL: "https://{{ vcenter.ip }}"
     GOVC_INSECURE: 1
-  roles:
-    - vmware
-    - dhcp_ova
+  tasks:
+    - name: Run the vmware role to setup vCenter folder
+      import_role:
+        name: vmware
+    - name: Run steps specific to DHCP and the use of an OVA file
+      import_role:
+        name: dhcp_ova

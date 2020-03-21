@@ -1,10 +1,19 @@
 ---
 - hosts: localhost 
-  roles:
-    - common
+  tasks:
+    - name: Run all the common tasks
+      import_role:
+        name: common
 - hosts: webservers
-  roles:
-    - ignition
+  tasks:
+    - name: Copy over generated ignition files to webserver
+      import_role:
+        name: webserver
+        tasks_from: copy_ign_files
+    - name: Download the installer raw.gz file to webserver
+      import_role:
+        name: webserver
+        tasks_from: download_raw_installer_files
 - hosts: localhost 
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
@@ -12,7 +21,18 @@
     GOVC_PASSWORD: "{{ vcenter.admin_password }}"
     GOVC_URL: "https://{{ vcenter.ip }}"
     GOVC_INSECURE: 1
-  roles:
-    - vmware
-    - dhcp_pxe
-    - static_ips
+  tasks:
+    - name: Run the vmware role to setup vCenter folder
+      import_role:
+        name: vmware
+    - name: Reset the vcenter.vm_power_state to poweredoff
+      set_fact:
+        vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredoff'}, recursive=True) }}"
+    - name: Echo the value of the variable vcenter.vm_power_state
+      debug: var=vcenter.vm_power_state
+    - name: Run steps specific to DHCP and PXE boot
+      import_role:
+        name: dhcp_pxe
+    - name: Run steps for static ip setup of VMs
+      import_role:
+        name: static_ips
