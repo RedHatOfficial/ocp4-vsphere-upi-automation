@@ -1,10 +1,14 @@
 ---
 - hosts: localhost 
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
     - name: Run all the common tasks
       import_role:
         name: common
 - hosts: webservers
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
     - name: Copy over generated ignition files to webserver
       import_role:
