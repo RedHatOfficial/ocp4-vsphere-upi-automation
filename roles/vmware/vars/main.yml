@@ -1,1 +1,1 @@
-folder : "/{{ vcenter.datacenter }}/vm/{{ config.clusterName }}"
+folder : "/{{ vcenter.datacenter }}/vm/{{ config.cluster_name }}"

@@ -56,7 +56,7 @@
       datacenter: "{{ vcenter.datacenter }}"
       validate_certs: no
       folder: "{{ folder }}"
-      name: bootstrap
+      name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       template: "{{ vcenter.templateName }}"
       disk:
@@ -69,11 +69,12 @@
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
-        mac: "00:50:56:a8:aa:a1"
+        mac: "{{ item.mac }}"
       wait_for_ip_address: no
       customvalues:
         - key: guestinfo.ignition.config.data
           value: "{{ appendBootstrapContent }}"
+    loop: "{{ bootstrap_vms }}"
 
   - name: Create master VMs from ther template
     vmware_guest:
@@ -101,10 +102,7 @@
       customvalues:
        - key: guestinfo.ignition.config.data
          value: "{{ masterContent }}"
-    loop:
-      - { name : "master0", mac: "00:50:56:a8:aa:a2"}
-      - { name : "master1", mac: "00:50:56:a8:aa:a3"}
-      - { name : "master2", mac: "00:50:56:a8:aa:a4"}
+    loop: "{{ master_vms }}"
 
   - name: Create worker VMs from the template
     vmware_guest:
@@ -132,7 +130,4 @@
       customvalues:
        - key: guestinfo.ignition.config.data
          value: "{{ workerContent }}"
-    loop:
-      - { name : "worker0", mac: "00:50:56:a8:aa:a5"}
-      - { name : "worker1", mac: "00:50:56:a8:aa:a6"}
-      - { name : "worker2", mac: "00:50:56:a8:aa:a7"}
+    loop: "{{ worker_vms }}"

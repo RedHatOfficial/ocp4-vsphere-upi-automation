@@ -1,0 +1,24 @@
+  - name: Fetch the content of the sha256sum.txt from the clients downloads page
+    uri:
+      url: "{{ download.clients_url }}/sha256sum.txt"
+      return_content: yes
+    register: clients_content
+
+  - name: Fetch the content of the sha256sum.txt from the dependencies downloads page
+    uri:
+      url: "{{ download.dependencies_url }}/sha256sum.txt"
+      return_content: yes
+    register: dependencies_content
+
+  - name:  Set the download facts that will be used later
+    set_fact:
+      download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
+      cacheable: yes
+    loop: 
+      - { key: "iso", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.iso') }}" }
+      - { key: "raw", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.raw.gz') }}" }
+      - { key: "kernel", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*kernel.*') }}" }
+      - { key: "initramfs", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*initramfs.*') }}" }
+      - { key: "ova", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.ova') }}" }
+      - { key: "openshiftClient", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-client-linux-.*.tar.gz') }}" }
+      - { key: "openshiftInstall", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-install-linux-.*.tar.gz') }}" }
