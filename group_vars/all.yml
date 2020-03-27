@@ -1,11 +1,10 @@
 ---
-bootstrap:
-  ignHttpLocation: http://192.168.86.180:8080/ignition/bootstrap.ign 
+bootstrap_ignition_url: http://192.168.86.180:8080/ignition/bootstrap.ign 
 config:
-  baseDomain: example.com
-  clusterName: ocp4
-  sshKey: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
-  pullSecret: {"auths": ... }
+  base_domain: example.com
+  cluster_name: ocp4
+  installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
+  pull_secret: {"auths": ...}
 vcenter:
   ip: 192.168.86.100
   datastore: datastore1
@@ -13,16 +12,21 @@ vcenter:
   service_account_username: administrator@vsphere.local
   service_account_password: something
   admin_username: administrator@vsphere.local 
-  admin_password: something 
+  admin_password: something
   datacenter: dc
   vm_power_state: poweredon
-  templateName: rhcos-4.3.0-x86_64-vmware
+  templateName: rhcos-vmware
 download:
-  openshiftClient: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux-4.3.5.tar.gz"
-  openshiftInstall: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux-4.3.5.tar.gz"
-  govc: "https://github.com/vmware/govmomi/releases/download/v0.22.1/govc_linux_amd64.gz"
-  ova: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest/rhcos-4.3.0-x86_64-vmware.ova"
-  initramfs: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-4.3.0-x86_64-installer-initramfs.img"
-  kernel: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-4.3.0-x86_64-installer-kernel"
-  iso: "https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.3/latest/rhcos-4.3.0-x86_64-installer.iso"  
-
+  clients_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest
+  dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest
+  govc: https://github.com/vmware/govmomi/releases/download/v0.22.1/govc_linux_amd64.gz
+bootstrap_vms: 
+      - { name : "bootstrap", mac: "00:50:56:a8:aa:a1"}
+master_vms:
+      - { name : "master0", mac: "00:50:56:a8:aa:a2"}
+      - { name : "master1", mac: "00:50:56:a8:aa:a3"}
+      - { name : "master2", mac: "00:50:56:a8:aa:a4"}
+worker_vms:      
+      - { name : "worker0", mac: "00:50:56:a8:aa:a5"}
+      - { name : "worker1", mac: "00:50:56:a8:aa:a6"}
+      - { name : "worker2", mac: "00:50:56:a8:aa:a7"}      

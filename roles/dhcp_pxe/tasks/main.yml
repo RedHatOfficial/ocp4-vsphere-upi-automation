@@ -7,7 +7,7 @@
       guest_id: "rhel7_64Guest"
       validate_certs: no
       folder: "{{ folder }}"
-      name: bootstrap
+      name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
       - size_gb: 120
@@ -19,9 +19,9 @@
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
-        mac: "00:50:56:a8:aa:a1"
+        mac: "{{ item.mac }}"
       wait_for_ip_address: no
-
+    loop: "{{ bootstrap_vms }}"
   - name: Create master VMs from the template
     vmware_guest:
       hostname: "{{ vcenter.ip }}"
@@ -45,10 +45,7 @@
       - name: "{{ vcenter.network }}"
         mac: "{{ item.mac }}"
       wait_for_ip_address: no
-    loop:
-      - { name : "master0", mac: "00:50:56:a8:aa:a2"}
-      - { name : "master1", mac: "00:50:56:a8:aa:a3"}
-      - { name : "master2", mac: "00:50:56:a8:aa:a4"}
+    loop: "{{ master_vms }}"
 
   - name: Create worker VMs from the template
     vmware_guest:
@@ -73,10 +70,7 @@
       - name: "{{ vcenter.network }}"
         mac: "{{ item.mac }}"
       wait_for_ip_address: no
-    loop:
-      - { name : "worker0", mac: "00:50:56:a8:aa:a5"}
-      - { name : "worker1", mac: "00:50:56:a8:aa:a6"}
-      - { name : "worker2", mac: "00:50:56:a8:aa:a7"}
+    loop: "{{ worker_vms }}"
 
   - name: Update VM options on the template
     command: "govc vm.change -vm {{ folder }}/{{ item }} -e=disk.EnableUUID=TRUE"
