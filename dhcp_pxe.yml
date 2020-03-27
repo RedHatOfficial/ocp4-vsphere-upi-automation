@@ -1,4 +1,9 @@
 ---
+- hosts: all
+  tasks:
+    - name: Set the cache of all the download links
+      import_role:
+        name: cache
 - hosts: localhost 
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
