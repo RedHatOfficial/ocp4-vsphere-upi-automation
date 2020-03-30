@@ -7,6 +7,7 @@
         - python-pip
         - python3
         - python3-pip
+        - genisoimage
     become: true
 
   - name: Install python3-pyvmomi
@@ -44,7 +45,7 @@
       path: "{{ playbook_dir }}/{{ item }}"
       state: directory
       mode: '0755'
-    with_items: ["bin", "downloads", "install-dir"]  
+    with_items: ["bin", "downloads","downloads/ISOs", "install-dir"]  
 
   - name: Download the oc client binary
     get_url:

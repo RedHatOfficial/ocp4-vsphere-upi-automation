@@ -1,5 +1,6 @@
 ---
-bootstrap_ignition_url: http://192.168.86.180:8080/ignition/bootstrap.ign 
+helper_vm_ip: 192.168.86.180
+bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/ignition/bootstrap.ign"  
 config:
   base_domain: example.com
   cluster_name: ocp4
@@ -30,3 +31,7 @@ worker_vms:
       - { name : "worker0", mac: "00:50:56:a8:aa:a5"}
       - { name : "worker1", mac: "00:50:56:a8:aa:a6"}
       - { name : "worker2", mac: "00:50:56:a8:aa:a7"}
+static_ip:
+  gateway: 192.168.86.1
+  netmask: 255.255.255.0
+  network_interface_name: ens192

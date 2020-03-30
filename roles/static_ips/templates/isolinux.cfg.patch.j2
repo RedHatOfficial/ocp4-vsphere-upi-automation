@@ -1,0 +1,11 @@
+--- isolinux.cfg.orig	2020-03-29 22:18:10.435922384 -0700
++++ isolinux.cfg	2020-03-29 22:18:35.641016853 -0700
+@@ -65,7 +65,7 @@
+ label linux
+   menu label ^Install RHEL CoreOS
+   kernel /images/vmlinuz
+-  append initrd=/images/initramfs.img nomodeset rd.neednet=1 coreos.inst=yes
++  append initrd=/images/initramfs.img nomodeset rd.neednet=1 coreos.inst=yes {{kernel_params}}
+ 
+ menu separator # insert an empty line
+ 
