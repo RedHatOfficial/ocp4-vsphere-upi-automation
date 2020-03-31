@@ -1,0 +1,10 @@
+--- grub.cfg.orig	2020-03-29 22:25:32.556579084 -0700
++++ grub.cfg	2020-03-29 22:25:48.537638957 -0700
+@@ -22,6 +22,6 @@
+ 
+ ### BEGIN /etc/grub.d/10_linux ###
+ menuentry 'Install RHEL CoreOS' --class fedora --class gnu-linux --class gnu --class os {
+-	linux /images/vmlinuz nomodeset rd.neednet=1 coreos.inst=yes
++	linux /images/vmlinuz nomodeset rd.neednet=1 coreos.inst=yes {{kernel_params}}
+ 	initrd /images/initramfs.img
+ }

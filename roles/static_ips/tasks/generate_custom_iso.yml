@@ -1,0 +1,43 @@
+# This playbook is meant to be used with an include and a loop
+# If you don't have both of these, do not use it
+  - name: Copy the isolinux.cfg to the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    copy:
+      src: "isolinux.cfg"
+      dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/isolinux/"
+
+  - name: Copy the grub.cfg to the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    copy:
+      src: "grub.cfg"
+      dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/EFI/redhat/"
+
+  - name: Generate isolinux.cfg patch for {{ item.name }}
+    vars:
+      kernel_params: "{{ lookup('file', '{{item.name}}-kernel-params.txt') }}"
+    template:
+      src: isolinux.cfg.patch.j2
+      dest: "{{role_path}}/files/{{item.name}}-isolinux.cfg.patch"
+
+  - name: Generate grub.cfg patch for {{ item.name }}
+    vars:
+      kernel_params: "{{ lookup('file', '{{item.name}}-kernel-params.txt') }}"
+    template:
+      src: grub.cfg.patch.j2
+      dest: "{{role_path}}/files/{{item.name}}-grub.cfg.patch"
+
+  - name: Apply patch {{role_path}}/files/{{item.name}}-isolinux.cfg.patch
+    patch: 
+      src: "{{item.name}}-isolinux.cfg.patch"
+      dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/isolinux/isolinux.cfg"
+  
+  - name: Apply patch {{role_path}}/files/{{item.name}}-grub.cfg.patch
+    patch: 
+      src: "{{item.name}}-grub.cfg.patch"
+      dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/EFI/redhat/grub.cfg"
+
+  - name: Generate custom iso for {{ item.name }}
+    command: >
+         mkisofs -U -A 'RHCOS-x86_64' -V 'RHCOS-x86_64' -volset 'RHCOS-x86_64' -J -joliet-long -r -v -T 
+           -x ./lost+found -o {{ playbook_dir }}/downloads/ISOs/{{item.name}}.iso -b isolinux/isolinux.bin  
+           -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img 
+           -no-emul-boot {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    become: true

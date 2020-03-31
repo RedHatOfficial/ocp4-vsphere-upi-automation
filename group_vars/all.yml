@@ -1,5 +1,6 @@
 ---
-bootstrap_ignition_url: http://192.168.86.180:8080/ignition/bootstrap.ign 
+helper_vm_ip: 192.168.86.180
+bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/ignition/bootstrap.ign"  
 config:
   base_domain: example.com
   cluster_name: ocp4
@@ -21,12 +22,16 @@ download:
   dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest
   govc: https://github.com/vmware/govmomi/releases/download/v0.22.1/govc_linux_amd64.gz
 bootstrap_vms: 
-      - { name : "bootstrap", mac: "00:50:56:a8:aa:a1"}
+  - { name : "bootstrap", mac: "00:50:56:a8:aa:a1", ip: "192.168.86.181"}
 master_vms:
-      - { name : "master0", mac: "00:50:56:a8:aa:a2"}
-      - { name : "master1", mac: "00:50:56:a8:aa:a3"}
-      - { name : "master2", mac: "00:50:56:a8:aa:a4"}
+  - { name : "master0", mac: "00:50:56:a8:aa:a2", ip: "192.168.86.182"}
+  - { name : "master1", mac: "00:50:56:a8:aa:a3", ip: "192.168.86.183"}
+  - { name : "master2", mac: "00:50:56:a8:aa:a4", ip: "192.168.86.184"}
 worker_vms:      
-      - { name : "worker0", mac: "00:50:56:a8:aa:a5"}
-      - { name : "worker1", mac: "00:50:56:a8:aa:a6"}
-      - { name : "worker2", mac: "00:50:56:a8:aa:a7"}
+  - { name : "worker0", mac: "00:50:56:a8:aa:a5", ip: "192.168.86.185"}
+  - { name : "worker1", mac: "00:50:56:a8:aa:a6", ip: "192.168.86.186"}
+  - { name : "worker2", mac: "00:50:56:a8:aa:a7", ip: "192.168.86.187"}
+static_ip:
+  gateway: 192.168.86.1
+  netmask: 255.255.255.0
+  network_interface_name: ens192

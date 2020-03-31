@@ -1,0 +1,1 @@
+coreos.inst.install_dev=sda coreos.inst.image_url=http://{{helper_vm_ip}}:8080/install/rhcos.raw.gz coreos.inst.ignition_url=http://{{helper_vm_ip}}:8080/ignition/{{machine_type}}.ign ip={{machine_ip}}::{{static_ip.gateway}}:{{static_ip.netmask}}:{{machine_name}}.{{config.cluster_name}}.{{config.base_domain}}:{{static_ip.network_interface_name}}:none nameserver={{helper_vm_ip}}

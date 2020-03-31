@@ -73,5 +73,5 @@
     loop: "{{ worker_vms }}"
 
   - name: Update VM options on the template
-    command: "govc vm.change -vm {{ folder }}/{{ item }} -e=disk.EnableUUID=TRUE"
-    loop: ["bootstrap","master0","master1","master2","worker0","worker1","worker2"]
+    command: "govc vm.change -vm {{ folder }}/{{ item.name }} -e=disk.EnableUUID=TRUE"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"

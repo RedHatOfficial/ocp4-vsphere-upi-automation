@@ -1,15 +1,111 @@
-  - name: Download Openshift 4 ISO file
+  - name: Download Openshift 4 ISO file as rhcos-installer.iso
     get_url:
       url: "{{ download.iso }}"
-      dest: "{{ playbook_dir }}/downloads/rhcos-installer.iso"
+      dest: "{{ iso_dir }}/rhcos-installer.iso"
 
-  - name: Upload RHCOS ISO into the datastore
-    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ playbook_dir }}/downloads/rhcos-installer.iso ./rhcos-installer.iso"
+  - name: Get the sha265sum of the rhcos-installer.iso file
+    stat:
+      get_checksum: yes
+      checksum_algorithm: sha256
+      path: "{{ iso_dir }}/rhcos-installer.iso"
+    register: st
+
+  - name: Create the iso mount path (if one doesn't exist already) 
+    file:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: directory
+      mode: '0775'
+      recurse: yes
+
+  - name: Create duplicate dir of the iso mount path (if one doesn't exist already)
+    file:
+      path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+      state: directory
+      mode: '0775'
+      recurse: yes
+
+  - name: Mount the rhcos-installer.iso onto the mount path {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    mount:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      src: "{{ iso_dir }}/rhcos-installer.iso"
+      fstype: iso9660
+      opts: ro
+      state: mounted
+    become: true
+
+  - name: Synchronization between the mount path and dup
+    synchronize:
+      src: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}/"
+      dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+
+  - name: Recursively apply permission of 775 to {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    file:
+      path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+      mode: '0775'
+      recurse: yes
+
+  - name: Make a copy of the isolinux.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    copy:
+      src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/isolinux/isolinux.cfg"
+      dest: "{{role_path}}/files/"
+
+  - name: Make a copy of the grub.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+    copy:
+      src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/EFI/redhat/grub.cfg"
+      dest: "{{role_path}}/files/"
+
+  - name: Unmount the iso mount path
+    mount:
+      path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+      state: unmounted
+    become: true
+
+  - name: Generate kernel params for bootstrap
+    vars:
+      machine_name: "{{ item.name }}"
+      machine_type: bootstrap
+      machine_ip: "{{ item.ip }}"
+    template: 
+      src: kernel-params.j2
+      dest: "{{role_path}}/files/{{item.name}}-kernel-params.txt"
+    loop: "{{ bootstrap_vms }}"
+
+  - name: Generate kernel params for all masters
+    vars:
+      machine_name: "{{ item.name }}"
+      machine_type: master
+      machine_ip: "{{ item.ip }}"
+    template: 
+      src: kernel-params.j2
+      dest: "{{role_path}}/files/{{item.name}}-kernel-params.txt"
+    loop: "{{ master_vms }}"
+
+  - name: Generate kernel params for all workers
+    vars:
+      machine_name: "{{ item.name }}"
+      machine_type: worker
+      machine_ip: "{{ item.ip }}"
+    template: 
+      src: kernel-params.j2
+      dest: "{{role_path}}/files/{{item.name}}-kernel-params.txt"
+    loop: "{{ worker_vms }}"
+
+  - name: Generate custom iso files for all VMs
+    include: generate_custom_iso.yml
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}" 
+
+  - name: Upload all the custom generated ISOs to the datastore
+    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/{{item.name}}.iso {{item.name}}.iso"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
 
   - name: Add a cdrom device to all the OpenShift VMs
-    command: "govc device.cdrom.add -vm {{ item }}"
-    loop: ["bootstrap","master0","master1","master2","worker0","worker1","worker2"]
+    command: "govc device.cdrom.add -vm {{ item.name }}"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
 
-  - name: Insert the uploaded ISO file as cdrom to all the OpenShift VMs
-    command: "govc device.cdrom.insert -vm {{ item }} -ds {{ vcenter.datastore }} ./rhcos-installer.iso"
-    loop: ["bootstrap","master0","master1","master2","worker0","worker1","worker2"]
+  - name: Insert the uploaded ISO file {{item.name}}.iso as cdrom to VM {{ item.name }}
+    command: "govc device.cdrom.insert -vm {{ item.name }} -ds {{ vcenter.datastore }} ./{{item.name}}.iso"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
+
+  - name: Power-On all the VMs
+    command: "govc vm.power -on {{ item.name }}"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"    

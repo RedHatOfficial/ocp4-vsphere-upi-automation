@@ -1,0 +1,23 @@
+--- isolinux.cfg.orig	2020-03-31 10:44:10.994201461 -0700
++++ isolinux.cfg	2020-03-31 10:55:34.151346677 -0700
+@@ -3,7 +3,7 @@
+ # changes.
+ serial 0
+ default vesamenu.c32
+-timeout 600
++timeout 100
+ 
+ display boot.msg
+ 
+@@ -63,9 +63,10 @@
+ menu separator # insert an empty line
+ 
+ label linux
++  menu default
+   menu label ^Install RHEL CoreOS
+   kernel /images/vmlinuz
+-  append initrd=/images/initramfs.img nomodeset rd.neednet=1 coreos.inst=yes
++  append initrd=/images/initramfs.img nomodeset rd.neednet=1 coreos.inst=yes {{kernel_params}}
+ 
+ menu separator # insert an empty line
+ 
