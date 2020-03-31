@@ -105,3 +105,7 @@
   - name: Insert the uploaded ISO file {{item.name}}.iso as cdrom to VM {{ item.name }}
     command: "govc device.cdrom.insert -vm {{ item.name }} -ds {{ vcenter.datastore }} ./{{item.name}}.iso"
     loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
+
+  - name: Power-On all the VMs
+    command: "govc vm.power -on {{ item.name }}"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"    
