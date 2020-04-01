@@ -8,17 +8,17 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
 
 1. vSphere ESXi and vCenter 6.7 installed 
 2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
-3. Strongly recommend having a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. If using **helper node**, the MAC addresses for the machines should match between repos.
-   * The necessary services such as [DHCP/DNS/HAProxy as LB] must be up and running before this repo can be used
-   * This repo/approach works only when DHCP provides IP addresses for VMs.
-4. Ansible 2.8.5 or 2.9.3 installed, ideally with **Python 3** on the machine where this repo is cloned 
-   * To install a specific version of Ansible you can run a command like: `sudo dnf -y install ansible-2.8.5`
-
-
+3. Assumes you are running a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. Also, the MAC addresses for the machines should match between helper repo and this. If not using the helper node, the minimum expectation is that the webserver and tftp server (for PXE boot) are running on the same external host, which we will then treat as a helper node.
+   * The necessary services such as [DNS/LB(Load Balancer] must be up and running before this repo can be used
+   * This repo works in environments where :
+     a. DHCP is enabled: Use vSphere OVA template or use PXE boot
+     b. DHCP is disabled: Use Static IPs and CoreOS ISO files
+4. Ansible (preferably latest) with **Python 3** on the machine where this repo is cloned 
+   
 ## Automatic generation of ignition and other supporting files
 
 ### Prerequisites 
-> Pre-populated entries in **group_vars/all.yml** are ready to be used unless you want to customize further
+> Pre-populated entries in **group_vars/all.yml** are ready to be used unless you need to customize further
 1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned)
 2. Get the vCenter details:
    1. IP address
@@ -28,17 +28,16 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
    5. Admin account password
    6. Datacenter name *(created in the prerequisites mentioned above)*
    7. Datastore name
-3. Actual links to the OpenShift Client, Install and .ova binaries *(pre-populated for 4.3.x)*
-4. Downloadable link to `govc` (vSphere CLI, *pre-populated*)
-5. OpenShift cluster 
+3. Downloadable link to `govc` (vSphere CLI, *pre-populated*)
+4. OpenShift cluster 
    1. base domain *(pre-populated with **example.com**)*
    2. cluster name *(pre-populated with **ocp4**)*
-6. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with a example config pointing to helper node)*
-7. Update the inventory file: **staging** and under the `webservers.hosts` entry, use one of the below : 
-   * **localhost** : if the `ansible-playbook` is being run on the same host  as the webserver that would eventually host bootstrap.ign file
-   * the IP address or FQDN of the machine that would run the webserver. 
+5. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with a example config pointing to helper node)*
+6. Update the inventory file: **staging** and under the `webservers.hosts` entry, use one of two options below : 
+   1. **localhost** : if the `ansible-playbook` is being run on the same host  as the webserver that would eventually host bootstrap.ign file
+   2. the IP address or FQDN of the machine that would run the webserver. 
 
-The step **#6** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
+> The step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
    
 ### Setup and Installation
 
@@ -50,11 +49,15 @@ With all the details in hand from the prerequisites, populate the **group_vars/a
   * If the localhost runs the webserver
       ```
       [defaults]
+      fact_caching = jsonfile
+      fact_caching_connection = /tmp
       host_key_checking = False 
       ```
   * If the remote host runs the webserver
       ```
       [defaults]
+      fact_caching = jsonfile
+      fact_caching_connection = /tmp
       host_key_checking = False
       remote_user = root
       ask_pass = True 
@@ -63,6 +66,8 @@ With all the details in hand from the prerequisites, populate the **group_vars/a
   * If the localhost runs the webserver
       ```
       [defaults]
+      fact_caching = jsonfile
+      fact_caching_connection = /tmp
       host_key_checking = False 
 
       [privilege_escalation]
@@ -71,6 +76,8 @@ With all the details in hand from the prerequisites, populate the **group_vars/a
   * If the remote host runs the webserver
       ```
       [defaults]
+      fact_caching = jsonfile
+      fact_caching_connection = /tmp
       host_key_checking = False 
       remote_user = root
       ask_pass = True
@@ -96,17 +103,17 @@ ansible-playbook -i staging static_ips.yml
 * If vCenter folder already exists with the template because you set the vCenter the last time you ran the ansible playbook but want a fresh deployment of VMs **after** you have erased all the existing VMs in the folder, append the following to the command you chose in the above step
 
    ```sh 
-   --extra-vars "vcenter_preqs_met=true"
+   -e vcenter_preqs_met=true
    ```
 * If would rather want to clean all folders `bin`, `downloads`, `install-dir` and re-download all the artifacts, append the following to the command you chose in the first step
    ```sh 
-   --extra-vars "clean=true"
+   -e clean=true
    ```
 ### Expected Outcome
 
 1. Necessary Linux packages installed for the installation
 2. SSH key-pair generated, with key `~/.ssh/ocp4` and public key `~/.ssh/ocp4.pub`
-3. Necessary folders [bin, downloads, install-dir] created
+3. Necessary folders [bin, downloads, downloads/ISOs, install-dir] created
 4. OpenShift client, install and .ova binaries downloaded to the **downloads** folder
 5. Unzipped versions of the binaries installed in the **bin** folder
 6. In the **install-dir** folder:
@@ -130,4 +137,16 @@ Once logged in, on **bootstrap** node run the following command to understand if
 
 ```sh
 journalctl -b -f -u bootkube.service
+```
+
+Once the `bootkube.service` is complete, the bootstrap VM can safely be `poweredoff` and the VM deleted. Finish by checking on the OpenShift with the following commands:
+
+```sh 
+# In the root folder of this repo run the following commands
+export KUBECONFIG=$(pwd)/install-dir/auth/kubeconfig
+export PATH=$(pwd)/bin:$PATH
+
+# OpenShift Client Commands
+oc whoami 
+oc get co 
 ```
