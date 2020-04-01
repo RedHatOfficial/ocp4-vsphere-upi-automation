@@ -11,8 +11,8 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
 3. Assumes you are running a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. Also, the MAC addresses for the machines should match between helper repo and this. If not using the helper node, the minimum expectation is that the webserver and tftp server (for PXE boot) are running on the same external host, which we will then treat as a helper node.
    * The necessary services such as [DNS/LB(Load Balancer] must be up and running before this repo can be used
    * This repo works in environments where :
-     a. DHCP is enabled: Use vSphere OVA template or use PXE boot
-     b. DHCP is disabled: Use Static IPs and CoreOS ISO files
+     * DHCP is enabled: Use vSphere OVA template or use PXE boot
+     * DHCP is disabled: Use Static IPs with CoreOS ISO file
 4. Ansible (preferably latest) with **Python 3** on the machine where this repo is cloned 
    
 ## Automatic generation of ignition and other supporting files
