@@ -8,7 +8,7 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
 
 1. vSphere ESXi and vCenter 6.7 installed 
 2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
-3. Assumes you are running a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. Also, the MAC addresses for the machines should match between helper repo and this. If not using the helper node, the minimum expectation is that the webserver and tftp server (for PXE boot) are running on the same external host, which we will then treat as a helper node.
+3. The code assumes you are running a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. Also, the MAC addresses for the machines should match between helper repo and this. If not using the helper node, the minimum expectation is that the webserver and tftp server (for PXE boot) are running on the same external host, which we will then treat as a helper node.
    * The necessary services such as [DNS/LB(Load Balancer] must be up and running before this repo can be used
    * This repo works in environments where :
      * DHCP is enabled: Use vSphere OVA template or use PXE boot
@@ -19,7 +19,7 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
 
 ### Prerequisites 
 > Pre-populated entries in **group_vars/all.yml** are ready to be used unless you need to customize further
-1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned)
+1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned) and then enter where specified in group_vars/all.yml
 2. Get the vCenter details:
    1. IP address
    2. Service account username (can be the same as admin)
@@ -37,7 +37,7 @@ The goal of this repo is to make deploying and redeploying a new OpenShift v4 cl
    1. **localhost** : if the `ansible-playbook` is being run on the same host  as the webserver that would eventually host bootstrap.ign file
    2. the IP address or FQDN of the machine that would run the webserver. 
 
-> The step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
+> Step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
    
 ### Setup and Installation
 
