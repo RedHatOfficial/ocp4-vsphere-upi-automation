@@ -1,5 +1,13 @@
 apiVersion: v1
 baseDomain: {{ config.base_domain }}
+{% if proxy.enabled == True %}
+proxy:
+  httpProxy: {{ proxy.http_proxy_url }}
+  httpsProxy: {{ proxy.https_proxy_url }}
+  noProxy: {{ config.base_domain }}
+additionalTrustBundle: |
+{{ proxy.additionalTrustBundle }}
+{% endif %}
 compute:
 - hyperthreading: Enabled   
   name: worker
