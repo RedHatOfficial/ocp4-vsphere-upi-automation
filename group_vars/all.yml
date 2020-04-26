@@ -1,18 +1,26 @@
 ---
 helper_vm_ip: 192.168.86.180
-bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/ignition/bootstrap.ign"  
+bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/ignition/bootstrap.ign"
 config:
   base_domain: example.com
   cluster_name: ocp4
   installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
   pull_secret: {"auths": ...}
+proxy:
+  enabled: False
+  http_proxy_url: http://proxy.example.com:8080
+  https_proxy_url: http://proxy.example.com:8080
+  additionalTrustBundle: |
+     -----BEGIN CERTIFICATE-----
+     <MY_TRUSTED_CA_CERT>
+     ------END CERTIFICATE-----
 vcenter:
   ip: 192.168.86.100
   datastore: datastore1
   network: VM Network
   service_account_username: administrator@vsphere.local
   service_account_password: something
-  admin_username: administrator@vsphere.local 
+  admin_username: administrator@vsphere.local
   admin_password: something
   datacenter: dc
   vm_power_state: poweredon
@@ -21,13 +29,13 @@ download:
   clients_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest
   dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest
   govc: https://github.com/vmware/govmomi/releases/download/v0.22.1/govc_linux_amd64.gz
-bootstrap_vms: 
+bootstrap_vms:
   - { name : "bootstrap", mac: "00:50:56:a8:aa:a1", ip: "192.168.86.181"}
 master_vms:
   - { name : "master0", mac: "00:50:56:a8:aa:a2", ip: "192.168.86.182"}
   - { name : "master1", mac: "00:50:56:a8:aa:a3", ip: "192.168.86.183"}
   - { name : "master2", mac: "00:50:56:a8:aa:a4", ip: "192.168.86.184"}
-worker_vms:      
+worker_vms:
   - { name : "worker0", mac: "00:50:56:a8:aa:a5", ip: "192.168.86.185"}
   - { name : "worker1", mac: "00:50:56:a8:aa:a6", ip: "192.168.86.186"}
   - { name : "worker2", mac: "00:50:56:a8:aa:a7", ip: "192.168.86.187"}
