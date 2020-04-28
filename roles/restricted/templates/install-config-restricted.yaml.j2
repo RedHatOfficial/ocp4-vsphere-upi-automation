@@ -1,0 +1,28 @@
+apiVersion: v1
+baseDomain: {{ config.base_domain }}
+compute:
+- hyperthreading: Enabled   
+  name: worker
+  replicas: 0 
+controlPlane:
+  hyperthreading: Enabled   
+  name: master
+  replicas: 3 
+metadata:
+  name: {{ config.cluster_name }}
+platform:
+  vsphere:
+    vcenter: {{ vcenter.ip }}
+    username: {{ vcenter.service_account_username }}
+    password: {{ vcenter.service_account_password }}
+    datacenter: {{ vcenter.datacenter }}
+    defaultDatastore: {{ vcenter.datastore }}
+pullSecret: '{{ config.pull_secret | to_json }}'
+sshKey: {{ config.installer_ssh_key }}
+imageContentSources:
+- mirrors:
+  - {{ registry.host }}:5000/{{ registry.repo }}
+  source: quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}
+- mirrors:
+  - {{ registry.host }}:5000/{{ registry.repo }}
+  source: quay.io/{{ registry.product_repo }}/ocp-v4.0-art-dev

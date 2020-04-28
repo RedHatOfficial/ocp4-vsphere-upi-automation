@@ -1,4 +1,3 @@
----
 helper_vm_ip: 192.168.86.180
 bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/ignition/bootstrap.ign"  
 config:
@@ -35,3 +34,14 @@ static_ip:
   gateway: 192.168.86.1
   netmask: 255.255.255.0
   network_interface_name: ens192
+registry:
+  product_repo: openshift-release-dev
+  product_release_name: ocp-release
+  product_release_version: 4.3.13-x86_64
+  username: ansible
+  password: ansible
+  email: user@awesome.org
+  cert_content:
+  host: registry.ocp4.example.com
+  port: 5000
+  repo: ocp4/openshift4
