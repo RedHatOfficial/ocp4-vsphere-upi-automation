@@ -50,11 +50,6 @@
         src: install-config-restricted.yaml.j2
         dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
 
-    - name: Backup the install-config.yaml file 
-      copy:
-        src: "{{ playbook_dir }}/install-dir/install-config.yaml"
-        dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
-
     - name: Create a dictionary out of the install-config.yaml file
       include_vars:
         file: '{{ playbook_dir }}/install-dir/install-config.yaml'
@@ -69,3 +64,9 @@
       copy: 
         content: "{{ install_config | to_yaml }}"
         dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
+    
+    - name: Backup the install-config.yaml file
+      copy:
+        src: "{{ playbook_dir }}/install-dir/install-config.yaml"
+        dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
+
