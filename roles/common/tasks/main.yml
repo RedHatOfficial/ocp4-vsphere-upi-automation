@@ -82,6 +82,10 @@
     file:
       path: "{{ playbook_dir }}/bin/govc"
       mode: '775'
+      
+  - name: CA
+    shell: awk '{ print "   " $0 }' {{ ca.additionalTrustBundle }} > /tmp/ca.pem
+    when: "{{ ca.enabled }} == True"
 
   - name: Copy install-config.yaml file into install-dir
     template:
