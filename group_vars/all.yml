@@ -6,6 +6,13 @@ config:
   cluster_name: ocp4
   installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
   pull_secret: {"auths": ...}
+proxy:
+  enabled: False
+  http_proxy_url: http://user:passwd@proxy.example.com:3128
+  https_proxy_url: http://user:passwd@proxy.example.com:3128
+ca:
+  enabled: False
+  additionalTrustBundle: /root/ca.pem
 vcenter:
   ip: 192.168.86.100
   datastore: datastore1
