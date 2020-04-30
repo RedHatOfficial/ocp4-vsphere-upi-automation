@@ -4,7 +4,7 @@ baseDomain: {{ config.base_domain }}
 proxy:
   httpProxy: {{ proxy.http_proxy_url }}
   httpsProxy: {{ proxy.https_proxy_url }}
-  noProxy: {{ config.base_domain }}
+  noProxy: {{ proxy.noProxy }}
 {% endif %}
 {% if ca.enabled == True %}
 additionalTrustBundle: |
