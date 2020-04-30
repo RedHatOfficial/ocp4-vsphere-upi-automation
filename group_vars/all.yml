@@ -10,6 +10,7 @@ proxy:
   enabled: False
   http_proxy_url: http://user:passwd@proxy.example.com:3128
   https_proxy_url: http://user:passwd@proxy.example.com:3128
+  noProxy: .example.com, git.example.com, vcenter-ip, control-planes-ip, machines-ip
 ca:
   enabled: False
   additionalTrustBundle: /root/ca.pem
