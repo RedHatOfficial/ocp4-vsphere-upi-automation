@@ -17,8 +17,8 @@ vcenter:
   vm_power_state: poweredon
   templateName: rhcos-vmware
 download:
-  clients_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest
-  dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest
+  clients_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.4.3/
+  dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.4/latest/
   govc: https://github.com/vmware/govmomi/releases/download/v0.22.1/govc_linux_amd64.gz
 bootstrap_vms: 
   - { name : "bootstrap", mac: "00:50:56:a8:aa:a1", ip: "192.168.86.181"}

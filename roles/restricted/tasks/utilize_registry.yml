@@ -44,6 +44,14 @@
         --to="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}" \
         --to-release-image="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
 
+    - name: Extract openshift-install from registry 
+      command: |
+        oc adm -a "{{ role_path }}/files/pull-secret.json" \
+        release extract \
+        --command=openshift-install \
+        --to={{ playbook_dir }}/bin \
+        "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
+
     - name: Point the pull secret to the local registry 
       set_fact:
         config: |
