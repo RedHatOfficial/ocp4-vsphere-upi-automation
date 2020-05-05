@@ -1,0 +1,14 @@
+    - name: Create a dictionary out of the install-config.yaml file
+      include_vars:
+        file: '{{ playbook_dir }}/install-dir/install-config.yaml'
+        name: install_config
+    
+    - name: Add a additionalTrustBundle element to the install_config dict
+      set_fact:
+        install_config: "{{ install_config | combine({'additionalTrustBundle': proxy.cert_content}, recursive=True)}}"
+        cacheable: yes
+        
+    - name: Convert the install_config dict back into YAML for installation
+      copy: 
+        content: "{{ install_config | to_yaml }}"
+        dest: "{{ playbook_dir }}/install-dir/install-config.yaml"

@@ -88,4 +88,16 @@
       template:
         src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.j2"
         dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
-  
+
+    - name: Run steps pertaining to proxy, if any
+      include: handle_proxy.yml
+      when: 
+        - proxy is defined
+        - proxy.enabled == true
+
+    - name: Backup the install-config.yaml file
+      copy:
+        src: "{{ playbook_dir }}/install-dir/install-config.yaml"
+        dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
+      when: (registry is not defined) or (registry.enabled is not defined) or (registry.enabled == false)
+ 

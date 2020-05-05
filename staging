@@ -5,4 +5,8 @@ all:
   children:
     webservers:
       hosts:
-        192.168.86.180:
+        localhost:
+    registries:
+      hosts:
+        localhost:
+

@@ -34,10 +34,20 @@ static_ip:
   gateway: 192.168.86.1
   netmask: 255.255.255.0
   network_interface_name: ens192
+proxy:
+  enabled: true
+  http_proxy: http://helper.ocp4.example.com:3129
+  https_proxy: http://helper.ocp4.example.com:3129
+  no_proxy: example.com
+  cert_content: |
+    -----BEGIN CERTIFICATE-----
+        <certficate content>
+    -----END CERTIFICATE-----  
 registry:
+  enabled: true
   product_repo: openshift-release-dev
   product_release_name: ocp-release
-  product_release_version: 4.3.13-x86_64
+  product_release_version: 4.4.0-x86_64
   username: ansible
   password: ansible
   email: user@awesome.org
