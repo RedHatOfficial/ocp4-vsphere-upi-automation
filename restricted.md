@@ -34,12 +34,12 @@ When all done your setting should resemble somewhat like this image with the new
 4. SSH'ing into helper and using `ifconfig` determine the name of the new NIC. In my homelab, its `ens224`. 
     * Assuming you assigned a static IP address to the first NIC `ens192`, copy `ifcfg-ens192` in `/etc/sysconfig/network-scripts` and save it as `ifcfg-ens224` in the same folder. 
     * Edit the file `ifcfg-ens224` and ensure that the IP assigned is on a different subnet
-      > In my homelab, `ens192` was in `192.168.86.0/24` subnet with GATEWAY pointing to 192.168.86.1 and  `ens224`was in `192.168.87.0/24` subnet with GATWAY pointing at 192.168.87.1
+      > In my homelab, `ens192` was in `192.168.86.0/24` subnet with GATEWAY pointing to 192.168.86.1 and  `ens224` was in `192.168.87.0/24` subnet with GATWAY pointing at 192.168.87.1
 5. Restart the network with `systemctl restart NetworkManager`, a quick `ifconfig` or `nmcli device show ens224` should show the IP address picked up by the new NIC. 
 
 ### [Step 3] Create a new VM for registry or reuse helper 
 
-**If creating a new VM for registry (not re-using helper):**
+#### If creating a new VM for registry (not re-using helper):
 1. Ensure that VM is setup, *connected to internet* and #2 of prerequisites above is run
 2. Assign it as hostname similar to `registry.ocp4.example.com`
 3. Create a `ifcfg-ens192` file under `/etc/sysconfig/network-scripts`, for reference my file looks like this :
@@ -65,8 +65,7 @@ When all done your setting should resemble somewhat like this image with the new
 
 In the helper `vars.yml` file ensure that all IP addresses (helper + bootstrap+ masters + workers) now belong to the new subnet `192.168.87.0/24`, that includes changing `helper.ipaddr` and `helper.networkifacename` to the new network adpater settings. 
 
-**If creating a new VM for registry (not re-using helper):**
-
+#### If creating a new VM for registry (not re-using helper)
 Make accomdations for registry node: `registry.ocp4.example.com` by changing the helper's DNS and DHCP config files as shown:
 1. Add a section for registry in helper's `vars.yml` file, as shown below. The `macaddr` should reflect the MAC address assigned to `ens192` adapter:
    ```
@@ -113,6 +112,7 @@ all:
           ansible_ssh_user: root
           ansible_ssh_pass: <password for ease of installation> 
 ```
+> If reusing the helper the hostname under registries would be `localhost` and the credentials underneath removed as this repo is intented to be run on helper node
 
 In `ansible.cfg` have the following as the content, as we will be running this as `root` user on helper node.
 ```
@@ -127,8 +127,9 @@ In [group_vars/all.yml](group_vars/all.yml)'s  registry dict, with rest being op
      * helper_vm_ip (the new IP obtained under the new subnet)
      * All IPs for bootstrap, masters, workers
      * static_ip.gateway 
-   * `host` should be pointed to the IP or FQDN of the host mentioned in the previous step
-   * `product_release_version` must be updated to the latest version of the container image. _(Use [documentation links](#documentation-links))_
+   * `registry.host` should be pointed to the IP or FQDN of the host mentioned in the previous step. If reusing the helper then use `helper.ocp4.example.com` else use (for example) `registry.ocp4.example.com`
+   * `registry.product_release_version` must be updated to the latest version of the container image. _(Use [documentation links](#documentation-links))_
+   * `vcenter.network` with the name of the new virtual switch port-group as we want all the new VMs land on the newly created virtual switch
 
 ### Installation in a restricted network 
 
@@ -145,7 +146,21 @@ ansible-playbook --flush-cache -i staging restricted_ova.yml
 The final network topology should somewhat like the image below:
 [![](.images/virtual-switch-final.png)](.images/virtual-switch-final.png)
 
+## Final Check 
+
+To check if the registry information has been picked up run and command below  on either kind of nodes or check the decoded contents of secret `pull-secret` in `openshift-config` when the cluster is operational
+```sh 
+# On Master or Bootstrap
+cat /etc/containers/registries.conf
+```
+
+### Things to watch out for
+1. The OLM is broken on the restricted install, see #4 link below
+2. You have to figure out how to get traffic into the cluster, relying on the DNS of helper won't help as it is on a different subnet with no internet access. I use `dnsmasq` to route any traffic to `example.com` domain to public/accessible IP of the helper node
+
+
 ## Documentation Links 
-1.  [Create a mirror registry for installation in a restricted network](https://docs.openshift.com/container-platform/4.3/installing/install_config/installing-restricted-networks-preparations.html)
-2. [Installing a cluster on vSphere in a restricted network](https://docs.openshift.com/container-platform/4.3/installing/installing_vsphere/installing-restricted-networks-vsphere.html)
+1.  [Create a mirror registry for installation in a restricted network](https://docs.openshift.com/container-platform/4.4/installing/install_config/installing-restricted-networks-preparations.html)
+2. [Installing a cluster on vSphere in a restricted network](https://docs.openshift.com/container-platform/4.4/installing/installing_vsphere/installing-restricted-networks-vsphere.html)
 3. https://www.openshift.com/blog/openshift-4-2-disconnected-install
+4. [Using Operator Lifecycle Manager on restricted networks](https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html)

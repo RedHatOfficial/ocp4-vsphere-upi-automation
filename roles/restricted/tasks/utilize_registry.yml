@@ -8,9 +8,9 @@
 
     - name: Pause for few seconds for the ca-trust to be updated
       pause:
-        seconds: 5
+        seconds: 2
 
-    - name: Register the credential 
+    - name: Register the registry credentials
       set_fact:
         registry_credentials: "{{ registry.username }}:{{ registry.password }}"
         cacheable: yes
@@ -20,7 +20,13 @@
         registry_pull_secret: "{'{{ registry.host }}:{{ registry.port }}':{'auth':'{{ registry_credentials | b64encode }}','email': '{{ registry.email }}' }}"
         cacheable: yes
 
-    - name: Save the new pull secret into a file 
+    - name: Create the files directory in the restricted role, if it doesn't already exist 
+      file:
+        path: "{{ role_path }}/files"
+        state: directory
+        mode: '0755'
+
+    - name: Save the config.pull_secret variable into a file 
       copy: 
         content: "{{ config.pull_secret | to_json }}"
         dest: "{{ role_path }}/files/pull-secret-orig.json"
@@ -45,19 +51,19 @@
           {{ config | combine({ 'pull_secret':{'auths' : registry_pull_secret}}, recursive=True) }}
         cacheable: yes
 
-    - name: Copy install-config.yaml file into install-dir
-      template:
-        src: install-config-restricted.yaml.j2
-        dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
-
     - name: Create a dictionary out of the install-config.yaml file
       include_vars:
         file: '{{ playbook_dir }}/install-dir/install-config.yaml'
         name: install_config
-
-    - name: Add a additionalTrustBundle element to the install_config dict
+    
+    - name: Replace the pull_secret of the install-config.yml with the updated one
       set_fact:
-        install_config: "{{ install_config | combine({'additionalTrustBundle': registry.cert_content}, recursive=True)}}"
+        install_config: |
+          {{ install_config | combine({'pullSecret': config.pull_secret | to_json }, recursive=True)}}
+
+    - name: Append to the additionalTrustBundle element in the install_config dict
+      set_fact:
+        install_config: "{{ install_config | combine({'additionalTrustBundle': install_config.additionalTrustBundle|default('') + registry.cert_content}, recursive=True)}}"
         cacheable: yes
 
     - name: Convert the install_config dict back into YAML for installation
@@ -69,4 +75,3 @@
       copy:
         src: "{{ playbook_dir }}/install-dir/install-config.yaml"
         dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
-
