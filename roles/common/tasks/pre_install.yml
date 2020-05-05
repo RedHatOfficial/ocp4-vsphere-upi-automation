@@ -4,7 +4,6 @@
         name:
           - patch
           - gzip
-          - python-pip
           - python3
           - python3-pip
           - genisoimage

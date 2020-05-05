@@ -19,13 +19,13 @@ platform:
     defaultDatastore: {{ vcenter.datastore }}
 pullSecret: '{{ config.pull_secret | to_json }}'
 sshKey: '{{ config.installer_ssh_key }}'
-{% if proxy.enabled %}
+{% if proxy is defined and proxy.enabled == true %}
 proxy:
   httpProxy: {{ proxy.http_proxy }}
   httpsProxy: {{ proxy.https_proxy }}
   noProxy: {{ proxy.no_proxy }}
 {% endif %}
-{% if registry.enabled %}
+{% if registry is defined and registry.enabled == true %}
 imageContentSources:
 - mirrors:
   - {{ registry.host }}:5000/{{ registry.repo }}
