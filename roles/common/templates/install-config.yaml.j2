@@ -19,3 +19,18 @@ platform:
     defaultDatastore: {{ vcenter.datastore }}
 pullSecret: '{{ config.pull_secret | to_json }}'
 sshKey: '{{ config.installer_ssh_key }}'
+{% if proxy is defined and proxy.enabled == true %}
+proxy:
+  httpProxy: {{ proxy.http_proxy }}
+  httpsProxy: {{ proxy.https_proxy }}
+  noProxy: {{ proxy.no_proxy }}
+{% endif %}
+{% if registry is defined and registry.enabled == true %}
+imageContentSources:
+- mirrors:
+  - {{ registry.host }}:5000/{{ registry.repo }}
+  source: quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}
+- mirrors:
+  - {{ registry.host }}:5000/{{ registry.repo }}
+  source: quay.io/{{ registry.product_repo }}/ocp-v4.0-art-dev
+{% endif %}

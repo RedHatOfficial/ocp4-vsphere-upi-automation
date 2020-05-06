@@ -3,3 +3,4 @@ downloads
 install-dir
 **/*.yml.git
 **/*.yml.orig
+**/pull-secret*.json

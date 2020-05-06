@@ -1,0 +1,85 @@
+    - name:  Capture the content of the certificate
+      set_fact:
+        registry: "{{ registry | combine({ 'cert_content' : lookup('file','/etc/pki/ca-trust/source/anchors/domain.crt') }, recursive=True) }}"
+        cacheable: yes      
+
+    - name: Update the CA trust
+      command: update-ca-trust extract
+
+    - name: Pause for few seconds for the ca-trust to be updated
+      pause:
+        seconds: 2
+
+    - name: Register the registry credentials
+      set_fact:
+        registry_credentials: "{{ registry.username }}:{{ registry.password }}"
+        cacheable: yes
+
+    - name: Register the new pull secret
+      set_fact: 
+        registry_pull_secret: "{'{{ registry.host }}:{{ registry.port }}':{'auth':'{{ registry_credentials | b64encode }}','email': '{{ registry.email }}' }}"
+        cacheable: yes
+
+    - name: Create the files directory in the restricted role, if it doesn't already exist 
+      file:
+        path: "{{ role_path }}/files"
+        state: directory
+        mode: '0755'
+
+    - name: Save the config.pull_secret variable into a file 
+      copy: 
+        content: "{{ config.pull_secret | to_json }}"
+        dest: "{{ role_path }}/files/pull-secret-orig.json"
+    
+    - name: Create a new pull secret file with the newly added registry details
+      shell:  |
+        jq '.auths += {{ registry_pull_secret | to_json }}' \
+        < "{{ role_path }}/files/pull-secret-orig.json" \
+        > "{{ role_path }}/files/pull-secret.json"
+
+    - name: Mirror the registry 
+      command: |
+        oc adm -a "{{ role_path }}/files/pull-secret.json" release mirror \
+        --from="quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}:{{ registry.product_release_version }}" \
+        --to="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}" \
+        --to-release-image="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
+
+    - name: Extract openshift-install from registry 
+      command: |
+        oc adm -a "{{ role_path }}/files/pull-secret.json" \
+        release extract \
+        --command=openshift-install \
+        --to={{ playbook_dir }}/bin \
+        "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
+
+    - name: Point the pull secret to the local registry 
+      set_fact:
+        config: |
+          {% set auths=config['pull_secret'].pop('auths') %}
+          {{ config | combine({ 'pull_secret':{'auths' : registry_pull_secret}}, recursive=True) }}
+        cacheable: yes
+
+    - name: Create a dictionary out of the install-config.yaml file
+      include_vars:
+        file: '{{ playbook_dir }}/install-dir/install-config.yaml'
+        name: install_config
+    
+    - name: Replace the pull_secret of the install-config.yml with the updated one
+      set_fact:
+        install_config: |
+          {{ install_config | combine({'pullSecret': config.pull_secret | to_json }, recursive=True)}}
+
+    - name: Append to the additionalTrustBundle element in the install_config dict
+      set_fact:
+        install_config: "{{ install_config | combine({'additionalTrustBundle': install_config.additionalTrustBundle|default('') + registry.cert_content}, recursive=True)}}"
+        cacheable: yes
+
+    - name: Convert the install_config dict back into YAML for installation
+      copy: 
+        content: "{{ install_config | to_yaml }}"
+        dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
+    
+    - name: Backup the install-config.yaml file
+      copy:
+        src: "{{ playbook_dir }}/install-dir/install-config.yaml"
+        dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
