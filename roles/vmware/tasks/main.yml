@@ -1,3 +1,7 @@
-  - name: Create the vCenter folder by the same name as the cluster
+  - name: Check if the vCenter folder already exists 
+    command: "govc folder.info {{ folder }}"
+    register: folder_exists 
+
+  - name: Create the vCenter folder by the same name as the cluster, only if it doesn't exist
     command: "govc folder.create {{ folder }}"
-    when: vcenter_preqs_met is not defined
+    when: folder_exists.rc != 0 

@@ -136,10 +136,10 @@ In [group_vars/all.yml](group_vars/all.yml)'s  registry dict, with rest being op
 Now that helper, registry and the automation configs are all set, lets run the installation with the command:
 
 ```sh
-# If vCenter folders exist
-ansible-playbook --flush-cache -i staging restricted_ova.yml -e vcenter_preqs_met=true
+# If rhcos-vmware template exists in the folder and you want to reuse it
+ansible-playbook --flush-cache -i staging restricted_ova.yml -e skip_ova=true
 
-# If vCenter folders DONT exist
+# If rhcos-vmware template DOES NOT exist in the folder and you want to download/upload/create it
 ansible-playbook --flush-cache -i staging restricted_ova.yml
 ```
 

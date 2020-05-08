@@ -15,7 +15,7 @@ As it stands right now, the repo works for several installation usecases:
 
 1. vSphere ESXi and vCenter 6.7 installed. For vCenter 6.5 please see a cautionary note below:
 2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
-3. The playbook(s) assumes you are running a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) running in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. Also, the MAC addresses for the machines should match between helper repo and this. If not using the helper node, the minimum expectation is that the webserver and tftp server (for PXE boot) are running on the same external host, which we will then treat as a helper node.
+3. The playbook(s) assumes you are running a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. Also, the MAC addresses for the machines should match between helper repo and this. If not using the helper node, the minimum expectation is that the webserver and tftp server (for PXE boot) are running on the same external host, which we will then treat as a helper node.
 4. The necessary services such as [DNS/LB(Load Balancer] must be up and running before this repo can be used
 5. Ansible (preferably latest) with **Python 3** on the machine where this repo is cloned. Before you install Ansible, install the `epel-release`, run `yum -y install epel-release` 
 
@@ -121,29 +121,35 @@ With all the details in hand from the prerequisites, populate the **group_vars/a
 
 #### Option 1: DHCP + use of OVA template
 ```sh 
-ansible-playbook -i staging dhcp_ova.yml
+ansible-playbook --flush-cache -i staging dhcp_ova.yml
 ```
 #### Option 2: DHCP + PXE boot
 ```sh 
-ansible-playbook -i staging dhcp_pxe.yml
+ansible-playbook --flush-cache -i staging dhcp_pxe.yml
 ```
 #### Option 3: ISO + Static IPs
 ```sh 
-ansible-playbook -i staging static_ips.yml
+ansible-playbook --flush-cache -i staging static_ips.yml
 ```
 #### Option 4: DHCP + use of OVA template in a Restricted Network
 ```sh 
 # Refer to restricted.md file for more details
-ansible-playbook -i staging restricted_ova.yml
+ansible-playbook --flush-cache -i staging restricted_ova.yml
 ```
 
 #### Miscellaneous
-* If vCenter folder already exists with the template because you set the vCenter the last time you ran the ansible playbook but want a fresh deployment of VMs **after** you have erased all the existing VMs in the folder, append the following to the command you chose in the above step
+* If you are re-running the installation playbook make sure to blow away any existing VMs (in `ocp4` folder) listed below:  
+  1. bootstrap
+  2. masters 
+  3. workers 
+  4. `rhcos-vmware` template (if not using the extra param as shown below) 
+* If a template by the name `rhcos-vmware` already exists in vCenter, you want to reuse it and  skip the OVA **download** from Red Hat and **upload** into vCenter, use the following extra param. 
 
    ```sh 
-   -e vcenter_preqs_met=true
+   -e skip_ova=true
    ```
-* If would rather want to clean all folders `bin`, `downloads`, `install-dir` and re-download all the artifacts, append the following to the command you chose in the first step
+
+* If you would rather want to clean all folders `bin`, `downloads`, `install-dir` and re-download all the artifacts, append the following to the command you chose in the first step
    ```sh 
    -e clean=true
    ```
@@ -159,7 +165,7 @@ ansible-playbook -i staging restricted_ova.yml
    2. master.ign and worker.ign
    3. base64 encoded files (append-bootstrap.64, master.64, worker.64) for (append-bootstrap.ign, master.ign, worker.ign) respectiviely. This step assumes you have **base64** installed and in your **$PATH**
 7. The **bootstrap.ign** is copied over to the web server in the designated location
-8. A folder is created in the vCenter under the mentioned datacenter and the template file is imported 
+8. A folder is created in the vCenter under the mentioned datacenter and the template is imported 
 9. The template file is edited to carry certain default settings and runtime parameters common to all the VMs
 10. VMs (bootstrap, master0-2, worker0-2) are generated in the designated folder and (in state of) **poweredon** 
 
@@ -169,6 +175,7 @@ If everything goes well you should be able to log into all of the machines using
 
 ```sh
 # Assuming you are able to resolve bootstrap.ocp4.example.com on this machine
+# Replace the bootstrap hostname with any of the master or worker hostnames
 ssh -i ~/.ssh/ocp4 core@bootstrap.ocp4.example.com
 ```
 
@@ -203,6 +210,7 @@ To check if the registry information has been picked up:
 ```sh 
 # On Master or Bootstrap
 cat /etc/containers/registries.conf
+cat /root/.docker/config.json
 ```
 To check if your certs have been picked up:
 ```sh 

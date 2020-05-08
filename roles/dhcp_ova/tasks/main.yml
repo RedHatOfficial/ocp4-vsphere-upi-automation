@@ -8,7 +8,7 @@
       url: "{{ download.ova }}"
       dest: "{{ playbook_dir }}/downloads/{{vcenter.templateName}}.ova"
       validate_certs: no
-    when: vcenter_preqs_met is not defined
+    when: skip_ova is not defined
 
   - name: Deploy the OVF template into the folder
     vmware_deploy_ovf:
@@ -25,15 +25,15 @@
       ova: "{{ playbook_dir }}/downloads/{{vcenter.templateName}}.ova"
       power_on: False
       validate_certs: False
-    when: vcenter_preqs_met is not defined
+    when: skip_ova is not defined
   
   - name: Remove the Network Adapter  
     command: "govc device.remove -vm {{ folder }}/{{ vcenter.templateName }} ethernet-0"
-    when: vcenter_preqs_met is not defined
+    when: skip_ova is not defined
 
   - name: Update VM options on the template
     command: "govc vm.change -vm {{ folder }}/{{ vcenter.templateName }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"
-    when: vcenter_preqs_met is not defined      
+    when: skip_ova is not defined      
 
   - name: "Bootstrap base64"
     debug:
@@ -69,7 +69,7 @@
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
-        mac: "{{ item.mac }}"
+        mac: "{{ item.macaddr }}"
       wait_for_ip_address: no
       customvalues:
         - key: guestinfo.ignition.config.data
@@ -97,7 +97,7 @@
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
-        mac: "{{ item.mac }}"
+        mac: "{{ item.macaddr }}"
       wait_for_ip_address: no
       customvalues:
        - key: guestinfo.ignition.config.data
@@ -125,7 +125,7 @@
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
-        mac: "{{ item.mac }}"
+        mac: "{{ item.macaddr }}"
       wait_for_ip_address: no
       customvalues:
        - key: guestinfo.ignition.config.data

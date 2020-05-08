@@ -64,7 +64,7 @@
     vars:
       machine_name: "{{ item.name }}"
       machine_type: bootstrap
-      machine_ip: "{{ item.ip }}"
+      machine_ip: "{{ item.ipaddr }}"
     template: 
       src: kernel-params.j2
       dest: "{{role_path}}/files/{{item.name}}-kernel-params.txt"
@@ -74,7 +74,7 @@
     vars:
       machine_name: "{{ item.name }}"
       machine_type: master
-      machine_ip: "{{ item.ip }}"
+      machine_ip: "{{ item.ipaddr }}"
     template: 
       src: kernel-params.j2
       dest: "{{role_path}}/files/{{item.name}}-kernel-params.txt"
@@ -84,7 +84,7 @@
     vars:
       machine_name: "{{ item.name }}"
       machine_type: worker
-      machine_ip: "{{ item.ip }}"
+      machine_ip: "{{ item.ipaddr }}"
     template: 
       src: kernel-params.j2
       dest: "{{role_path}}/files/{{item.name}}-kernel-params.txt"
