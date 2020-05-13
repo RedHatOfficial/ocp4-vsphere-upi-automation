@@ -8,6 +8,7 @@ As it stands right now, the repo works for several installation usecases:
 * Static IPs for nodes (lack of isolated network to let helper run DHCP server)
 * w/o Cluster-wide Proxy (HTTP and SSL/TLS with certs supported)
 * Restricted network 
+* No Cloud Provider (Useful for mixed clusters with both virtual and physical Nodes)
 
 > This repo is most ideal for Home Lab and Proof-of-Concept scenarios. Having said that, if prerequistes (below) can be met and if the vCenter service account can be locked down to access only certain resources and perform only certain actions, the same repo can then be used for DEV or higher environments. Refer to this [link](https://vmware.github.io/vsphere-storage-for-kubernetes/documentation/vcp-roles.html) for more details on required permissions for a vCenter service account.
 
@@ -68,6 +69,14 @@ As it stands right now, the repo works for several installation usecases:
       host: helper.ocp4.example.com
       port: 5000
       repo: ocp4/openshift4
+   ```
+9. If you wish to install without enabling the Kubernetes vSphere Cloud Provider (Useful for mixed installs with both Virtual Nodes and Bare Metal Nodes), change the `provider: ` to `none` in all.yaml.
+   Note: If `provider: none` then the vsphere attributes do not need to be provided.
+   ```
+   config:
+     provider: none
+     base_domain: example.com
+     ...
    ```
 
 > The step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
