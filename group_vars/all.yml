@@ -1,6 +1,7 @@
 helper_vm_ip: 192.168.86.180
 bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/ignition/bootstrap.ign"  
 config:
+  provider: vsphere
   base_domain: example.com
   cluster_name: ocp4
   installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
@@ -35,7 +36,7 @@ static_ip:
   netmask: 255.255.255.0
   network_interface_name: ens192
 proxy:
-  enabled: true
+  enabled: false
   http_proxy: http://helper.ocp4.example.com:3129
   https_proxy: http://helper.ocp4.example.com:3129
   no_proxy: example.com
@@ -44,7 +45,7 @@ proxy:
         <certficate content>
     -----END CERTIFICATE-----  
 registry:
-  enabled: true
+  enabled: false
   product_repo: openshift-release-dev
   product_release_name: ocp-release
   product_release_version: 4.4.0-x86_64
