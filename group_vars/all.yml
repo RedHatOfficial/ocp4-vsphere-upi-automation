@@ -1,6 +1,7 @@
 helper_vm_ip: 192.168.86.180
 bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/ignition/bootstrap.ign"  
 config:
+  provider: vsphere
   base_domain: example.com
   cluster_name: ocp4
   installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
