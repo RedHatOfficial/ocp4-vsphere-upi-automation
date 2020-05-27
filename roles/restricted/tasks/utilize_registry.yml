@@ -1,7 +1,6 @@
     - name:  Capture the content of the certificate
       set_fact:
         registry: "{{ registry | combine({ 'cert_content' : lookup('file','/etc/pki/ca-trust/source/anchors/domain.crt') }, recursive=True) }}"
-        cacheable: yes      
 
     - name: Update the CA trust
       command: update-ca-trust extract
@@ -13,12 +12,10 @@
     - name: Register the registry credentials
       set_fact:
         registry_credentials: "{{ registry.username }}:{{ registry.password }}"
-        cacheable: yes
 
     - name: Register the new pull secret
       set_fact: 
         registry_pull_secret: "{'{{ registry.host }}:{{ registry.port }}':{'auth':'{{ registry_credentials | b64encode }}','email': '{{ registry.email }}' }}"
-        cacheable: yes
 
     - name: Create the files directory in the restricted role, if it doesn't already exist 
       file:
@@ -57,7 +54,6 @@
         config: |
           {% set auths=config['pull_secret'].pop('auths') %}
           {{ config | combine({ 'pull_secret':{'auths' : registry_pull_secret}}, recursive=True) }}
-        cacheable: yes
 
     - name: Create a dictionary out of the install-config.yaml file
       include_vars:
@@ -72,7 +68,6 @@
     - name: Append to the additionalTrustBundle element in the install_config dict
       set_fact:
         install_config: "{{ install_config | combine({'additionalTrustBundle': install_config.additionalTrustBundle|default('') + registry.cert_content}, recursive=True)}}"
-        cacheable: yes
 
     - name: Convert the install_config dict back into YAML for installation
       copy: 

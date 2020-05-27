@@ -10,15 +10,21 @@
       return_content: yes
     register: dependencies_content
 
-  - name:  Set the download facts that will be used later
+  - name:  Set the download facts for webservers group, which will be used later
     set_fact:
       download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
-      cacheable: yes
+    when: "'webservers' in group_names"
     loop: 
-      - { key: "iso", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.iso') }}" }
       - { key: "raw", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.raw.gz') }}" }
       - { key: "kernel", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*kernel.*') }}" }
       - { key: "initramfs", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*initramfs.*') }}" }
+
+  - name:  Set the download facts for localhost, which will be used later
+    set_fact:
+      download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
+    when: inventory_hostname == "localhost"
+    loop: 
+      - { key: "iso", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.iso') }}" }
       - { key: "ova", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.ova') }}" }
       - { key: "openshiftClient", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-client-linux-.*.tar.gz') }}" }
       - { key: "openshiftInstall", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-install-linux-.*.tar.gz') }}" }

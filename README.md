@@ -91,15 +91,11 @@ With all the details in hand from the prerequisites, populate the **group_vars/a
   * If the localhost runs the webserver
       ```
       [defaults]
-      fact_caching = jsonfile
-      fact_caching_connection = /tmp
       host_key_checking = False 
       ```
   * If the remote host runs the webserver
       ```
       [defaults]
-      fact_caching = jsonfile
-      fact_caching_connection = /tmp
       host_key_checking = False
       remote_user = root
       ask_pass = True 
@@ -108,8 +104,6 @@ With all the details in hand from the prerequisites, populate the **group_vars/a
   * If the localhost runs the webserver
       ```
       [defaults]
-      fact_caching = jsonfile
-      fact_caching_connection = /tmp
       host_key_checking = False 
 
       [privilege_escalation]
@@ -118,8 +112,6 @@ With all the details in hand from the prerequisites, populate the **group_vars/a
   * If the remote host runs the webserver
       ```
       [defaults]
-      fact_caching = jsonfile
-      fact_caching_connection = /tmp
       host_key_checking = False 
       remote_user = root
       ask_pass = True
@@ -130,20 +122,20 @@ With all the details in hand from the prerequisites, populate the **group_vars/a
 
 #### Option 1: DHCP + use of OVA template
 ```sh 
-ansible-playbook --flush-cache -i staging dhcp_ova.yml
+ansible-playbook -i staging dhcp_ova.yml
 ```
 #### Option 2: DHCP + PXE boot
 ```sh 
-ansible-playbook --flush-cache -i staging dhcp_pxe.yml
+ansible-playbook -i staging dhcp_pxe.yml
 ```
 #### Option 3: ISO + Static IPs
 ```sh 
-ansible-playbook --flush-cache -i staging static_ips.yml
+ansible-playbook -i staging static_ips.yml
 ```
 #### Option 4: DHCP + use of OVA template in a Restricted Network
 ```sh 
 # Refer to restricted.md file for more details
-ansible-playbook --flush-cache -i staging restricted_ova.yml
+ansible-playbook -i staging restricted_ova.yml
 ```
 
 #### Miscellaneous

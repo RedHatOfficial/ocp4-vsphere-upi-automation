@@ -117,8 +117,6 @@ all:
 In `ansible.cfg` have the following as the content, as we will be running this as `root` user on helper node.
 ```
 [defaults]
-fact_caching = jsonfile
-fact_caching_connection = /tmp
 host_key_checking = False 
 remote_user = root
 ```
@@ -137,10 +135,10 @@ Now that helper, registry and the automation configs are all set, lets run the i
 
 ```sh
 # If rhcos-vmware template exists in the folder and you want to reuse it
-ansible-playbook --flush-cache -i staging restricted_ova.yml -e skip_ova=true
+ansible-playbook -i staging restricted_ova.yml -e skip_ova=true
 
 # If rhcos-vmware template DOES NOT exist in the folder and you want to download/upload/create it
-ansible-playbook --flush-cache -i staging restricted_ova.yml
+ansible-playbook -i staging restricted_ova.yml
 ```
 
 The final network topology should somewhat like the image below:

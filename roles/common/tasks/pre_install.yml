@@ -4,10 +4,10 @@
         name:
           - patch
           - gzip
-          - python3
-          - python3-pip
+          - python-pip
           - genisoimage
           - jq
+        use_backend: auto 
       become: true
   
     - name: Install python3-pyvmomi
@@ -52,22 +52,26 @@
         url: "{{ download.openshiftClient }}"
         dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
         validate_certs: no
+      register: oc_client_download
   
     - name: Download the openshift-install binary
       get_url:
         url: "{{ download.openshiftInstall }}"
         dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
         validate_certs: no
+      register: openshift_install_download
   
     - name: Unarchive oc client
       unarchive:
         src: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
         dest: "{{ playbook_dir }}/bin"
+      when: oc_client_download is changed
   
     - name: Unarchive openshift-install 
       unarchive:
         src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
         dest: "{{ playbook_dir }}/bin"
+      when: openshift_install_download is changed
   
     - name: Download govc
       get_url:

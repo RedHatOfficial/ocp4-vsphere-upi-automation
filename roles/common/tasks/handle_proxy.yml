@@ -6,7 +6,6 @@
     - name: Add a additionalTrustBundle element to the install_config dict
       set_fact:
         install_config: "{{ install_config | combine({'additionalTrustBundle': proxy.cert_content}, recursive=True)}}"
-        cacheable: yes
         
     - name: Convert the install_config dict back into YAML for installation
       copy: 
