@@ -6,7 +6,7 @@
   - name: Download the ova file 
     get_url:
       url: "{{ download.ova }}"
-      dest: "{{ playbook_dir }}/downloads/{{vcenter.templateName}}.ova"
+      dest: "{{ playbook_dir }}/downloads/{{vcenter.template_name}}.ova"
       validate_certs: no
     when: skip_ova is not defined
 
@@ -17,22 +17,22 @@
       password: "{{ vcenter.admin_password }}"
       datacenter: "{{ vcenter.datacenter }}"
       datastore: "{{ vcenter.datastore }}"
-      folder: "{{ folder }}"
-      name: '{{ vcenter.templateName }}'
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: '{{ vcenter.template_name }}'
       allow_duplicates: False
       disk_provisioning: thin
       networks: "{u'VM Network':u'{{ vcenter.network }}'}"
-      ova: "{{ playbook_dir }}/downloads/{{vcenter.templateName}}.ova"
+      ova: "{{ playbook_dir }}/downloads/{{vcenter.template_name}}.ova"
       power_on: False
       validate_certs: False
     when: skip_ova is not defined
   
   - name: Remove the Network Adapter  
-    command: "govc device.remove -vm {{ folder }}/{{ vcenter.templateName }} ethernet-0"
+    command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0"
     when: skip_ova is not defined
 
   - name: Update VM options on the template
-    command: "govc vm.change -vm {{ folder }}/{{ vcenter.templateName }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"
     when: skip_ova is not defined      
 
   - name: "Bootstrap base64"
@@ -55,10 +55,10 @@
       password: "{{ vcenter.service_account_password }}"
       datacenter: "{{ vcenter.datacenter }}"
       validate_certs: no
-      folder: "{{ folder }}"
+      folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
-      template: "{{ vcenter.templateName }}"
+      template: "{{ vcenter.template_name }}"
       disk:
       - size_gb: 120
         type: thin
@@ -83,10 +83,10 @@
       password: "{{ vcenter.service_account_password }}"
       datacenter: "{{ vcenter.datacenter }}"
       validate_certs: no
-      folder: "{{ folder }}"
+      folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
-      template: "{{ vcenter.templateName }}"
+      template: "{{ vcenter.template_name }}"
       disk:
       - size_gb: 120
         type: thin
@@ -111,10 +111,10 @@
       password: "{{ vcenter.service_account_password }}"
       datacenter: "{{ vcenter.datacenter }}"
       validate_certs: no
-      folder: "{{ folder }}"
+      folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
-      template: "{{ vcenter.templateName }}"
+      template: "{{ vcenter.template_name }}"
       disk:
       - size_gb: 120
         type: thin

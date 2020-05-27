@@ -15,8 +15,9 @@ vcenter:
   admin_username: administrator@vsphere.local 
   admin_password: something
   datacenter: dc
+  folder_absolute_path:
   vm_power_state: poweredon
-  templateName: rhcos-vmware
+  template_name: rhcos-vmware
 download:
   clients_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest
   dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest

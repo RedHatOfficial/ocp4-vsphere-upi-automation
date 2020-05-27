@@ -6,7 +6,7 @@
       import_role:
         name: cache
 - hosts: localhost 
-  gather_facts: False
+  gather_facts: True
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
