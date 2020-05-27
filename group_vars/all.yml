@@ -15,6 +15,7 @@ vcenter:
   admin_username: administrator@vsphere.local 
   admin_password: something
   datacenter: dc
+  folder_absolute_path:
   vm_power_state: poweredon
   templateName: rhcos-vmware
 download:

@@ -1,16 +1,46 @@
----
+    - name: Set the datacenter variable 
+      set_fact:
+        datacenter: "{{ vcenter.datacenter }}"
+
+    - name: Set the vcenter.folder_absolute_path if not provided
+      set_fact:
+        vcenter: "{{ vcenter | combine({'folder_absolute_path': '/{{ datacenter }}/vm/{{ config.cluster_name }}'}, recursive=True) }}"
+      when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
+
+    - name: Display the absolute folder path of the vCenter folder
+      debug:
+        var: vcenter.folder_absolute_path
+        verbosity: 1
+
     - name: Install the necessary linux packages which will be needed later in the ansible run
-      yum:
+      package:
         name:
           - patch
           - gzip
-          - python-pip
           - genisoimage
           - jq
-        use_backend: auto 
       become: true
-  
-    - name: Install python3-pyvmomi
+
+    - name: Display Ansible's Python version
+      debug:
+        var: ansible_python_version
+        verbosity: 1
+
+    - name: Install python-pip or python2-pip if Ansible uses Python 2 
+      package:
+        name:
+          - "python2?-pip"
+      when: ansible_python_version is match("2.*")
+      become: true
+
+    - name: Install python3-pip if Ansible uses Python 3
+      package:
+        name:
+          - python3-pip
+      when: ansible_python_version is match("3.*")
+      become: true
+
+    - name: Install pyvmomi
       pip: 
         name: pyvmomi
       become: true
@@ -103,4 +133,3 @@
         src: "{{ playbook_dir }}/install-dir/install-config.yaml"
         dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
       when: (registry is not defined) or (registry.enabled is not defined) or (registry.enabled == false)
- 

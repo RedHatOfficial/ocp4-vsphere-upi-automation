@@ -43,7 +43,10 @@ As it stands right now, the repo works for several installation usecases:
 6. Update the inventory file: **staging** under the `webservers.hosts` entry, use one of two options below : 
    1. **localhost** : if the `ansible-playbook` is being run on the same host  as the webserver that would eventually host bootstrap.ign file
    2. the IP address or FQDN of the machine that would run the webserver. 
-7. Furnish any proxy details with the section like below. If `proxy.enabled` is set to `False` anything related to the proxy wouldn't be picked up.
+7. Furnish any proxy details with the section like below. 
+   * If `proxy.enabled` is set to `False` anything defined under proxy and the proxy setup is ignored
+   * The `cert_content` shown below is only for illustration to show the format
+   * When there is no certificate, leave the variable `cert_content` value empty or remove it entirely
    ```
    proxy:
       enabled: true
@@ -55,7 +58,7 @@ As it stands right now, the repo works for several installation usecases:
             <certficate content>
          -----END CERTIFICATE-----
    ```
-8. When doing the restrcited network install and following instructions from [restricted.md](restricted.md), furnish details related to the registry with a section like below. If `registry.enabled` is set to `False` anything related to the `registry` wouldn't be picked up. 
+8. When doing the restrcited network install and following instructions from [restricted.md](restricted.md), furnish details related to the registry with a section like below. If `registry.enabled` is set to `False` anything defined under `registry` and the registry setup is ignored
    ```
    registry:
       enabled: true
