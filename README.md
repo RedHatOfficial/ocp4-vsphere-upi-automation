@@ -26,7 +26,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
 3. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required 
 4. Run one of the several [install options](#install-options)
 
-## Prerequisites
+## Infrastructure Prerequisites
 
 1. vSphere ESXi and vCenter 6.7 installed. For vCenter 6.5 please see a cautionary note below:
 2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
@@ -38,7 +38,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    
 ## Automatic generation of ignition and other supporting files
 
-### Prerequisites 
+### Install Prerequisites 
 > Pre-populated entries in **group_vars/all.yml** are ready to be used unless you need to customize further. Any updates described below refer to [group_vars/all.yml](group_vars/all.yml) unless otherwise specified.
 1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned). Update the file on the line with `pull_secret` by providing the entire pull secret as a single line replacing the provided/incomplete pull secret  
 2. Get the vCenter details:
