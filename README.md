@@ -24,7 +24,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
      * username and passwords of admin/service accounts
    * enable/disable registry/proxy with their details, as required
 3. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required 
-4. Run one of the several [install options](#install-options)
+4. Run one of the several [install options](#run-installation-playbook)
 
 ## Infrastructure Prerequisites
 
@@ -37,9 +37,9 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
 
 > For vSphere 6.5, the files relating to interaction with VMware/vCenter such as [this](roles/dhcp_ova/tasks/main.yml) ***may*** need to have `vmware_deploy_ovf` module to include [`cluster`](https://docs.ansible.com/ansible/latest/modules/vmware_deploy_ovf_module.html#parameter-cluster), [`resource-pool`](https://docs.ansible.com/ansible/latest/modules/vmware_deploy_ovf_module.html#parameter-resource_pool) parameters and their values set to work correctly.
    
-## Automatic generation of ignition and other supporting files
+## Installation Steps
 
-### Install Prerequisites 
+### Set Global Variables
 > Pre-populated entries in **group_vars/all.yml** are ready to be used unless you need to customize further. Any updates described below refer to [group_vars/all.yml](group_vars/all.yml) unless otherwise specified.
 1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned). Update the file on the line with `pull_secret` by providing the entire pull secret as a single line replacing the provided/incomplete pull secret  
 2. Get the vCenter details:
@@ -95,7 +95,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    ```
 > The step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
    
-### Setup and Installation
+### Set Ansible Inventory and Configuration
 
 Now configure `ansible.cfg` and `staging` inventory file based on your environment before picking one of the 5 different install options listed below.
 
@@ -139,7 +139,7 @@ Under the `webservers.hosts` entry, use one of two options below :
       become_ask_pass = True
       ```
 
-#### Install Options 
+### Run Installation Playbook
 ```sh 
 # Option 1: DHCP + use of OVA template
 ansible-playbook -i staging dhcp_ova.yml
@@ -158,7 +158,7 @@ ansible-playbook -i staging restricted_dhcp_ova.yml
 ansible-playbook -i staging restricted_static_ips.yml
 ```
 
-#### Miscellaneous
+### Miscellaneous
 * If you are re-running the installation playbook make sure to blow away any existing VMs (in `ocp4` folder) listed below:  
   1. bootstrap
   2. masters 
