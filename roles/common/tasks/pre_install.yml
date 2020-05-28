@@ -4,7 +4,7 @@
 
     - name: Set the vcenter.folder_absolute_path if not provided
       set_fact:
-        vcenter: "{{ vcenter | combine({'folder_absolute_path': '/{{ datacenter }}/vm/{{ config.cluster_name }}'}, recursive=True) }}"
+        vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+config.cluster_name}, recursive=True) }}"
       when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
 
     - name: Display the absolute folder path of the vCenter folder
@@ -29,7 +29,7 @@
     - name: Install python-pip or python2-pip if Ansible uses Python 2 
       package:
         name:
-          - "python2?-pip"
+          - "python2-pip"
       when: ansible_python_version is match("2.*")
       become: true
 

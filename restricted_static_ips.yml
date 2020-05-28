@@ -1,0 +1,74 @@
+---
+- hosts: all
+  gather_facts: False
+  tasks:
+    - name: Set the cache of all the download links
+      import_role:
+        name: cache
+- hosts: localhost
+  gather_facts: True
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - name: Run all the common pre-install tasks
+      import_role:
+        name: common
+        tasks_from: pre_install
+- hosts: registries
+  gather_facts: False
+  tasks:
+    - name: Run the setup tasks for a restricted environment
+      import_role:
+        name: restricted
+        tasks_from: setup_registry
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Run the tasks for a restricted environment
+      import_role:
+        name: restricted
+        tasks_from: utilize_registry        
+- hosts: localhost
+  gather_facts: True
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - name: Run all the common tasks
+      import_role:
+        name: common
+- hosts: webservers
+  gather_facts: False
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - name: Copy over generated ignition files to webserver
+      import_role:
+        name: webserver
+        tasks_from: copy_ign_files
+    - name: Download the installer raw.gz file to webserver
+      import_role:
+        name: webserver
+        tasks_from: download_raw_installer_files
+- hosts: localhost
+  gather_facts: False
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+    GOVC_USERNAME: "{{ vcenter.admin_username }}"
+    GOVC_PASSWORD: "{{ vcenter.admin_password }}"
+    GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_INSECURE: 1
+  tasks:
+    - name: Run the vmware role to setup vCenter folder
+      import_role:
+        name: vmware
+    - name: Reset the vcenter.vm_power_state to poweredoff
+      set_fact:
+        vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredoff'}, recursive=True) }}"
+    - name: Echo the value of the variable vcenter.vm_power_state
+      debug: var=vcenter.vm_power_state
+    - name: Run steps specific to DHCP and PXE boot
+      import_role:
+        name: dhcp_pxe
+    - name: Run steps for static ip setup of VMs
+      import_role:
+        name: static_ips
