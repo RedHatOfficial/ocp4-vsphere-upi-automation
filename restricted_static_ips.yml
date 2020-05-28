@@ -36,6 +36,7 @@
     - name: Run all the common tasks
       import_role:
         name: common
+        tasks_from: install        
 - hosts: webservers
   gather_facts: False
   environment:
