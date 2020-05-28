@@ -1,10 +1,12 @@
 ---
 - hosts: localhost
+  gather_facts: False
   tasks:
     - name: Set the cache of all the download links
       import_role:
         name: cache
-- hosts: localhost 
+- hosts: localhost
+  gather_facts: True
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
@@ -13,18 +15,21 @@
         name: common
         tasks_from: pre_install
 - hosts: registries
+  gather_facts: False
   tasks:
     - name: Run the setup tasks for a restricted environment
       import_role:
         name: restricted
         tasks_from: setup_registry
 - hosts: localhost
+  gather_facts: False
   tasks:
     - name: Run the tasks for a restricted environment
       import_role:
         name: restricted
         tasks_from: utilize_registry
-- hosts: localhost 
+- hosts: localhost
+  gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
@@ -33,6 +38,7 @@
         name: common
         tasks_from: install
 - hosts: webservers
+  gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
@@ -40,7 +46,8 @@
       import_role:
         name: webserver
         tasks_from: copy_ign_files
-- hosts: localhost 
+- hosts: localhost
+  gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
     GOVC_USERNAME: "{{ vcenter.admin_username }}"

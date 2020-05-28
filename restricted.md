@@ -66,29 +66,14 @@ When all done your setting should resemble somewhat like this image with the new
 In the helper `vars.yml` file ensure that all IP addresses (helper + bootstrap+ masters + workers) now belong to the new subnet `192.168.87.0/24`, that includes changing `helper.ipaddr` and `helper.networkifacename` to the new network adpater settings. 
 
 #### If creating a new VM for registry (not re-using helper)
-Make accomdations for registry node: `registry.ocp4.example.com` by changing the helper's DNS and DHCP config files as shown:
-1. Add a section for registry in helper's `vars.yml` file, as shown below. The `macaddr` should reflect the MAC address assigned to `ens192` adapter:
-   ```
-   registry:
-     name: "registry"
-     ipaddr: "192.168.87.188"
-     macaddr: "00:50:56:a8:4b:4f"
-   ```
-2. Add the following line to `templates/dhcpd.conf.j2` under the Static entries (for example, below the line for bootstrap)
-   ```
-   host {{ registry.name }} { hardware ethernet {{ registry.macaddr }}; fixed-address {{ registry.ipaddr }}; }
-   ```
-3. Add the following line to `templates/zonefile.j2` (for example, below the line for bootstrap)
-   ```
-   ; Create entry for the registry  host
-   {{ registry.name }}     IN      A       {{ registry.ipaddr }}
-   ;
-   ```
-4. Add the following line to `templates/reverse.j2` (for example, below the line for bootstrap)
-   ```
-   {{ registry.ipaddr.split('.')[3] }}     IN      PTR     {{ registry.name }}.{{ dns.clusterid }}.{{ dns.domain }}.
-   ;
-   ```
+Make accomdations for registry node: `registry.ocp4.example.com` by adding an entry for registry in helper's `vars.yml` file in the `other` section, as shown below. The `macaddr` should reflect the MAC address assigned to `ens192` adapter:
+
+```
+other:
+  name: "registry"
+  ipaddr: "192.168.87.188"
+  macaddr: "00:50:56:a8:4b:4f"
+```
 
 Now that helper is all set with is configuration, lets re-run the playbook and when it goes to success, reboot `registry.ocp4.example.com` so that it could pickup its IP address via DHCP. 
 
@@ -117,8 +102,6 @@ all:
 In `ansible.cfg` have the following as the content, as we will be running this as `root` user on helper node.
 ```
 [defaults]
-fact_caching = jsonfile
-fact_caching_connection = /tmp
 host_key_checking = False 
 remote_user = root
 ```
@@ -137,10 +120,13 @@ Now that helper, registry and the automation configs are all set, lets run the i
 
 ```sh
 # If rhcos-vmware template exists in the folder and you want to reuse it
-ansible-playbook --flush-cache -i staging restricted_ova.yml -e skip_ova=true
+ansible-playbook -i staging restricted_dhcp_ova.yml -e skip_ova=true
 
 # If rhcos-vmware template DOES NOT exist in the folder and you want to download/upload/create it
-ansible-playbook --flush-cache -i staging restricted_ova.yml
+ansible-playbook -i staging restricted_ova.yml
+
+# For installtion with static IPs
+ansible-playbook -i staging restricted_static_ips.yml
 ```
 
 The final network topology should somewhat like the image below:

@@ -1,10 +1,12 @@
 ---
 - hosts: all
+  gather_facts: False
   tasks:
     - name: Set the cache of all the download links
       import_role:
         name: cache
 - hosts: localhost 
+  gather_facts: True
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
@@ -12,6 +14,7 @@
       import_role:
         name: common
 - hosts: webservers
+  gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
@@ -20,6 +23,7 @@
         name: webserver
         tasks_from: copy_ign_files
 - hosts: localhost 
+  gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
     GOVC_USERNAME: "{{ vcenter.admin_username }}"

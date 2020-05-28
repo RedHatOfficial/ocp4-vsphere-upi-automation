@@ -6,7 +6,7 @@
       datacenter: "{{ vcenter.datacenter }}"
       guest_id: "rhel7_64Guest"
       validate_certs: no
-      folder: "{{ folder }}"
+      folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
@@ -30,7 +30,7 @@
       datacenter: "{{ vcenter.datacenter }}"
       guest_id: "rhel7_64Guest"
       validate_certs: no
-      folder: "{{ folder }}"
+      folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
@@ -55,7 +55,7 @@
       datacenter: "{{ vcenter.datacenter }}"
       guest_id: "rhel7_64Guest"
       validate_certs: no
-      folder: "{{ folder }}"
+      folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
@@ -73,5 +73,5 @@
     loop: "{{ worker_vms }}"
 
   - name: Update VM options on the template
-    command: "govc vm.change -vm {{ folder }}/{{ item.name }} -e=disk.EnableUUID=TRUE"
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ item.name }} -e=disk.EnableUUID=TRUE"
     loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
