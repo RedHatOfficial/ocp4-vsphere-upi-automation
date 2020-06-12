@@ -19,6 +19,7 @@
           - gzip
           - genisoimage
           - jq
+          - rsync
       become: true
 
     - name: Display Ansible's Python version
