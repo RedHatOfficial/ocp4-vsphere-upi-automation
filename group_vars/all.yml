@@ -4,6 +4,7 @@ config:
   provider: vsphere
   base_domain: example.com
   cluster_name: ocp4
+  fips: false
   installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
   pull_secret: {"auths": ...}
 vcenter:
