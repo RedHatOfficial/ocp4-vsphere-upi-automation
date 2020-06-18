@@ -25,7 +25,7 @@ platform:
     datacenter: {{ vcenter.datacenter }}
     defaultDatastore: {{ vcenter.datastore }}
 {% endif %}
-fips: '{{ config.fips }}'
+fips: {{ config.fips }}
 pullSecret: '{{ config.pull_secret | to_json }}'
 sshKey: '{{ config.installer_ssh_key }}'
 {% if proxy is defined and proxy.enabled == true %}
