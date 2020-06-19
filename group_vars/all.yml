@@ -37,6 +37,12 @@ static_ip:
   gateway: 192.168.86.1
   netmask: 255.255.255.0
   network_interface_name: ens192
+configure_ntp: false
+ntp_server_list:
+   - 0.rhel.pool.ntp.org
+   - 1.rhel.pool.ntp.org
+   - 2.rhel.pool.ntp.org
+   - 3.rhel.pool.ntp.org
 proxy:
   enabled: false
   http_proxy: http://helper.ocp4.example.com:3129
