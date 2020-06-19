@@ -1,0 +1,16 @@
+- name: Create the chrony.conf file
+  template:
+    src: chrony.conf.j2
+    dest: /tmp/chrony.conf
+
+- name: Save base64 of config file
+  set_fact:
+    chrony_base64: "{{ (lookup('file', '/tmp/chrony.conf') + '\n') | b64encode }}"
+
+- name: Generate the machineconfigs for chrony
+  template:
+    src: mc-chrony-configuration.yaml.j2
+    dest: "{{ playbook_dir }}/install-dir/manifests/99-{{ item }}-chrony-configuration.yaml"
+  loop:
+    - master
+    - worker
