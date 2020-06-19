@@ -59,9 +59,7 @@ registry:
   port: 5000
   repo: ocp4/openshift4
 ntp:
-  custom: true
+  custom: false
   ntp_server_list:
     - 0.rhel.pool.ntp.org
     - 1.rhel.pool.ntp.org
-    - 2.rhel.pool.ntp.org
-    - 3.rhel.pool.ntp.org
