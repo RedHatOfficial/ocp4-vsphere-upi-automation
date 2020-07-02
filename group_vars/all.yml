@@ -58,3 +58,8 @@ registry:
   host: registry.ocp4.example.com
   port: 5000
   repo: ocp4/openshift4
+ntp:
+  custom: false
+  ntp_server_list:
+    - 0.rhel.pool.ntp.org
+    - 1.rhel.pool.ntp.org

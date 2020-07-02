@@ -1,4 +1,5 @@
   - name: Copy the all the ignition files over to the webserver
+    become: true
     copy:
       src: "{{ item }}" 
       dest: "/var/www/html/ignition/"
