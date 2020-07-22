@@ -14,8 +14,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ bootstrap_vms.ram }}"
+        num_cpus: "{{ bootstrap_vms.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -38,8 +38,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ master_vms.ram }}"
+        num_cpus: "{{ master_vms.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -63,8 +63,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ worker_vms.ram }}"
+        num_cpus: "{{ worker_vms.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
