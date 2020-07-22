@@ -63,4 +63,4 @@
         name: dhcp_ova        
     - name: Run steps to finish cluster install
       import_role:
-        name: finish_instal
+        name: finish_install
