@@ -105,9 +105,9 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
      - 1.rhel.pool.ntp.org
    ```
 10. Network Policy is enabled by default.  To use Multitenant or Subnet, change isolationMode
-   ```
-   isolationMode: Multitenant
-   ```
+    ```
+    isolationMode: Multitenant
+    ```
 > The step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
    
 ### Set Ansible Inventory and Configuration
