@@ -1,0 +1,21 @@
+- name: Make a copy of cluster-network-02-config.yaml to modify
+  copy:
+    src: "{{ playbook_dir }}/install-dir/manifests/cluster-network-02-config.yml"
+    dest: "{{ playbook_dir }}/install-dir/manifests/cluster-network-03-config.yml"
+
+- name: Update apiVersion from config to operator
+  replace:
+    regexp: '^(apiVersion:) config(.openshift.io/v1)$'
+    replace: '\1 operator\2'
+    path: "{{ playbook_dir }}/install-dir/manifests/cluster-network-03-config.yml"
+
+- name: Insert new network for selected isolation
+  blockinfile:
+     insertafter: 'networkType: OpenShiftSDN'
+     block: |2
+         defaultNetwork:
+           type: OpenShiftSDN
+           openshiftSDNConfig:
+             mode: "{{ config.isolationMode }}"
+     path: "{{ playbook_dir }}/install-dir/manifests/cluster-network-03-config.yml"
+     state: present

@@ -6,6 +6,10 @@
         src: "cluster-scheduler-02-config.yml.patch"
         dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
 
+    - name: Configure custom isolation mode for network provider
+      when: config.isolationMode != "NetworkPolicy"
+      include_tasks: isolation_mode.yml
+
     - name: Configure custom ntp servers for masters and workers
       when: ntp.custom
       include_tasks: configure_ntp.yml 
