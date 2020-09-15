@@ -3,25 +3,15 @@
         path: ~/.ssh
         state: directory
         mode: '0755'
-  
+
     - name: Generate a SSH key-pair
       openssh_keypair:
         path: ~/.ssh/ocp4
         force: false
-  
-    - name: Set the datacenter variable 
+
+    - name: Set the datacenter variable
       set_fact:
         datacenter: "{{ vcenter.datacenter }}"
-
-    - name: Set the vcenter.folder_absolute_path if not provided
-      set_fact:
-        vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+config.cluster_name}, recursive=True) }}"
-      when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
-
-    - name: Display the absolute folder path of the vCenter folder
-      debug:
-        var: vcenter.folder_absolute_path
-        verbosity: 1
 
     - name: Install the necessary linux packages which will be needed later in the ansible run
       package:
@@ -38,7 +28,7 @@
         var: ansible_python_version
         verbosity: 1
 
-    - name: Install python-pip or python2-pip if Ansible uses Python 2 
+    - name: Install python-pip or python2-pip if Ansible uses Python 2
       package:
         name:
           - "python2-pip"
@@ -53,71 +43,71 @@
       become: true
 
     - name: Install pyvmomi
-      pip: 
+      pip:
         name: pyvmomi
       become: true
-  
+
     - name: Clean up existing bin, install-dir and downloads folders
-      file: 
+      file:
         path: "{{ playbook_dir }}/{{ item }}"
         state: absent
       with_items: ["bin", "install-dir", "downloads"]
       when: clean is defined
-  
+
     - name: Must always clean install-dir
       file:
         path: "{{ playbook_dir }}/{{ item }}"
         state: absent
       with_items: ["install-dir"]
       when: clean is not defined
-  
+
     - name: Create bin, install-dir and downloads folders
       file:
         path: "{{ playbook_dir }}/{{ item }}"
         state: directory
         mode: '0755'
-      with_items: ["bin", "downloads","downloads/ISOs", "install-dir"]  
-  
+      with_items: ["bin", "downloads","downloads/ISOs", "install-dir"]
+
     - name: Download the oc client binary
       get_url:
         url: "{{ download.openshiftClient }}"
         dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
         validate_certs: no
       register: oc_client_download
-  
+
     - name: Download the openshift-install binary
       get_url:
         url: "{{ download.openshiftInstall }}"
         dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
         validate_certs: no
       register: openshift_install_download
-  
+
     - name: Unarchive oc client
       unarchive:
         src: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
         dest: "{{ playbook_dir }}/bin"
       when: oc_client_download is changed
-  
-    - name: Unarchive openshift-install 
+
+    - name: Unarchive openshift-install
       unarchive:
         src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
         dest: "{{ playbook_dir }}/bin"
       when: openshift_install_download is changed
-  
+
     - name: Download govc
       get_url:
         url: "{{ download.govc}}"
         dest: "{{ playbook_dir }}/downloads/govc.gz"
-        validate_certs: no    
-  
+        validate_certs: no
+
     - name: Unarchive govc
       shell: gzip -dc "{{ playbook_dir }}/downloads/govc.gz" > "{{ playbook_dir }}/bin/govc"
-  
+
     - name: Make govc executable
       file:
         path: "{{ playbook_dir }}/bin/govc"
         mode: '775'
-  
+
     - name: Copy install-config.yaml file into install-dir
       template:
         src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.j2"
@@ -125,7 +115,7 @@
 
     - name: Run steps pertaining to proxy, if any
       include: handle_proxy.yml
-      when: 
+      when:
         - proxy is defined
         - proxy.enabled == true
 
