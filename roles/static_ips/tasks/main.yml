@@ -57,7 +57,7 @@
   - name: Unmount the iso mount path
     mount:
       path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
-      state: unmounted
+      state: absent
     become: true
 
   - name: Generate kernel params for bootstrap

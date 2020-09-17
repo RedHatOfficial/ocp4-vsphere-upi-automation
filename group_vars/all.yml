@@ -4,6 +4,7 @@ config:
   provider: vsphere
   base_domain: example.com
   cluster_name: ocp4
+  fips: false
   installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
   pull_secret: {"auths": ...}
 vcenter:
@@ -57,3 +58,8 @@ registry:
   host: registry.ocp4.example.com
   port: 5000
   repo: ocp4/openshift4
+ntp:
+  custom: false
+  ntp_server_list:
+    - 0.rhel.pool.ntp.org
+    - 1.rhel.pool.ntp.org

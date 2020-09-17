@@ -18,11 +18,12 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
 2. Edit `group_vars/all.yml`, the following must be changed while the rest can remain the same
    * pull secret
    * ip and mac addresses, host/domain names
+   * enable/disable fips mode
    * vcenter details
      * datastore name
      * datacenter name
      * username and passwords of admin/service accounts
-   * enable/disable registry/proxy with their details, as required
+   * enable/disable registry/proxy/ntp with their details, as required
 3. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required 
 4. Run one of the several [install options](#run-installation-playbook)
 
@@ -92,6 +93,14 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
      provider: none
      base_domain: example.com
      ...
+   ```
+9. If you wish to enable custom NTP servers on your nodes, set `ntp.custom` to `True` and define `ntp.ntp_server_list` to fit your requirements.
+   ```
+   ntp:
+     custom: True
+     ntp_server_list:
+     - 0.rhel.pool.ntp.org
+     - 1.rhel.pool.ntp.org
    ```
 > The step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
    
