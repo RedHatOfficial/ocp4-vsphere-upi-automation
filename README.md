@@ -2,7 +2,7 @@
 
 The goal of this repo is to make deploying and redeploying a new OpenShift v4 cluster a snap. Using the same repo and with minor tweaks, it can be applied to any version of OpenShift higher than the current version of 4.4.
 
-As it stands right now, the repo works for several installation usecases:
+As it stands right now, the repo works for several installation use cases:
 * DHCP with OVA template
 * DHCP with PXE boot (needs helper node)
 * Static IPs for nodes (lack of isolated network to let helper run DHCP server)
@@ -14,7 +14,7 @@ As it stands right now, the repo works for several installation usecases:
 
 ## Quickstart 
 This is a concise summary of everything you need to do to use the repo. Rest of the document goes into details of every step. 
-1. Setup helper node
+1. Setup [helper node](https://github.com/RedHatOfficial/ocp4-helpernode)
 2. Edit `group_vars/all.yml`, the following must be changed while the rest can remain the same
    * pull secret
    * ip and mac addresses, host/domain names
@@ -72,7 +72,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
             <certficate content>
          -----END CERTIFICATE-----
    ```
-7. When doing the restrcited network install and following instructions from [restricted.md](restricted.md), furnish details related to the registry with a section like below. If `registry.enabled` is set to `False` anything defined under `registry` and the registry setup is ignored
+7. When doing the restricted network install and following instructions from [restricted.md](restricted.md), furnish details related to the registry with a section like below. If `registry.enabled` is set to `False` anything defined under `registry` and the registry setup is ignored
    ```
    registry:
       enabled: true
