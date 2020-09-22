@@ -10,7 +10,7 @@ As it stands right now, the repo works for several installation use cases:
 * Restricted network (with or without DHCP)
 * No Cloud Provider (Useful for mixed clusters with both virtual and physical Nodes)
 
-> This repo is most ideal for Home Lab and Proof-of-Concept scenarios. Having said that, if prerequistes (below) can be met and if the vCenter service account can be locked down to access only certain resources and perform only certain actions, the same repo can then be used for DEV or higher environments. Refer to this [link](https://vmware.github.io/vsphere-storage-for-kubernetes/documentation/vcp-roles.html) for more details on required permissions for a vCenter service account.
+> This repo is most ideal for Home Lab and Proof-of-Concept scenarios. Having said that, if prerequisites (below) can be met and if the vCenter service account can be locked down to access only certain resources and perform only certain actions, the same repo can then be used for DEV or higher environments. Refer to this [link](https://vmware.github.io/vsphere-storage-for-kubernetes/documentation/vcp-roles.html) for more details on required permissions for a vCenter service account.
 
 ## Quickstart 
 This is a concise summary of everything you need to do to use the repo. Rest of the document goes into details of every step. 
@@ -29,7 +29,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
 
 ## Infrastructure Prerequisites
 
-1. vSphere ESXi and vCenter 6.7 installed. For vCenter 6.5 please see a cautionary note below:
+1. vSphere ESXi and vCenter 6.7 installed. For vCenter 6.5 please see cautionary note below:
 2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
 3. The playbook(s) assumes you are running a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. Also, the MAC addresses for the machines should match between helper repo and this. If not using the helper node, the minimum expectation is that the webserver and tftp server (for PXE boot) are running on the same external host, which we will then treat as a helper node.
 4. The necessary services such as [DNS/LB(Load Balancer] must be up and running before this repo can be used
@@ -56,7 +56,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
 4. OpenShift cluster 
    1. base domain *(pre-populated with **example.com**)*
    2. cluster name *(pre-populated with **ocp4**)*
-5. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with a example config pointing to helper node)*
+5. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with an example config pointing to helper node)*
 6. Furnish any proxy details with the section like below. 
    * If `proxy.enabled` is set to `False` anything defined under proxy and the proxy setup is ignored
    * The `cert_content` shown below is only for illustration to show the format
@@ -102,7 +102,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
      - 0.rhel.pool.ntp.org
      - 1.rhel.pool.ntp.org
    ```
-> The step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
+> Step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
    
 ### Set Ansible Inventory and Configuration
 
@@ -193,7 +193,7 @@ ansible-playbook -i staging restricted_static_ips.yml
 6. In the **install-dir** folder:
    1. append-bootstrap.ign file with the HTTP URL of the **boostrap.ign** file
    2. master.ign and worker.ign
-   3. base64 encoded files (append-bootstrap.64, master.64, worker.64) for (append-bootstrap.ign, master.ign, worker.ign) respectiviely. This step assumes you have **base64** installed and in your **$PATH**
+   3. base64 encoded files (append-bootstrap.64, master.64, worker.64) for (append-bootstrap.ign, master.ign, worker.ign) respectively. This step assumes you have **base64** installed and in your **$PATH**
 7. The **bootstrap.ign** is copied over to the web server in the designated location
 8. A folder is created in the vCenter under the mentioned datacenter and the template is imported 
 9. The template file is edited to carry certain default settings and runtime parameters common to all the VMs
