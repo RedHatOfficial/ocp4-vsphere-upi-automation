@@ -36,6 +36,7 @@ worker_vms:
 static_ip:
   gateway: 192.168.86.1
   netmask: 255.255.255.0
+  dns: "{{ helper_vm_ip }}"
   network_interface_name: ens192
 proxy:
   enabled: false
