@@ -53,6 +53,7 @@
     GOVC_USERNAME: "{{ vcenter.admin_username }}"
     GOVC_PASSWORD: "{{ vcenter.admin_password }}"
     GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_DATACENTER: "{{ datacenter }}"
     GOVC_INSECURE: 1
   tasks:
     - name: Run the vmware role to setup vCenter folder
@@ -60,4 +61,4 @@
         name: vmware
     - name: Run steps specific to DHCP and the use of an OVA file
       import_role:
-        name: dhcp_ova        
+        name: dhcp_ova
