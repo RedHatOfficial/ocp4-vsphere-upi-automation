@@ -5,7 +5,7 @@
     - name: Set the cache of all the download links
       import_role:
         name: cache
-- hosts: localhost 
+- hosts: localhost
   gather_facts: True
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
@@ -22,13 +22,14 @@
       import_role:
         name: webserver
         tasks_from: copy_ign_files
-- hosts: localhost 
+- hosts: localhost
   gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
     GOVC_USERNAME: "{{ vcenter.admin_username }}"
     GOVC_PASSWORD: "{{ vcenter.admin_password }}"
     GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_DATACENTER: "{{ datacenter }}"
     GOVC_INSECURE: 1
   tasks:
     - name: Run the vmware role to setup vCenter folder

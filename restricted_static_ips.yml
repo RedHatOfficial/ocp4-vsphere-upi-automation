@@ -27,7 +27,7 @@
     - name: Run the tasks for a restricted environment
       import_role:
         name: restricted
-        tasks_from: utilize_registry        
+        tasks_from: utilize_registry
 - hosts: localhost
   gather_facts: True
   environment:
@@ -36,7 +36,7 @@
     - name: Run all the common tasks
       import_role:
         name: common
-        tasks_from: install        
+        tasks_from: install
 - hosts: webservers
   gather_facts: False
   environment:
@@ -57,6 +57,7 @@
     GOVC_USERNAME: "{{ vcenter.admin_username }}"
     GOVC_PASSWORD: "{{ vcenter.admin_password }}"
     GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_DATACENTER: "{{ datacenter }}"
     GOVC_INSECURE: 1
   tasks:
     - name: Run the vmware role to setup vCenter folder
