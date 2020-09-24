@@ -73,5 +73,5 @@
     loop: "{{ worker_vms }}"
 
   - name: Update VM options on the template
-    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ item.name }} -e=disk.EnableUUID=TRUE"
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ item.name }} -e=disk.EnableUUID=TRUE" # noqa 301
     loop: "{{ bootstrap_vms + master_vms + worker_vms }}"

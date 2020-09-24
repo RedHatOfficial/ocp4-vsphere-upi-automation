@@ -10,7 +10,7 @@
       path: "{{ iso_dir }}/rhcos-installer.iso"
     register: st
 
-  - name: Create the iso mount path (if one doesn't exist already) 
+  - name: Create the iso mount path (if one doesn't exist already)
     file:
       path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
       state: directory
@@ -47,12 +47,14 @@
   - name: Make a copy of the isolinux.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
     copy:
       src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/isolinux/isolinux.cfg"
-      dest: "{{role_path}}/files/"
+      dest: "{{ role_path }}/files/"
+      mode: '0664'
 
   - name: Make a copy of the grub.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
     copy:
       src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/EFI/redhat/grub.cfg"
-      dest: "{{role_path}}/files/"
+      dest: "{{ role_path }}/files/"
+      mode: '0664'
 
   - name: Unmount the iso mount path
     mount:
@@ -65,9 +67,10 @@
       machine_name: "{{ item.name }}"
       machine_type: bootstrap
       machine_ip: "{{ item.ipaddr }}"
-    template: 
+    template:
       src: kernel-params.j2
-      dest: "{{role_path}}/files/{{item.name}}-kernel-params.txt"
+      dest: "{{ role_path }}/files/{{ item.name }}-kernel-params.txt"
+      mode: '0664'
     loop: "{{ bootstrap_vms }}"
 
   - name: Generate kernel params for all masters
@@ -75,9 +78,10 @@
       machine_name: "{{ item.name }}"
       machine_type: master
       machine_ip: "{{ item.ipaddr }}"
-    template: 
+    template:
       src: kernel-params.j2
-      dest: "{{role_path}}/files/{{item.name}}-kernel-params.txt"
+      dest: "{{ role_path }}/files/{{ item.name }}-kernel-params.txt"
+      mode: '0664'
     loop: "{{ master_vms }}"
 
   - name: Generate kernel params for all workers
@@ -85,27 +89,28 @@
       machine_name: "{{ item.name }}"
       machine_type: worker
       machine_ip: "{{ item.ipaddr }}"
-    template: 
+    template:
       src: kernel-params.j2
-      dest: "{{role_path}}/files/{{item.name}}-kernel-params.txt"
+      dest: "{{ role_path }}/files/{{ item.name }}-kernel-params.txt"
+      mode: '0664'
     loop: "{{ worker_vms }}"
 
   - name: Generate custom iso files for all VMs
     include: generate_custom_iso.yml
-    loop: "{{ bootstrap_vms + master_vms + worker_vms }}" 
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
 
   - name: Upload all the custom generated ISOs to the datastore
-    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/{{item.name}}.iso {{item.name}}.iso"
+    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/{{ item.name }}.iso {{ item.name }}.iso" # noqa 301
     loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
 
   - name: Add a cdrom device to all the OpenShift VMs
-    command: "govc device.cdrom.add -vm {{ item.name }}"
+    command: "govc device.cdrom.add -vm {{ item.name }}" # noqa 301
     loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
 
-  - name: Insert the uploaded ISO file {{item.name}}.iso as cdrom to VM {{ item.name }}
-    command: "govc device.cdrom.insert -vm {{ item.name }} -ds {{ vcenter.datastore }} ./{{item.name}}.iso"
+  - name: Insert the uploaded ISO file {{ item.name }}.iso as cdrom to VM {{ item.name }}
+    command: "govc device.cdrom.insert -vm {{ item.name }} -ds {{ vcenter.datastore }} ./{{ item.name }}.iso" # noqa 301
     loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
 
   - name: Power-On all the VMs
-    command: "govc vm.power -on {{ item.name }}"
-    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"    
+    command: "govc vm.power -on {{ item.name }}" # noqa 301
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"

@@ -14,7 +14,7 @@
     set_fact:
       download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
     when: "'webservers' in group_names"
-    loop: 
+    loop:
       - { key: "raw", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.raw.gz') }}" }
       - { key: "kernel", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*kernel.*') }}" }
       - { key: "initramfs", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*initramfs.*') }}" }
@@ -23,7 +23,7 @@
     set_fact:
       download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
     when: inventory_hostname == "localhost"
-    loop: 
+    loop:
       - { key: "iso", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.iso') }}" }
       - { key: "ova", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.ova') }}" }
       - { key: "openshiftClient", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-client-linux-.*.tar.gz') }}" }

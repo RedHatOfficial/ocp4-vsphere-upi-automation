@@ -2,11 +2,12 @@
     template:
       src: "append-bootstrap.ign.j2"
       dest: "{{ playbook_dir }}/install-dir/append-bootstrap.ign"
-  
-  - name: Download the ova file 
+      mode: '0664'
+
+  - name: Download the ova file
     get_url:
       url: "{{ download.ova }}"
-      dest: "{{ playbook_dir }}/downloads/{{vcenter.template_name}}.ova"
+      dest: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
       validate_certs: no
     when: skip_ova is not defined
 
@@ -22,18 +23,18 @@
       allow_duplicates: False
       disk_provisioning: thin
       networks: "{u'VM Network':u'{{ vcenter.network }}'}"
-      ova: "{{ playbook_dir }}/downloads/{{vcenter.template_name}}.ova"
+      ova: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
       power_on: False
       validate_certs: False
     when: skip_ova is not defined
-  
-  - name: Remove the Network Adapter  
+
+  - name: Remove the Network Adapter
     command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0"
     when: skip_ova is not defined
 
   - name: Update VM options on the template
-    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"
-    when: skip_ova is not defined      
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204
+    when: skip_ova is not defined
 
   - name: "Bootstrap base64"
     debug:

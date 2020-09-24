@@ -1,5 +1,5 @@
     - name: Generate the ignition manifests
-      command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir"
+      command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir" # noqa 301
 
     - name: Apply the patch to set mastersSchedulable to false
       patch:
@@ -23,7 +23,7 @@
       include_tasks: configure_ntp.yml
 
     - name: Generate the ignition configs
-      command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir"
+      command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir" # noqa 301
 
     - name: Get Cluster infraID
       command: jq -r .infraID "{{ playbook_dir }}/install-dir/metadata.json"

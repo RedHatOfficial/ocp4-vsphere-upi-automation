@@ -12,7 +12,7 @@ spec:
       redundancyPolicy: SingleRedundancy
       resources:
         limits:
-          cpu: 
+          cpu:
           memory: 8Gi
       storage:
         storageClassName: thin
@@ -29,4 +29,3 @@ spec:
     logs:
       type: fluentd
       fluentd: {}
-
