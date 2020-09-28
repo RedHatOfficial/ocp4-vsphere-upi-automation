@@ -86,22 +86,24 @@
       unarchive:
         src: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
         dest: "{{ playbook_dir }}/bin"
+        mode: '0775'
       when: oc_client_download is changed
 
     - name: Unarchive openshift-install
       unarchive:
         src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
         dest: "{{ playbook_dir }}/bin"
+        mode: '0775'
       when: openshift_install_download is changed
 
     - name: Download govc
       get_url:
-        url: "{{ download.govc}}"
+        url: "{{ download.govc }}"
         dest: "{{ playbook_dir }}/downloads/govc.gz"
         validate_certs: no
 
     - name: Unarchive govc
-      shell: gzip -dc "{{ playbook_dir }}/downloads/govc.gz" > "{{ playbook_dir }}/bin/govc"
+      shell: gzip -dc "{{ playbook_dir }}/downloads/govc.gz" > "{{ playbook_dir }}/bin/govc" # noqa 301
 
     - name: Make govc executable
       file:
@@ -112,15 +114,17 @@
       template:
         src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.j2"
         dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
+        mode: '0664'
 
     - name: Run steps pertaining to proxy, if any
       include: handle_proxy.yml
       when:
         - proxy is defined
-        - proxy.enabled == true
+        - proxy.enabled == true # noqa 601
 
     - name: Backup the install-config.yaml file
       copy:
         src: "{{ playbook_dir }}/install-dir/install-config.yaml"
         dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
-      when: (registry is not defined) or (registry.enabled is not defined) or (registry.enabled == false)
+        mode: '0664'
+      when: (registry is not defined) or (registry.enabled is not defined) or (registry.enabled == false) # noqa 601

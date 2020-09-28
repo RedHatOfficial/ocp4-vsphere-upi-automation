@@ -12,8 +12,8 @@ As it stands right now, the repo works for several installation use cases:
 
 > This repo is most ideal for Home Lab and Proof-of-Concept scenarios. Having said that, if prerequisites (below) can be met and if the vCenter service account can be locked down to access only certain resources and perform only certain actions, the same repo can then be used for DEV or higher environments. Refer to this [link](https://vmware.github.io/vsphere-storage-for-kubernetes/documentation/vcp-roles.html) for more details on required permissions for a vCenter service account.
 
-## Quickstart 
-This is a concise summary of everything you need to do to use the repo. Rest of the document goes into details of every step. 
+## Quickstart
+This is a concise summary of everything you need to do to use the repo. Rest of the document goes into details of every step.
 1. Setup [helper node](https://github.com/RedHatOfficial/ocp4-helpernode)
 2. Edit `group_vars/all.yml`, the following must be changed while the rest can remain the same
    * pull secret
@@ -24,7 +24,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
      * datacenter name
      * username and passwords of admin/service accounts
    * enable/disable registry/proxy/ntp with their details, as required
-3. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required 
+3. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required
 4. Run one of the several [install options](#run-installation-playbook)
 
 ## Infrastructure Prerequisites
@@ -33,11 +33,11 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
 2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
 3. The playbook(s) assumes you are running a [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. Also, the MAC addresses for the machines should match between helper repo and this. If not using the helper node, the minimum expectation is that the webserver and tftp server (for PXE boot) are running on the same external host, which we will then treat as a helper node.
 4. The necessary services such as [DNS/LB(Load Balancer] must be up and running before this repo can be used
-5. Ansible (preferably latest) on the machine where this repo is cloned. 
-   * Before you install Ansible, install the `epel-release`, run `yum -y install epel-release` 
+5. Ansible (preferably latest) on the machine where this repo is cloned.
+   * Before you install Ansible, install the `epel-release`, run `yum -y install epel-release`
 
 > For vSphere 6.5, the files relating to interaction with VMware/vCenter such as [this](roles/dhcp_ova/tasks/main.yml) ***may*** need to have `vmware_deploy_ovf` module to include [`cluster`](https://docs.ansible.com/ansible/latest/modules/vmware_deploy_ovf_module.html#parameter-cluster), [`resource-pool`](https://docs.ansible.com/ansible/latest/modules/vmware_deploy_ovf_module.html#parameter-resource_pool) parameters and their values set to work correctly.
-   
+
 ## Installation Steps
 
 ### Set Global Variables
@@ -47,20 +47,20 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    1. IP address
    2. Service account username (can be the same as admin)
    3. Service account password (can be the same as admin)
-   4. Admin account username 
+   4. Admin account username
    5. Admin account password
    6. Datacenter name *(created in the prerequisites mentioned above)*
    7. Datastore name
    8. Absolute path of the vCenter folder to use *(optional)*. If this field is not populated, its is auto-populated and points to `/${vcenter.datacenter}/vm/${config.cluster_name}`
 3. Downloadable link to `govc` (vSphere CLI, *pre-populated*)
-4. OpenShift cluster 
+4. OpenShift cluster
    1. base domain *(pre-populated with **example.com**)*
    2. cluster name *(pre-populated with **ocp4**)*
 5. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with an example config pointing to helper node)*
-6. Furnish any proxy details with the section like below. 
+6. Furnish any proxy details with the section like below.
    * If `proxy.enabled` is set to `False` anything defined under proxy and the proxy setup is ignored
    * The `cert_content` shown below is only for illustration to show the format
-   * When there is no certificate, leave the variable `cert_content` value empty 
+   * When there is no certificate, leave the variable `cert_content` value empty
    ```
    proxy:
       enabled: true
@@ -82,7 +82,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
       username: ansible
       password: ansible
       email: user@awesome.org
-      cert_content: 
+      cert_content:
       host: helper.ocp4.example.com
       port: 5000
       repo: ocp4/openshift4
@@ -102,16 +102,16 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
      - 0.rhel.pool.ntp.org
      - 1.rhel.pool.ntp.org
    ```
-> Step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served 
-   
+> Step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served
+
 ### Set Ansible Inventory and Configuration
 
 Now configure `ansible.cfg` and `staging` inventory file based on your environment before picking one of the 5 different install options listed below.
 
 #### Update the `staging` inventory file  
-Under the `webservers.hosts` entry, use one of two options below : 
+Under the `webservers.hosts` entry, use one of two options below :
    1. **localhost** : if the `ansible-playbook` is being run on the same host  as the webserver that would eventually host bootstrap.ign file
-   2. the IP address or FQDN of the machine that would run the webserver. 
+   2. the IP address or FQDN of the machine that would run the webserver.
 
 #### Update the `ansible.cfg` based on your needs
 
@@ -119,20 +119,20 @@ Under the `webservers.hosts` entry, use one of two options below :
   * If the localhost runs the webserver
       ```
       [defaults]
-      host_key_checking = False 
+      host_key_checking = False
       ```
   * If the remote host runs the webserver
       ```
       [defaults]
       host_key_checking = False
       remote_user = root
-      ask_pass = True 
+      ask_pass = True
       ```
 * Running the playbook as a **non-root** user
   * If the localhost runs the webserver
       ```
       [defaults]
-      host_key_checking = False 
+      host_key_checking = False
 
       [privilege_escalation]
       become_ask_pass = True
@@ -140,7 +140,7 @@ Under the `webservers.hosts` entry, use one of two options below :
   * If the remote host runs the webserver
       ```
       [defaults]
-      host_key_checking = False 
+      host_key_checking = False
       remote_user = root
       ask_pass = True
 
@@ -149,7 +149,7 @@ Under the `webservers.hosts` entry, use one of two options below :
       ```
 
 ### Run Installation Playbook
-```sh 
+```sh
 # Option 1: DHCP + use of OVA template
 ansible-playbook -i staging dhcp_ova.yml
 
@@ -170,17 +170,17 @@ ansible-playbook -i staging restricted_static_ips.yml
 ### Miscellaneous
 * If you are re-running the installation playbook make sure to blow away any existing VMs (in `ocp4` folder) listed below:  
   1. bootstrap
-  2. masters 
-  3. workers 
-  4. `rhcos-vmware` template (if not using the extra param as shown below) 
-* If a template by the name `rhcos-vmware` already exists in vCenter, you want to reuse it and  skip the OVA **download** from Red Hat and **upload** into vCenter, use the following extra param. 
+  2. masters
+  3. workers
+  4. `rhcos-vmware` template (if not using the extra param as shown below)
+* If a template by the name `rhcos-vmware` already exists in vCenter, you want to reuse it and  skip the OVA **download** from Red Hat and **upload** into vCenter, use the following extra param.
 
-   ```sh 
+   ```sh
    -e skip_ova=true
    ```
 
 * If you would rather want to clean all folders `bin`, `downloads`, `install-dir` and re-download all the artifacts, append the following to the command you chose in the first step
-   ```sh 
+   ```sh
    -e clean=true
    ```
 ### Expected Outcome
@@ -195,9 +195,9 @@ ansible-playbook -i staging restricted_static_ips.yml
    2. master.ign and worker.ign
    3. base64 encoded files (append-bootstrap.64, master.64, worker.64) for (append-bootstrap.ign, master.ign, worker.ign) respectively. This step assumes you have **base64** installed and in your **$PATH**
 7. The **bootstrap.ign** is copied over to the web server in the designated location
-8. A folder is created in the vCenter under the mentioned datacenter and the template is imported 
+8. A folder is created in the vCenter under the mentioned datacenter and the template is imported
 9. The template file is edited to carry certain default settings and runtime parameters common to all the VMs
-10. VMs (bootstrap, master0-2, worker0-2) are generated in the designated folder and (in state of) **poweredon** 
+10. VMs (bootstrap, master0-2, worker0-2) are generated in the designated folder and (in state of) **poweredon**
 
 ## Final Check:
 
@@ -217,19 +217,19 @@ journalctl -b -f -u bootkube.service
 
 Once the `bootkube.service` is complete, the bootstrap VM can safely be `poweredoff` and the VM deleted. Finish by checking on the OpenShift with the following commands:
 
-```sh 
+```sh
 # In the root folder of this repo run the following commands
 export KUBECONFIG=$(pwd)/install-dir/auth/kubeconfig
 export PATH=$(pwd)/bin:$PATH
 
 # OpenShift Client Commands
-oc whoami 
-oc get co 
+oc whoami
+oc get co
 ```
 ### Debugging
 
-To check if the proxy information has been picked up: 
-```sh 
+To check if the proxy information has been picked up:
+```sh
  # On Master
  cat /etc/systemd/system/machine-config-daemon-host.service.d/10-default-env.conf
 
@@ -237,13 +237,13 @@ To check if the proxy information has been picked up:
  cat /etc/systemd/system.conf.d/10-default-env.conf
  ```
 To check if the registry information has been picked up:
-```sh 
+```sh
 # On Master or Bootstrap
 cat /etc/containers/registries.conf
 cat /root/.docker/config.json
 ```
 To check if your certs have been picked up:
-```sh 
+```sh
 # On Master
 cat /etc/pki/ca-trust/source/anchors/openshift-config-user-ca-bundle.crt
 

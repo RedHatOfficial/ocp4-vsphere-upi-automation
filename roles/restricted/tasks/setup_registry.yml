@@ -5,24 +5,24 @@
         mode: '0755'
       with_items: ["auth","certs","data"]
       become: true
-    
-    - name: Create a certificate 
-      command: 
-        cmd: openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=US/ST=California/L=Sunnyvale/O=Red Hat, Inc./OU=Solution Architecture/CN={{ registry.host }}"
+
+    - name: Create a certificate
+      command:
+        cmd: openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=US/ST=California/L=Sunnyvale/O=Red Hat, Inc./OU=Solution Architecture/CN={{ registry.host }}" # noqa 301 204
         chdir: /opt/registry/certs
       become: true
 
     - name: Create a username and password in a httpasswd file
       command:
-        cmd: htpasswd -bBc /opt/registry/auth/htpasswd {{ registry.username | default('ansible') }}  {{ registry.password | default('ansible') }}
+        cmd: htpasswd -bBc /opt/registry/auth/htpasswd {{ registry.username | default('ansible') }}  {{ registry.password | default('ansible') }} # noqa 301
       become: true
 
     - name: Ensure no pods are by default running
-      command: podman rm -af
+      command: podman rm -af # noqa 301
 
-    - name: Run the registry pod 
+    - name: Run the registry pod # noqa 301
       command: |
-        podman run --name mirror-registry -p {{ registry.port }}:5000 \ 
+        podman run --name mirror-registry -p {{ registry.port }}:5000 \
             -v /opt/registry/data:/var/lib/registry:z \
             -v /opt/registry/auth:/auth:z \
             -e "REGISTRY_AUTH=htpasswd" \
@@ -33,7 +33,7 @@
             -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
             -d docker.io/library/registry:2
       become: true
-    
+
     - name: Open up the required ports thru firewall
       firewalld:
         port: "{{ item.port }}/tcp"
@@ -45,8 +45,8 @@
         - { port: "{{ registry.port }}", zone: "public"}
       become: true
 
-    - name: If the domain.crt already exists, remove it 
-      file: 
+    - name: If the domain.crt already exists, remove it
+      file:
         path: /etc/pki/ca-trust/source/anchors/domain.crt
         state: absent
 

@@ -1,6 +1,6 @@
 all:
   hosts:
-    localhost: 
+    localhost:
         ansible_connection: local
   children:
     webservers:
@@ -9,4 +9,3 @@ all:
     registries:
       hosts:
         localhost:
-

@@ -72,7 +72,7 @@ add () {
         -propagate=true /$DATACENTER/vm/$FOLDER
 
     #--------------------------------------------------------------------------
-    # The following roles/permissions are in addition to the prerequistes  
+    # The following roles/permissions are in addition to the prerequistes
     # listed above and specific/needed for this repo function correctly
     #--------------------------------------------------------------------------
     govc role.create manage-k8s-network Network.Assign
@@ -104,7 +104,7 @@ case "$1" in
 	  showhelp
 	  ;;
 	*)
-	  echo "Operation failed! Required parameter to the script was not passed" 
+	  echo "Operation failed! Required parameter to the script was not passed"
 	  showhelp
 	  exit 254
 	  ;;
