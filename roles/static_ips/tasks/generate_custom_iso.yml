@@ -32,13 +32,11 @@
     patch:
       src: "{{ item.name }}-isolinux.cfg.patch"
       dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/isolinux/isolinux.cfg"
-      mode: '0664'
 
   - name: Apply patch {{ role_path }}/files/{{ item.name }}-grub.cfg.patch
     patch:
       src: "{{ item.name }}-grub.cfg.patch"
       dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/EFI/redhat/grub.cfg"
-      mode: '0664'
 
   - name: Generate custom iso for {{ item.name }} # noqa 301
     command: >
