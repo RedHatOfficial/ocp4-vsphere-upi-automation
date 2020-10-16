@@ -10,18 +10,19 @@
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.disk_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.mem_mb }}"
+        num_cpus: "{{ item.cpu_count }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
         mac: "{{ item.macaddr }}"
       wait_for_ip_address: no
     loop: "{{ bootstrap_vms }}"
+
   - name: Create master VMs from the template
     vmware_guest:
       hostname: "{{ vcenter.ip }}"
@@ -34,12 +35,12 @@
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.disk_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.mem_mb }}"
+        num_cpus: "{{ item.cpu_count }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -59,12 +60,12 @@
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.disk_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.mem_mb }}"
+        num_cpus: "{{ item.cpu_count }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"

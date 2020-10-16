@@ -61,12 +61,12 @@
       state: "{{ vcenter.vm_power_state }}"
       template: "{{ vcenter.template_name }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.disk_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.mem_mb }}"
+        num_cpus: "{{ item.cpu_count }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -89,12 +89,12 @@
       state: "{{ vcenter.vm_power_state }}"
       template: "{{ vcenter.template_name }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.disk_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.mem_mb }}"
+        num_cpus: "{{ item.cpu_count }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -117,12 +117,12 @@
       state: "{{ vcenter.vm_power_state }}"
       template: "{{ vcenter.template_name }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.disk_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.mem_mb }}"
+        num_cpus: "{{ item.cpu_count }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"

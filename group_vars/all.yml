@@ -24,15 +24,15 @@ download:
   dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest
   govc: https://github.com/vmware/govmomi/releases/download/v0.22.1/govc_linux_amd64.gz
 bootstrap_vms:
-  - { name: "bootstrap", macaddr: "00:50:56:a8:aa:a1", ipaddr: "192.168.86.181"}
+  - { name: "bootstrap", macaddr: "00:50:56:a8:aa:a1", ipaddr: "192.168.86.181", cpu_count: "4", mem_mb: "16384", disk_gb: "120" }
 master_vms:
-  - { name: "master0", macaddr: "00:50:56:a8:aa:a2", ipaddr: "192.168.86.182"}
-  - { name: "master1", macaddr: "00:50:56:a8:aa:a3", ipaddr: "192.168.86.183"}
-  - { name: "master2", macaddr: "00:50:56:a8:aa:a4", ipaddr: "192.168.86.184"}
+  - { name: "master0", macaddr: "00:50:56:a8:aa:a2", ipaddr: "192.168.86.182", cpu_count: "4", mem_mb: "16384", disk_gb: "120" }
+  - { name: "master1", macaddr: "00:50:56:a8:aa:a3", ipaddr: "192.168.86.183", cpu_count: "4", mem_mb: "16384", disk_gb: "120" }
+  - { name: "master2", macaddr: "00:50:56:a8:aa:a4", ipaddr: "192.168.86.184", cpu_count: "4", mem_mb: "16384", disk_gb: "120" }
 worker_vms:
-  - { name: "worker0", macaddr: "00:50:56:a8:aa:a5", ipaddr: "192.168.86.185"}
-  - { name: "worker1", macaddr: "00:50:56:a8:aa:a6", ipaddr: "192.168.86.186"}
-  - { name: "worker2", macaddr: "00:50:56:a8:aa:a7", ipaddr: "192.168.86.187"}
+  - { name: "worker0", macaddr: "00:50:56:a8:aa:a5", ipaddr: "192.168.86.185", cpu_count: "4", mem_mb: "16384", disk_gb: "120" }
+  - { name: "worker1", macaddr: "00:50:56:a8:aa:a6", ipaddr: "192.168.86.186", cpu_count: "4", mem_mb: "16384", disk_gb: "120" }
+  - { name: "worker2", macaddr: "00:50:56:a8:aa:a7", ipaddr: "192.168.86.187", cpu_count: "4", mem_mb: "16384", disk_gb: "120" }
 static_ip:
   gateway: 192.168.86.1
   netmask: 255.255.255.0

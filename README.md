@@ -15,7 +15,7 @@ As it stands right now, the repo works for several installation use cases:
 ## Quickstart
 This is a concise summary of everything you need to do to use the repo. Rest of the document goes into details of every step.
 1. Setup [helper node](https://github.com/RedHatOfficial/ocp4-helpernode)
-2. Edit `group_vars/all.yml`, the following must be changed while the rest can remain the same
+2. Edit `group_vars/all.yml`, the following must be changed while the rest can remain the same:
    * pull secret
    * ip and mac addresses, host/domain names
    * enable/disable fips mode
@@ -24,8 +24,9 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
      * datacenter name
      * username and passwords of admin/service accounts
    * enable/disable registry/proxy/ntp with their details, as required
-3. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required
-4. Run one of the several [install options](#run-installation-playbook)
+3. You can customize the CPU, Memory, and Hard Drive sizes for the bootstrap, masters, and workers in `group_vars/all.yml`. The recommended sizes are predefined.
+4. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required
+5. Run one of the several [install options](#run-installation-playbook)
 
 ## Infrastructure Prerequisites
 
