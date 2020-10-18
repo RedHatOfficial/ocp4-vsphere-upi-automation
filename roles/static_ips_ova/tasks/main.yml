@@ -1,0 +1,142 @@
+  - name: Download the ova file
+    get_url:
+      url: "{{ download.ova }}"
+      dest: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
+      validate_certs: no
+    when: skip_ova is not defined
+
+  - name: Deploy the OVF template into the folder
+    vmware_deploy_ovf:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.admin_username }}"
+      password: "{{ vcenter.admin_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      datastore: "{{ vcenter.datastore }}"
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: '{{ vcenter.template_name }}'
+      allow_duplicates: False
+      disk_provisioning: thin
+      networks: "{u'VM Network':u'{{ vcenter.network }}'}"
+      ova: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
+      power_on: False
+      validate_certs: False
+    when: skip_ova is not defined
+
+  - name: Remove the Network Adapter
+    command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0"
+    when: skip_ova is not defined
+
+  - name: Update VM options on the template
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204
+    when: skip_ova is not defined
+
+  - name: "Bootstrap base64"
+    debug:
+      msg: "{{ BootstrapContent }}"
+      verbosity: 1
+
+  - name: "Master base64"
+    debug:
+      msg: "{{ masterContent }}"
+      verbosity: 1
+
+  - name: "Worker base64 "
+    debug:
+      msg: "{{ workerContent }}"
+      verbosity: 1
+
+  - name: Create bootstrap VM from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      validate_certs: no
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      template: "{{ vcenter.template_name }}"
+      disk:
+      - size_gb: 120
+        type: thin
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: 16384
+        num_cpus: 4
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.macaddr }}"
+      wait_for_ip_address: no
+      customvalues:
+        - key: guestinfo.ignition.config.data
+          value: "{{ BootstrapContent }}"
+        - key: guestinfo.ignition.config.data.encoding
+          value: base64
+        - key: guestinfo.afterburn.initrd.network-kargs
+          value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
+    loop: "{{ bootstrap_vms }}"
+
+  - name: Create master VMs from ther template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      validate_certs: no
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      template: "{{ vcenter.template_name }}"
+      disk:
+      - size_gb: 120
+        type: thin
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: 16384
+        num_cpus: 4
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.macaddr }}"
+      wait_for_ip_address: no
+      customvalues:
+       - key: guestinfo.ignition.config.data
+         value: "{{ masterContent }}"
+       - key: guestinfo.ignition.config.data.encoding
+         value: base64
+       - key: guestinfo.afterburn.initrd.network-kargs
+         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
+    loop: "{{ master_vms }}"
+
+  - name: Create worker VMs from the template
+    vmware_guest:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.service_account_username }}"
+      password: "{{ vcenter.service_account_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      validate_certs: no
+      folder: "{{ vcenter.folder_absolute_path }}"
+      name: "{{ item.name }}"
+      state: "{{ vcenter.vm_power_state }}"
+      template: "{{ vcenter.template_name }}"
+      disk:
+      - size_gb: 120
+        type: thin
+        datastore: "{{ vcenter.datastore }}"
+      hardware:
+        memory_mb: 16384
+        num_cpus: 4
+        memory_reservation_lock: True
+      networks:
+      - name: "{{ vcenter.network }}"
+        mac: "{{ item.macaddr }}"
+      wait_for_ip_address: no
+      customvalues:
+       - key: guestinfo.ignition.config.data
+         value: "{{ workerContent }}"
+       - key: guestinfo.ignition.config.data.encoding
+         value: base64
+       - key: guestinfo.afterburn.initrd.network-kargs
+         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
+    loop: "{{ worker_vms }}"

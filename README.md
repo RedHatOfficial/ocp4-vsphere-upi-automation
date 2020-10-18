@@ -171,6 +171,14 @@ ansible-playbook -i staging restricted_dhcp_ova.yml
 
 # Option 5: Static IPs + use of ISO images in a Restricted Network
 ansible-playbook -i staging restricted_static_ips.yml
+
+# Option 6: Static IPs + use of OVA template
+# Note: OpenShift 4.6 or higher required
+ansible-playbook -i staging static_ips_ova.yml
+
+# Option 7: Static IPs + use of OVA template in a Restricted Network
+# Note: OpenShift 4.6 or higher required
+ansible-playbook -i staging restricted_static_ips_ova.yml
 ```
 
 ### Miscellaneous
