@@ -1,7 +1,7 @@
  - name: Wait until the bootstrap VM finishes its restart after being built
    wait_for:
      port: 22
-     host: "{{ bootstrap_vms[0].ipaddr }}"
+     host: bootstrap.{{ config.cluster_name }}.{{ config.base_domain }}
      search_regex: OpenSSH
      delay: 10
      timeout: 3600
