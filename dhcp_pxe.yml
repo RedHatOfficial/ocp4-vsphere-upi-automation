@@ -42,3 +42,6 @@
     - name: Run steps specific to DHCP and PXE boot
       import_role:
         name: dhcp_pxe
+    - name: Run steps to finish cluster install
+      import_role:
+        name: finish_install
