@@ -1,0 +1,38 @@
+ - name: Wait until the bootstrap VM finishes its restart after being built
+   wait_for:
+     port: 22
+     host: bootstrap.{{ config.cluster_name }}.{{ config.base_domain }}
+     search_regex: OpenSSH
+     delay: 10
+     timeout: 3600
+   register: result_wait
+
+ - name: Wait for bootstrap to comlplete
+   command: openshift-install --dir={{ playbook_dir }}/install-dir wait-for bootstrap-complete --log-level debug
+   register: result_bootstrap
+
+ - name: Wait for node-bootstraper csrs to approve
+   shell: oc get csr -o json | jq -r '.items[] | select(.status == {}) | .metadata.name'
+   register: result_csr
+   until: result_csr['stdout_lines']|count == worker_vms|count
+   retries: 60
+   delay: 60
+
+ - name: Approve the csrs
+   command: oc adm certificate approve "{{ item }}"
+   loop: "{{ result_csr['stdout_lines'] }}"
+
+ - name: Wait for system:node csrs to approve
+   shell: oc get csr -o json | jq -r '.items[] | select(.status == {}) | .metadata.name'
+   register: result_system
+   until: result_system['stdout_lines']|count == worker_vms|count
+   retries: 60
+   delay: 60
+
+ - name: Approve the csrs
+   command: oc adm certificate approve "{{ item }}"
+   loop: "{{ result_system['stdout_lines'] }}"
+
+ - name: Wait for install complete
+   command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug
+   register: result_complete

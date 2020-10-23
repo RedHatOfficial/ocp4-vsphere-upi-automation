@@ -74,3 +74,6 @@
     - name: Run steps for static ip setup of VMs
       import_role:
         name: static_ips
+    - name: Run steps to finish cluster install
+      import_role:
+        name: finish_install

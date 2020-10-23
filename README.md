@@ -19,10 +19,12 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    * pull secret
    * ip and mac addresses, host/domain names
    * enable/disable fips mode
+   * isolationMode: NetowrkPolicy (default), Multitenant, Subnet
    * vcenter details
      * datastore name
      * datacenter name
      * username and passwords of admin/service accounts
+   * validate current Govc version is set
    * enable/disable registry/proxy/ntp with their details, as required
 3. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required
 4. Run one of the several [install options](#run-installation-playbook)
@@ -102,6 +104,10 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
      - 0.rhel.pool.ntp.org
      - 1.rhel.pool.ntp.org
    ```
+10. Network Policy is enabled by default.  To use Multitenant or Subnet, change isolationMode
+    ```
+    isolationMode: Multitenant
+    ```
 > Step **#5** needn't exist at the time of running the setup/installation step, so provide an accurate guess of where and at what context path **bootstrap.ign** will eventually be served
 
 ### Set Ansible Inventory and Configuration
