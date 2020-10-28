@@ -7,32 +7,36 @@
      timeout: 3600
    register: result_wait
 
- - name: Wait for bootstrap to comlplete
-   command: openshift-install --dir={{ playbook_dir }}/install-dir wait-for bootstrap-complete --log-level debug
+ - name: Wait for bootstrap to complete
+   command: openshift-install --dir="{{ playbook_dir }}"/install-dir wait-for bootstrap-complete --log-level debug # noqa 301
    register: result_bootstrap
 
+ - name: Delete Bootstrap VM
+   command: "govc vm.destroy {{ bootstrap_vm.name }}"  # noqa 301
+   when: result_bootstrap.rc == 0
+
  - name: Wait for node-bootstraper csrs to approve
-   shell: oc get csr -o json | jq -r '.items[] | select(.status == {}) | .metadata.name'
+   shell: oc get csr -o json --kubeconfig="{{ playbook_dir }}"/install-dir/auth/kubeconfig | jq -r '.items[] | select(.status == {}) | .metadata.name' # noqa 301 306
    register: result_csr
    until: result_csr['stdout_lines']|count == worker_vms|count
    retries: 60
    delay: 60
 
  - name: Approve the csrs
-   command: oc adm certificate approve "{{ item }}"
+   command: oc adm certificate approve "{{ item }}" --kubeconfig="{{ playbook_dir }}"/install-dir/auth/kubeconfig # noqa 301
    loop: "{{ result_csr['stdout_lines'] }}"
 
  - name: Wait for system:node csrs to approve
-   shell: oc get csr -o json | jq -r '.items[] | select(.status == {}) | .metadata.name'
+   shell: oc get csr -o json --kubeconfig="{{ playbook_dir }}"/install-dir/auth/kubeconfig | jq -r '.items[] | select(.status == {}) | .metadata.name'  # noqa 301 306
    register: result_system
    until: result_system['stdout_lines']|count == worker_vms|count
    retries: 60
    delay: 60
 
  - name: Approve the csrs
-   command: oc adm certificate approve "{{ item }}"
+   command: oc adm certificate approve "{{ item }}" --kubeconfig="{{ playbook_dir }}"/install-dir/auth/kubeconfig # noqa 301
    loop: "{{ result_system['stdout_lines'] }}"
 
  - name: Wait for install complete
-   command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug
+   command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug # noqa 301
    register: result_complete
