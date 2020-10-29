@@ -40,3 +40,7 @@
  - name: Wait for install complete
    command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug # noqa 301
    register: result_complete
+
+ - name: Output results from openshift-install wait-for install-complete
+   debug:
+     msg: "{{ result_complete.stderr | regex_findall('level=info.*') | list }}"
