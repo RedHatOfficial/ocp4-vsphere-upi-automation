@@ -1,8 +1,8 @@
-  - name: Copy append-bootstrap.ign file into install-dir
-    template:
-      src: "append-bootstrap.ign.j2"
-      dest: "{{ playbook_dir }}/install-dir/append-bootstrap.ign"
-      mode: '0664'
+#  - name: Copy append-bootstrap.ign file into install-dir
+#    template:
+#      src: "append-bootstrap.ign.j2"
+#      dest: "{{ playbook_dir }}/install-dir/append-bootstrap.ign"
+#      mode: '0664'
 
   - name: Download the ova file
     get_url:
@@ -38,7 +38,7 @@
 
   - name: "Bootstrap base64"
     debug:
-      msg: "{{ appendBootstrapContent }}"
+      msg: "{{ bootstrapContent }}"
       verbosity: 1
   - name: "Master base64"
     debug:
@@ -65,8 +65,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -74,7 +74,7 @@
       wait_for_ip_address: no
       customvalues:
         - key: guestinfo.ignition.config.data
-          value: "{{ appendBootstrapContent }}"
+          value: "{{ bootstrapContent }}"
     loop: "{{ bootstrap_vms }}"
 
   - name: Create master VMs from ther template
@@ -93,8 +93,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -121,8 +121,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
