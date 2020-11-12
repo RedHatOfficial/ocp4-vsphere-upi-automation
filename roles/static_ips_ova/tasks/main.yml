@@ -1,9 +1,3 @@
-#  - name: Copy append-bootstrap.ign file into install-dir
-#    template:
-#      src: "append-bootstrap.ign.j2"
-#      dest: "{{ playbook_dir }}/install-dir/append-bootstrap.ign"
-#      mode: '0664'
-
   - name: Download the ova file
     get_url:
       url: "{{ download.ova }}"
@@ -38,12 +32,14 @@
 
   - name: "Bootstrap base64"
     debug:
-      msg: "{{ bootstrapContent }}"
+      msg: "{{ BootstrapContent }}"
       verbosity: 1
+
   - name: "Master base64"
     debug:
       msg: "{{ masterContent }}"
       verbosity: 1
+
   - name: "Worker base64 "
     debug:
       msg: "{{ workerContent }}"
@@ -65,8 +61,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: "{{ item.ram }}"
-        num_cpus: "{{ item.cpu }}"
+        memory_mb: 16384
+        num_cpus: 4
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -74,7 +70,11 @@
       wait_for_ip_address: no
       customvalues:
         - key: guestinfo.ignition.config.data
-          value: "{{ bootstrapContent }}"
+          value: "{{ BootstrapContent }}"
+        - key: guestinfo.ignition.config.data.encoding
+          value: base64
+        - key: guestinfo.afterburn.initrd.network-kargs
+          value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
     loop: "{{ bootstrap_vms }}"
 
   - name: Create master VMs from ther template
@@ -93,8 +93,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: "{{ item.ram }}"
-        num_cpus: "{{ item.cpu }}"
+        memory_mb: 16384
+        num_cpus: 4
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -103,6 +103,10 @@
       customvalues:
        - key: guestinfo.ignition.config.data
          value: "{{ masterContent }}"
+       - key: guestinfo.ignition.config.data.encoding
+         value: base64
+       - key: guestinfo.afterburn.initrd.network-kargs
+         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
     loop: "{{ master_vms }}"
 
   - name: Create worker VMs from the template
@@ -121,8 +125,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: "{{ item.ram }}"
-        num_cpus: "{{ item.cpu }}"
+        memory_mb: 16384
+        num_cpus: 4
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -131,4 +135,8 @@
       customvalues:
        - key: guestinfo.ignition.config.data
          value: "{{ workerContent }}"
+       - key: guestinfo.ignition.config.data.encoding
+         value: base64
+       - key: guestinfo.afterburn.initrd.network-kargs
+         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
     loop: "{{ worker_vms }}"
