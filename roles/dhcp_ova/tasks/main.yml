@@ -33,7 +33,7 @@
     when: skip_ova is not defined
 
   - name: Update VM options on the template
-    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204
     when: skip_ova is not defined
 
   - name: "Bootstrap base64"
