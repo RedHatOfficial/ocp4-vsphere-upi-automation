@@ -114,7 +114,7 @@
       validate_certs: no
       folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
-      state: "{{ vcenter.vm_power_state }}"
+      state: poweredoff
       template: "{{ vcenter.template_name }}"
       disk:
       - size_gb: 120
