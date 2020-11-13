@@ -1,0 +1,31 @@
+[req]
+default_bits  = 4096
+distinguished_name = req_distinguished_name
+req_extensions = req_ext
+x509_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+countryName = US
+stateOrProvinceName = NC
+localityName = Raleigh
+organizationName = Red Hat
+commonName = {{ registry.host }}
+
+[req_ext]
+subjectAltName = @alt_names
+
+[v3_req]
+subjectAltName = @alt_names
+
+# Key usage: this is typical for a CA certificate. However since it will
+# prevent it being used as an test self-signed certificate it is best
+# left out by default.
+# keyUsage                = critical,keyCertSign,cRLSign
+
+basicConstraints        = critical,CA:true
+subjectKeyIdentifier    = hash
+
+[alt_names]
+DNS.1 = {{ registry.host }}
+DNS.2 = {{ registry.host.split('.')[0] }}

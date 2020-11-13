@@ -30,25 +30,25 @@
         mode: '0664'
 
     - name: Create a new pull secret file with the newly added registry details # noqa 301
-      shell:  |
-        jq '.auths += {{ registry_pull_secret | to_json }}' \
-        < "{{ role_path }}/files/pull-secret-orig.json" \
+      shell:  >
+        jq '.auths += {{ registry_pull_secret | to_json }}'
+        < "{{ role_path }}/files/pull-secret-orig.json"
         > "{{ role_path }}/files/pull-secret.json"
 
     - name: Mirror the registry # noqa 301
-      command: |
-        oc adm -a "{{ role_path }}/files/pull-secret.json" release mirror \
-        --from="quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}:{{ registry.product_release_version }}" \
-        --to="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}" \
-        --to-release-image="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}" # noqa 301
+      command: >
+        "{{ playbook_dir }}"/bin/oc adm -a "{{ role_path }}/files/pull-secret.json" release mirror
+        --from="quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}:{{ registry.product_release_version }}"
+        --to="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}"
+        --to-release-image="{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
 
     - name: Extract openshift-install from registry # noqa 301
-      command: |
-        oc adm -a "{{ role_path }}/files/pull-secret.json" \
-        release extract \
-        --command=openshift-install \
-        --to={{ playbook_dir }}/bin \
-        "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}" # noqa 301
+      command: >
+        "{{ playbook_dir }}"/bin/oc adm -a "{{ role_path }}/files/pull-secret.json"
+        release extract
+        --command=openshift-install
+        --to={{ playbook_dir }}/bin
+        "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
 
     - name: Point the pull secret to the local registry
       set_fact:
