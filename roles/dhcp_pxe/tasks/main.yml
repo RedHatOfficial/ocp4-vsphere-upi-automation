@@ -14,8 +14,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -38,8 +38,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -63,8 +63,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -73,5 +73,5 @@
     loop: "{{ worker_vms }}"
 
   - name: Update VM options on the template
-    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ item.name }} -e=disk.EnableUUID=TRUE"
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ item.name }} -e=disk.EnableUUID=TRUE" # noqa 301
     loop: "{{ bootstrap_vms + master_vms + worker_vms }}"

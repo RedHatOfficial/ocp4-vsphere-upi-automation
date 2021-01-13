@@ -1,5 +1,5 @@
 ---
-disk: sda 
+disk: sda
 helper:
   name: "helper"
   ipaddr: "192.168.86.180"

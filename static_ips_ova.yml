@@ -5,6 +5,7 @@
     - name: Set the cache of all the download links
       import_role:
         name: cache
+
 - hosts: localhost
   gather_facts: True
   environment:
@@ -13,6 +14,7 @@
     - name: Run all the common tasks
       import_role:
         name: common
+
 - hosts: localhost
   gather_facts: False
   environment:
@@ -26,9 +28,11 @@
     - name: Run the vmware role to setup vCenter folder
       import_role:
         name: vmware
+
     - name: Run steps specific to DHCP and the use of an OVA file
       import_role:
-        name: dhcp_ova
+        name: static_ips_ova
+
     - name: Run steps to finish cluster install
       import_role:
         name: finish_install

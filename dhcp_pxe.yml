@@ -33,6 +33,7 @@
     GOVC_USERNAME: "{{ vcenter.admin_username }}"
     GOVC_PASSWORD: "{{ vcenter.admin_password }}"
     GOVC_URL: "https://{{ vcenter.ip }}"
+    GOVC_DATACENTER: "{{ datacenter }}"
     GOVC_INSECURE: 1
   tasks:
     - name: Run the vmware role to setup vCenter folder
@@ -41,3 +42,6 @@
     - name: Run steps specific to DHCP and PXE boot
       import_role:
         name: dhcp_pxe
+    - name: Run steps to finish cluster install
+      import_role:
+        name: finish_install

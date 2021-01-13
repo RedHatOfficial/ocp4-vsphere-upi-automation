@@ -1,10 +1,11 @@
 ---
-- hosts: all
+- hosts: localhost
   gather_facts: False
   tasks:
     - name: Set the cache of all the download links
       import_role:
         name: cache
+
 - hosts: localhost
   gather_facts: True
   environment:
@@ -14,6 +15,7 @@
       import_role:
         name: common
         tasks_from: pre_install
+
 - hosts: registries
   gather_facts: False
   tasks:
@@ -21,6 +23,7 @@
       import_role:
         name: restricted
         tasks_from: setup_registry
+
 - hosts: localhost
   gather_facts: False
   tasks:
@@ -28,8 +31,9 @@
       import_role:
         name: restricted
         tasks_from: utilize_registry
+
 - hosts: localhost
-  gather_facts: True
+  gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
@@ -37,19 +41,7 @@
       import_role:
         name: common
         tasks_from: install
-- hosts: webservers
-  gather_facts: False
-  environment:
-    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
-  tasks:
-    - name: Copy over generated ignition files to webserver
-      import_role:
-        name: webserver
-        tasks_from: copy_ign_files
-    - name: Download the installer raw.gz file to webserver
-      import_role:
-        name: webserver
-        tasks_from: download_raw_installer_files
+
 - hosts: localhost
   gather_facts: False
   environment:
@@ -63,17 +55,10 @@
     - name: Run the vmware role to setup vCenter folder
       import_role:
         name: vmware
-    - name: Reset the vcenter.vm_power_state to poweredoff
-      set_fact:
-        vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredoff'}, recursive=True) }}"
-    - name: Echo the value of the variable vcenter.vm_power_state
-      debug: var=vcenter.vm_power_state
-    - name: Run steps specific to DHCP and PXE boot
+    - name: Run steps specific to DHCP and the use of an OVA file
       import_role:
-        name: dhcp_pxe
-    - name: Run steps for static ip setup of VMs
-      import_role:
-        name: static_ips
+        name: static_ips_ova
+
     - name: Run steps to finish cluster install
       import_role:
         name: finish_install

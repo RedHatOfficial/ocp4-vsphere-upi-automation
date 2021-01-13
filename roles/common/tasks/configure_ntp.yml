@@ -2,6 +2,7 @@
   template:
     src: chrony.conf.j2
     dest: /tmp/chrony.conf
+    mode: '0664'
 
 - name: Save base64 of config file
   set_fact:
@@ -11,6 +12,7 @@
   template:
     src: mc-chrony-configuration.yaml.j2
     dest: "{{ playbook_dir }}/install-dir/manifests/99-{{ item }}-chrony-configuration.yaml"
+    mode: '0664'
   loop:
     - master
     - worker

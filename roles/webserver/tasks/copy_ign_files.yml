@@ -1,8 +1,9 @@
   - name: Copy the all the ignition files over to the webserver
     become: true
     copy:
-      src: "{{ item }}" 
+      src: "{{ item }}"
       dest: "/var/www/html/ignition/"
+      mode: '0664'
       owner: root
     with_fileglob:
       - "install-dir/*.ign"

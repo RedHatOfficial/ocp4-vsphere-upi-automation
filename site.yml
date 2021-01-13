@@ -1,2 +1,2 @@
 ---
-- import_playbook: dhcp_ova.yml 
+- import_playbook: dhcp_ova.yml
