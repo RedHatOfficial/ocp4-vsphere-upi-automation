@@ -37,15 +37,6 @@
       import_role:
         name: common
         tasks_from: install
-- hosts: webservers
-  gather_facts: False
-  environment:
-    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
-  tasks:
-    - name: Copy over generated ignition files to webserver
-      import_role:
-        name: webserver
-        tasks_from: copy_ign_files
 - hosts: localhost
   gather_facts: False
   environment:

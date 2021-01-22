@@ -27,7 +27,7 @@
     when: skip_ova is not defined
 
   - name: Update VM options on the template
-    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -latency high -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204
+    command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204
     when: skip_ova is not defined
 
   - name: "Bootstrap base64"
@@ -61,8 +61,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -93,8 +93,8 @@
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
@@ -118,15 +118,15 @@
       validate_certs: no
       folder: "{{ vcenter.folder_absolute_path }}"
       name: "{{ item.name }}"
-      state: "{{ vcenter.vm_power_state }}"
+      state: poweredoff
       template: "{{ vcenter.template_name }}"
       disk:
       - size_gb: 120
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
-        memory_mb: 16384
-        num_cpus: 4
+        memory_mb: "{{ item.ram }}"
+        num_cpus: "{{ item.cpu }}"
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"

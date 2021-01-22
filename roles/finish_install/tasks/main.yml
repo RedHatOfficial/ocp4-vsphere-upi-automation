@@ -9,8 +9,23 @@
 
  - name: Wait for bootstrap to complete
    command: "{{ playbook_dir }}/bin/openshift-install --dir={{ playbook_dir }}/install-dir wait-for bootstrap-complete --log-level debug" # noqa 301
+   retries: 2
+   delay: 3
    register: result_bootstrap
+   until: result_bootstrap.rc == 0
 
+ - name: Boot the worker vms
+   vmware_guest:
+     hostname: "{{ vcenter.ip }}"
+     username: "{{ vcenter.service_account_username }}"
+     password: "{{ vcenter.service_account_password }}"
+     datacenter: "{{ vcenter.datacenter }}"
+     validate_certs: no
+     folder: "{{ vcenter.folder_absolute_path }}"
+     name: "{{ item.name }}"
+     state: "{{ vcenter.vm_power_state }}"
+   loop: "{{ worker_vms }}"
+    
  - name: Delete Bootstrap VM
    command: "{{ playbook_dir }}/bin/govc vm.destroy {{ item.name }}"  # noqa 301
    loop: "{{ bootstrap_vms }}"

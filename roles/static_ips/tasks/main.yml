@@ -62,13 +62,24 @@
       state: absent
     become: true
 
+  - name: Set the kernel param template name
+    set_fact:
+      kernel_param_template: kernel-params.j2
+      generate_iso_task: generate_custom_iso.yml
+
+  - name: Set the pre-4.6 kernel param template name
+    when: '"4.6" not in download.iso'
+    set_fact:
+      kernel_param_template: kernel-params-pre-4.6.j2
+      generate_iso_task: generate_custom_iso-pre-4.6.yml
+
   - name: Generate kernel params for bootstrap
     vars:
       machine_name: "{{ item.name }}"
       machine_type: bootstrap
       machine_ip: "{{ item.ipaddr }}"
     template:
-      src: kernel-params.j2
+      src: "{{ kernel_param_template }}"
       dest: "{{ role_path }}/files/{{ item.name }}-kernel-params.txt"
       mode: '0664'
     loop: "{{ bootstrap_vms }}"
@@ -79,7 +90,7 @@
       machine_type: master
       machine_ip: "{{ item.ipaddr }}"
     template:
-      src: kernel-params.j2
+      src: "{{ kernel_param_template }}"
       dest: "{{ role_path }}/files/{{ item.name }}-kernel-params.txt"
       mode: '0664'
     loop: "{{ master_vms }}"
@@ -90,13 +101,19 @@
       machine_type: worker
       machine_ip: "{{ item.ipaddr }}"
     template:
-      src: kernel-params.j2
+      src: "{{ kernel_param_template }}"
       dest: "{{ role_path }}/files/{{ item.name }}-kernel-params.txt"
       mode: '0664'
     loop: "{{ worker_vms }}"
 
   - name: Generate custom iso files for all VMs
-    include: generate_custom_iso.yml
+    when: '"4.6" in download.iso'
+    include: "{{ generate_iso_task }}"
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
+
+  - name: Generate custom iso files for all VMs
+    when: '"4.6" not in download.iso'
+    include: "{{ generate_iso_task }}"
     loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
 
   - name: Upload all the custom generated ISOs to the datastore
