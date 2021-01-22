@@ -9,7 +9,10 @@
 
  - name: Wait for bootstrap to complete
    command: "{{ playbook_dir }}/bin/openshift-install --dir={{ playbook_dir }}/install-dir wait-for bootstrap-complete --log-level debug" # noqa 301
+   retries: 2
+   delay: 3
    register: result_bootstrap
+   until: result_bootstrap.rc == 0
 
  - name: Boot the worker vms
    vmware_guest:
