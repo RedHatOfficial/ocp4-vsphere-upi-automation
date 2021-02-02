@@ -19,7 +19,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    * pull secret
    * ip and mac addresses, host/domain names
    * enable/disable fips mode
-   * isolationMode: NetowrkPolicy (default), Multitenant, Subnet
+   * isolationMode: NetworkPolicy (default), Multitenant, Subnet
    * vcenter details
      * datastore name
      * datacenter name
