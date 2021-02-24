@@ -10,7 +10,7 @@
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.size_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
@@ -34,7 +34,7 @@
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.size_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
@@ -59,7 +59,7 @@
       name: "{{ item.name }}"
       state: "{{ vcenter.vm_power_state }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.size_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
