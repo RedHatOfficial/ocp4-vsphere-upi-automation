@@ -61,7 +61,7 @@
       state: "{{ vcenter.vm_power_state }}"
       template: "{{ vcenter.template_name }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.size_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
@@ -89,7 +89,7 @@
       state: "{{ vcenter.vm_power_state }}"
       template: "{{ vcenter.template_name }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.size_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
@@ -117,7 +117,7 @@
       state: poweredoff
       template: "{{ vcenter.template_name }}"
       disk:
-      - size_gb: 120
+      - size_gb: "{{ item.size_gb }}"
         type: thin
         datastore: "{{ vcenter.datastore }}"
       hardware:
