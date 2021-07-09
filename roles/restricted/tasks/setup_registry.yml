@@ -6,9 +6,14 @@
       with_items: ["auth","certs","data"]
       become: true
 
+    - name: Create a cert config file
+      template:
+        src: ssl-ca.j2
+        dest: /opt/registry/certs/ssl-ca.cnf
+
     - name: Create a certificate
       command:
-        cmd: openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=US/ST=California/L=Sunnyvale/O=Red Hat, Inc./OU=Solution Architecture/CN={{ registry.host }}" # noqa 301 204
+        cmd: openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -config ssl-ca.cnf # noqa 301 204
         chdir: /opt/registry/certs
       become: true
 
