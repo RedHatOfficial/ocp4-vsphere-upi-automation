@@ -20,7 +20,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    * ip and mac addresses, host/domain names
    * enable/disable fips mode
    * networkType: OpenShiftSDN (default), OVNKubernetes (uncomment this setting to use)
-   * isolationMode: NetworkPolicy (default), Multitenant, Subnet
+   * isolationMode: NetworkPolicy (default), Multitenant, Subnet (uncomment and set to use Multitenant or Subnet)
    * vcenter details
      * datastore name
      * datacenter name
@@ -45,7 +45,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
 
 ### Set Global Variables
 > Pre-populated entries in **group_vars/all.yml** are ready to be used unless you need to customize further. Any updates described below refer to [group_vars/all.yml](group_vars/all.yml) unless otherwise specified.
-1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned). Update the file on the line with `pull_secret` by providing the entire pull secret as a single line replacing the provided/incomplete pull secret  
+1. Get the ***pull secret*** from [here](https://cloud.redhat.com/OpenShift/install/vsphere/user-provisioned). Save the pull secret as a file called `pullsecret` in the home directory of the user running this automation.
 2. Get the vCenter details:
    1. IP address
    2. Service account username (can be the same as admin)
