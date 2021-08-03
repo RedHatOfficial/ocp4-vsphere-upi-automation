@@ -14,6 +14,8 @@ controlPlane:
   replicas: 3 
 metadata:
   name: {{ config.cluster_name }}
+networking:
+  networkType: {{ config.networkType | default('OpenShiftSDN') }} 
 platform:
 {% if config.provider is defined and 'none' in config.provider %}
   none: {}

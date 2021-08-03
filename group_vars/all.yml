@@ -5,6 +5,7 @@ config:
   base_domain: example.com
   cluster_name: ocp4
   fips: false
+  #networkType: OVNKubernetes
   isolationMode: NetworkPolicy
   installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
   pull_secret: {"auths": ...}
