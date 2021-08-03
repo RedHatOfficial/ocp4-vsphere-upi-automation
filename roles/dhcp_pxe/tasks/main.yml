@@ -19,7 +19,7 @@
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
-        mac: "{{ item.macaddr }}"
+        mac: "{{ item.macaddr | default(omit) }}"
       wait_for_ip_address: no
     loop: "{{ bootstrap_vms }}"
   - name: Create master VMs from the template
@@ -43,7 +43,7 @@
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
-        mac: "{{ item.macaddr }}"
+        mac: "{{ item.macaddr | default(omit) }}"
       wait_for_ip_address: no
     loop: "{{ master_vms }}"
 
@@ -68,7 +68,7 @@
         memory_reservation_lock: True
       networks:
       - name: "{{ vcenter.network }}"
-        mac: "{{ item.macaddr }}"
+        mac: "{{ item.macaddr | default(omit) }}"
       wait_for_ip_address: no
     loop: "{{ worker_vms }}"
 
