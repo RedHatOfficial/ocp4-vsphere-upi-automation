@@ -15,7 +15,7 @@
         fail_msg: 
           - config.isolationMode = {{ config.isolationMode }}
           - config.isolationMode must be NetworkPolicy, Multitenant, or Subnet
-        success_msg: config.network is valid
+        success_msg: config.isolationMode is valid
       when: config.isolationMode is defined
 
     - name: Create ~/.ssh directory if it does not exist
