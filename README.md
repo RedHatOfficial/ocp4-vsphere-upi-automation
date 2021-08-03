@@ -19,6 +19,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    * pull secret
    * ip and mac addresses, host/domain names
    * enable/disable fips mode
+   * networkType: OpenShiftSDN (default), OVNKubernetes (uncomment this setting to use)
    * isolationMode: NetworkPolicy (default), Multitenant, Subnet
    * vcenter details
      * datastore name
@@ -59,7 +60,8 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    1. base domain *(pre-populated with **example.com**)*
    2. cluster name *(pre-populated with **ocp4**)*
 5. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with an example config pointing to helper node)*
-6. Furnish any proxy details with the section like below.
+6. For `bootstrap_vms`, `master_vms`, and `worker_vms`, when using ***static_ips***, you can delete macaddr from the dictionary.  VMware will auto-generate your MAC addresses.  If you are using DHCP, defining macaddr will allow you to reserve the specified IP addresses on your DHCP server to ensure the OpenShift nodes always get the same IP address. 
+7. Furnish any proxy details with the section like below.
    * If `proxy.enabled` is set to `False` anything defined under proxy and the proxy setup is ignored
    * The `cert_content` shown below is only for illustration to show the format
    * When there is no certificate, leave the variable `cert_content` value empty
@@ -74,7 +76,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
             <certficate content>
          -----END CERTIFICATE-----
    ```
-7. When doing the restricted network install and following instructions from [restricted.md](restricted.md), furnish details related to the registry with a section like below. If `registry.enabled` is set to `False` anything defined under `registry` and the registry setup is ignored
+8. When doing the restricted network install and following instructions from [restricted.md](restricted.md), furnish details related to the registry with a section like below. If `registry.enabled` is set to `False` anything defined under `registry` and the registry setup is ignored
    ```
    registry:
       enabled: true
@@ -89,14 +91,14 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
       port: 5000
       repo: ocp4/openshift4
    ```
-8. If you wish to install without enabling the Kubernetes vSphere Cloud Provider (Useful for mixed installs with both Virtual Nodes and Bare Metal Nodes), change the `provider: ` to `none` in all.yaml.
+9. If you wish to install without enabling the Kubernetes vSphere Cloud Provider (Useful for mixed installs with both Virtual Nodes and Bare Metal Nodes), change the `provider: ` to `none` in all.yaml.
    ```
    config:
      provider: none
      base_domain: example.com
      ...
    ```
-9. If you wish to enable custom NTP servers on your nodes, set `ntp.custom` to `True` and define `ntp.ntp_server_list` to fit your requirements.
+10. If you wish to enable custom NTP servers on your nodes, set `ntp.custom` to `True` and define `ntp.ntp_server_list` to fit your requirements.
    ```
    ntp:
      custom: True
@@ -104,7 +106,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
      - 0.rhel.pool.ntp.org
      - 1.rhel.pool.ntp.org
    ```
-10. Network Policy is enabled by default.  To use Multitenant or Subnet, change isolationMode
+11. Network Policy is enabled by default.  To use Multitenant or Subnet, change isolationMode
     ```
     isolationMode: Multitenant
     ```
