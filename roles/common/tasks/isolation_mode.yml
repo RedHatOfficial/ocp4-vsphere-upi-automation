@@ -11,11 +11,26 @@
 
  - name: Insert new network for selected isolation
    blockinfile:
-      insertafter: 'networkType: OpenShiftSDN'
-      block: |2
-          defaultNetwork:
-            type: OpenShiftSDN
-            openshiftSDNConfig:
-              mode: "{{ config.isolationMode }}"
-      path: "{{ playbook_dir }}/install-dir/manifests/cluster-network-03-config.yml"
-      state: present
+     insertafter: 'spec:'
+     block: |2
+         defaultNetwork:
+           type: {{ config.networkType | default('OpenShiftSDN') }}
+           openshiftSDNConfig:
+             mode: {{ config.isolationMode }}
+     path: "{{ playbook_dir }}/install-dir/manifests/cluster-network-03-config.yml"
+     state: present
+
+ - name: Remove networkType line
+   lineinfile:
+     path: "{{ playbook_dir }}/install-dir/manifests/cluster-network-03-config.yml"
+     regexp: 'networkType: .+$'
+     state: absent
+   
+ - name: Fix openshiftSDNConfig when not OpenShiftSDN
+   replace:
+     path: "{{ playbook_dir }}/install-dir/manifests/cluster-network-03-config.yml"
+     regexp: 'openshiftSDNConfig'
+     replace: 'ovnKubernetesConfig'
+   when: 
+     - config.networkType is defined
+     - config.networkType == 'OVNKubernetes'
