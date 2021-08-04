@@ -26,6 +26,7 @@ platform:
     password: {{ vcenter.service_account_password }}
     datacenter: {{ vcenter.datacenter }}
     defaultDatastore: {{ vcenter.datastore }}
+    folder: {{ vcenter.folder_absolute_path | default(omit) }}
 {% endif %}
 fips: {{ config.fips }}
 pullSecret: '{{ config.pull_secret | to_json }}'
