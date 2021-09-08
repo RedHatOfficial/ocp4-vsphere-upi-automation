@@ -61,7 +61,9 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    2. cluster name *(pre-populated with **ocp4**)*
 5. HTTP URL of the ***bootstrap.ign*** file *(pre-populated with an example config pointing to helper node)*
 6. For `bootstrap_vms`, `master_vms`, and `worker_vms`, when using ***static_ips***, you can delete macaddr from the dictionary.  VMware will auto-generate your MAC addresses.  If you are using DHCP, defining macaddr will allow you to reserve the specified IP addresses on your DHCP server to ensure the OpenShift nodes always get the same IP address. 
-7. Furnish any proxy details with the section like below.
+7. For network_modifications: Network CIDRs default to sensible ranges. If a conflict is present (these ranges of addresses are assigned elsewhere in the organization), you may select other non-conflicting CIDR ranges by changing "enabled: false" to "enabled: true" and entering the new ranges. The ranges shown in the repository are the ones that are used by default, even if "enabled: false" is left as it is.
+The machine network is the network on which the VMs are created. Be sure to specify the right machine network if you set enabled: true
+8. Furnish any proxy details with the section like below.
    * If `proxy.enabled` is set to `False` anything defined under proxy and the proxy setup is ignored
    * The `cert_content` shown below is only for illustration to show the format
    * When there is no certificate, leave the variable `cert_content` value empty
@@ -76,7 +78,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
             <certficate content>
          -----END CERTIFICATE-----
    ```
-8. When doing the restricted network install and following instructions from [restricted.md](restricted.md), furnish details related to the registry with a section like below. If `registry.enabled` is set to `False` anything defined under `registry` and the registry setup is ignored
+9. When doing the restricted network install and following instructions from [restricted.md](restricted.md), furnish details related to the registry with a section like below. If `registry.enabled` is set to `False` anything defined under `registry` and the registry setup is ignored
    ```
    registry:
       enabled: true
@@ -91,14 +93,14 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
       port: 5000
       repo: ocp4/openshift4
    ```
-9. If you wish to install without enabling the Kubernetes vSphere Cloud Provider (Useful for mixed installs with both Virtual Nodes and Bare Metal Nodes), change the `provider: ` to `none` in all.yaml.
+10. If you wish to install without enabling the Kubernetes vSphere Cloud Provider (Useful for mixed installs with both Virtual Nodes and Bare Metal Nodes), change the `provider: ` to `none` in all.yaml.
    ```
    config:
      provider: none
      base_domain: example.com
      ...
    ```
-10. If you wish to enable custom NTP servers on your nodes, set `ntp.custom` to `True` and define `ntp.ntp_server_list` to fit your requirements.
+11. If you wish to enable custom NTP servers on your nodes, set `ntp.custom` to `True` and define `ntp.ntp_server_list` to fit your requirements.
    ```
    ntp:
      custom: True
