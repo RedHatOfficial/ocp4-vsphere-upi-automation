@@ -24,7 +24,7 @@ vcenter:
 download:
   clients_url: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest
   dependencies_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/latest/latest
-  govc: https://github.com/vmware/govmomi/releases/download/v0.23.0/govc_linux_amd64.gz
+  govc: https://github.com/vmware/govmomi/releases/download/v0.27.4
 bootstrap_vms:
   - { name: "bootstrap", macaddr: "00:50:56:a8:aa:a1", ipaddr: "192.168.86.181", cpu: 4, ram: 16384}
 master_vms:
