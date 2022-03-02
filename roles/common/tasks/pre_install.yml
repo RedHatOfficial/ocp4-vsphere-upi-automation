@@ -1,150 +1,160 @@
-    - name: Make sure networkType is valid when defined
-      assert:
-        that:
-          - config.networkType in [ 'OpenShiftSDN', 'OVNKubernetes' ]
-        fail_msg: 
-          - config.networkType = {{ config.networkType }}
-          - config.networkType must be OpenShiftSDN or OVNKubernetes
-        success_msg: config.network is valid
-      when: config.networkType is defined
+- name: Make sure networkType is valid when defined
+  assert:
+    that:
+      - config.networkType in [ 'OpenShiftSDN', 'OVNKubernetes' ]
+    fail_msg: 
+      - config.networkType = {{ config.networkType }}
+      - config.networkType must be OpenShiftSDN or OVNKubernetes
+    success_msg: config.network is valid
+  when: config.networkType is defined
 
-    - name: Make sure isolationMode is valid when defined
-      assert:
-        that:
-          - config.isolationMode in [ 'NetworkPolicy', 'Multitenant', 'Subnet' ]
-        fail_msg: 
-          - config.isolationMode = {{ config.isolationMode }}
-          - config.isolationMode must be NetworkPolicy, Multitenant, or Subnet
-        success_msg: config.isolationMode is valid
-      when: config.isolationMode is defined
+- name: Make sure isolationMode is valid when defined
+  assert:
+    that:
+      - config.isolationMode in [ 'NetworkPolicy', 'Multitenant', 'Subnet' ]
+    fail_msg: 
+      - config.isolationMode = {{ config.isolationMode }}
+      - config.isolationMode must be NetworkPolicy, Multitenant, or Subnet
+    success_msg: config.isolationMode is valid
+  when: config.isolationMode is defined
 
-    - name: Create ~/.ssh directory if it does not exist
-      file:
-        path: ~/.ssh
-        state: directory
-        mode: '0755'
+- name: Create ~/.ssh directory if it does not exist
+  file:
+    path: ~/.ssh
+    state: directory
+    mode: '0755'
 
-    - name: Generate a SSH key-pair
-      openssh_keypair:
-        path: ~/.ssh/ocp4
-        force: false
+- name: Generate a SSH key-pair
+  openssh_keypair:
+    path: ~/.ssh/ocp4
+    force: false
 
-    - name: Set the datacenter variable
-      set_fact:
-        datacenter: "{{ vcenter.datacenter }}"
+- name: Set the datacenter variable
+  set_fact:
+    datacenter: "{{ vcenter.datacenter }}"
 
-    - name: Install the necessary linux packages which will be needed later in the ansible run
-      package:
-        name:
-          - patch
-          - gzip
-          - genisoimage
-          - jq
-          - rsync
-      become: true
+- name: Install the necessary linux packages which will be needed later in the ansible run
+  when: ansible_os_family != 'Darwin'
+  package:
+    name:
+      - patch
+      - gzip
+      - genisoimage
+      - jq
+      - rsync
+  become: true
 
-    - name: Display Ansible's Python version
-      debug:
-        var: ansible_python_version
-        verbosity: 1
+- name: Display Ansible's Python version
+  debug:
+    var: ansible_python_version
+    verbosity: 1
 
-    - name: Install python-pip or python2-pip if Ansible uses Python 2
-      package:
-        name:
-          - "python2-pip"
-      when: ansible_python_version is match("2.*")
-      become: true
+- name: Install python-pip or python2-pip if Ansible uses Python 2
+  package:
+    name:
+      - "python2-pip"
+  when: ansible_python_version is match("2.*") and ansible_os_family != 'Darwin'
+  become: true
 
-    - name: Install python3-pip if Ansible uses Python 3
-      package:
-        name:
-          - python3-pip
-      when: ansible_python_version is match("3.*")
-      become: true
+- name: Install python3-pip if Ansible uses Python 3
+  package:
+    name:
+      - python3-pip
+  when: ansible_python_version is match("3.*") and ansible_os_family != 'Darwin'
+  become: true
 
-    - name: Install pyvmomi
-      pip:
-        name: pyvmomi
-      become: true
+- name: Install pyvmomi
+  pip:
+    name: pyvmomi
 
-    - name: Clean up existing bin, install-dir and downloads folders
-      file:
-        path: "{{ playbook_dir }}/{{ item }}"
-        state: absent
-      with_items: ["bin", "install-dir", "downloads"]
-      when: clean is defined
+- name: Clean up existing bin, install-dir and downloads folders
+  file:
+    path: "{{ playbook_dir }}/{{ item }}"
+    state: absent
+  with_items: ["bin", "install-dir", "downloads"]
+  when: clean is defined
 
-    - name: Must always clean install-dir
-      file:
-        path: "{{ playbook_dir }}/{{ item }}"
-        state: absent
-      with_items: ["install-dir"]
-      when: clean is not defined
+- name: Must always clean install-dir
+  file:
+    path: "{{ playbook_dir }}/{{ item }}"
+    state: absent
+  with_items: ["install-dir"]
+  when: clean is not defined
 
-    - name: Create bin, install-dir and downloads folders
-      file:
-        path: "{{ playbook_dir }}/{{ item }}"
-        state: directory
-        mode: '0755'
-      with_items: ["bin", "downloads","downloads/ISOs", "install-dir"]
+- name: Create bin, install-dir and downloads folders
+  file:
+    path: "{{ playbook_dir }}/{{ item }}"
+    state: directory
+    mode: '0755'
+  with_items: ["bin", "downloads","downloads/ISOs", "install-dir"]
 
-    - name: Download the oc client binary
-      get_url:
-        url: "{{ download.openshiftClient }}"
-        dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
-        validate_certs: no
-      register: oc_client_download
+- name: Download the oc client binary
+  get_url:
+    url: "{{ download.openshiftClient }}"
+    dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
+    validate_certs: no
+  register: oc_client_download
 
-    - name: Download the openshift-install binary
-      get_url:
-        url: "{{ download.openshiftInstall }}"
-        dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
-        validate_certs: no
-      register: openshift_install_download
+- name: Download the openshift-install binary
+  get_url:
+    url: "{{ download.openshiftInstall }}"
+    dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
+    validate_certs: no
+  register: openshift_install_download
 
-    - name: Unarchive oc client
-      unarchive:
-        src: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
-        dest: "{{ playbook_dir }}/bin"
-        mode: '0775'
-      when: oc_client_download is changed
+- name: Unarchive oc client
+  unarchive:
+    src: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
+    dest: "{{ playbook_dir }}/bin"
+    mode: '0775'
+    exclude:
+      - README.md
+  when: oc_client_download is changed
 
-    - name: Unarchive openshift-install
-      unarchive:
-        src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
-        dest: "{{ playbook_dir }}/bin"
-        mode: '0775'
-      when: openshift_install_download is changed
+- name: Unarchive openshift-install
+  unarchive:
+    src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
+    dest: "{{ playbook_dir }}/bin"
+    mode: '0775'
+    exclude:
+      - README.md
+  when: openshift_install_download is changed
 
-    - name: Download govc
-      get_url:
-        url: "{{ download.govc }}"
-        dest: "{{ playbook_dir }}/downloads/govc.gz"
-        validate_certs: no
+- name: Determine mac or linux client
+  set_fact:
+    family: "{{ ansible_os_family if ansible_os_family == 'Darwin' else 'Linux' }}"
 
-    - name: Unarchive govc
-      shell: gzip -dc "{{ playbook_dir }}/downloads/govc.gz" > "{{ playbook_dir }}/bin/govc" # noqa 301
+- name: Download govc
+  get_url:
+    url: "{{ download.govc }}/govc_{{ family }}_x86_64.tar.gz"
+    dest: "{{ playbook_dir }}/downloads/govc.gz"
+    validate_certs: no
 
-    - name: Make govc executable
-      file:
-        path: "{{ playbook_dir }}/bin/govc"
-        mode: '775'
+- name: Unarchive govc
+  unarchive:
+    src: "{{ playbook_dir }}/downloads/govc.gz"
+    dest: "{{ playbook_dir }}/bin"
+    mode: 0755
+    exclude:
+      - CHANGELOG.md
+      - LICENSE.txt
+      - README.md
 
-    - name: Copy install-config.yaml file into install-dir
-      template:
-        src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.j2"
-        dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
-        mode: '0664'
+- name: Copy install-config.yaml file into install-dir
+  template:
+    src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.j2"
+    dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
+    mode: '0664'
 
-    - name: Run steps pertaining to proxy, if any
-      include: handle_proxy.yml
-      when:
-        - proxy is defined
-        - proxy.enabled == true # noqa 601
+- name: Run steps pertaining to proxy, if any
+  include: handle_proxy.yml
+  when:
+    - proxy is defined
+    - proxy.enabled == true # noqa 601
 
-    - name: Backup the install-config.yaml file
-      copy:
-        src: "{{ playbook_dir }}/install-dir/install-config.yaml"
-        dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
-        mode: '0664'
-      when: (registry is not defined) or (registry.enabled is not defined) or (registry.enabled == false) # noqa 601
+- name: Backup the install-config.yaml file
+  copy:
+    src: "{{ playbook_dir }}/install-dir/install-config.yaml"
+    dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
+    mode: '0664'
+  when: (registry is not defined) or (registry.enabled is not defined) or (registry.enabled == false) # noqa 601
