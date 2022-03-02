@@ -19,6 +19,10 @@
       - { key: "kernel", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*kernel.*') }}" }
       - { key: "initramfs", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*initramfs.*') }}" }
 
+  - name: Set fact for mac vs linux binaries to download
+    set_fact:
+      family: "{{ 'mac' if ansible_os_family == 'Darwin' else 'linux' }}"
+
   - name:  Set the download facts for localhost, which will be used later
     set_fact:
       download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
@@ -26,5 +30,5 @@
     loop:
       - { key: "iso", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.iso') }}" }
       - { key: "ova", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.ova') }}" }
-      - { key: "openshiftClient", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-client-linux-.*.tar.gz') }}" }
-      - { key: "openshiftInstall", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-install-linux-.*.tar.gz') }}" }
+      - { key: "openshiftClient", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-client-' + family + '-.*.tar.gz') }}" }
+      - { key: "openshiftInstall", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-install-' + family + '-.*.tar.gz') }}" }
