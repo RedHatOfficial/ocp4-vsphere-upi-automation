@@ -1,52 +1,52 @@
-    - name: Generate the ignition manifests
-      command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir" # noqa 301
+- name: Generate the ignition manifests
+  command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir" # noqa 301
 
-    - name: Apply the patch to set mastersSchedulable to false
-      patch:
-        src: "cluster-scheduler-02-config.yml.patch"
-        dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
+- name: Apply the patch to set mastersSchedulable to false
+  patch:
+    src: "cluster-scheduler-02-config.yml.patch"
+    dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
 
-    - name: Configure custom isolation mode for network provider
-      when: 
-        - config.isolationMode is defined
-        - config.isolationMode != "NetworkPolicy"
-      include_tasks: isolation_mode.yml
-  
-    - name: Remove Master Machine manifests
-      file:
-        path: "{{ item }}"
-        state: absent
-      with_fileglob:
-        - "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml"
+- name: Configure custom isolation mode for network provider
+  when: 
+    - config.isolationMode is defined
+    - config.isolationMode != "NetworkPolicy"
+  include_tasks: isolation_mode.yml
 
-    - name: Remove Worker MachineSet manifest
-      file:
-        path: "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_worker-machineset-0.yaml"
-        state: absent
+- name: Remove Master Machine manifests
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_fileglob:
+    - "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml"
 
-    - name: Configure custom ntp servers for masters and workers
-      when: ntp.custom
-      include_tasks: configure_ntp.yml
+- name: Remove Worker MachineSet manifest
+  file:
+    path: "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_worker-machineset-0.yaml"
+    state: absent
 
-    - name: Generate the ignition configs
-      command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir" # noqa 301
+- name: Configure custom ntp servers for masters and workers
+  when: ntp.custom
+  include_tasks: configure_ntp.yml
 
-    - name: Get Cluster infraID
-      command: jq -r .infraID "{{ playbook_dir }}/install-dir/metadata.json"
-      register: infraID
-      when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
+- name: Generate the ignition configs
+  command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir" # noqa 301
 
-    - name: Set the vcenter.infraID fact
-      set_fact:
-        vcenter_folder: "{{ infraID.stdout }}"
-      when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
+- name: Get Cluster infraID
+  command: jq -r .infraID "{{ playbook_dir }}/install-dir/metadata.json"
+  register: infraID
+  when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
 
-    - name: Set the vcenter.folder_absolute_path if not provided
-      set_fact:
-        vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+vcenter_folder}, recursive=True) }}"
-      when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
+- name: Set the vcenter.infraID fact
+  set_fact:
+    vcenter_folder: "{{ infraID.stdout }}"
+  when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
 
-    - name: Display the absolute folder path of the vCenter folder
-      debug:
-        var: vcenter.folder_absolute_path
-        verbosity: 1
+- name: Set the vcenter.folder_absolute_path if not provided
+  set_fact:
+    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+vcenter_folder}, recursive=True) }}"
+  when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
+
+- name: Display the absolute folder path of the vCenter folder
+  debug:
+    var: vcenter.folder_absolute_path
+    verbosity: 1
