@@ -64,6 +64,7 @@
       memory_mb: "{{ item.ram }}"
       num_cpus: "{{ item.cpu }}"
       memory_reservation_lock: True
+      version: "{{ vcenter.hw_version }}"
     networks:
     - name: "{{ vcenter.network }}"
       mac: "{{ item.macaddr | default(omit) }}"
@@ -96,6 +97,7 @@
       memory_mb: "{{ item.ram }}"
       num_cpus: "{{ item.cpu }}"
       memory_reservation_lock: True
+      version: "{{ vcenter.hw_version }}"
     networks:
     - name: "{{ vcenter.network }}"
       mac: "{{ item.macaddr | default(omit) }}"
@@ -128,6 +130,7 @@
       memory_mb: "{{ item.ram }}"
       num_cpus: "{{ item.cpu }}"
       memory_reservation_lock: True
+      version: "{{ vcenter.hw_version }}"
     networks:
     - name: "{{ vcenter.network }}"
       mac: "{{ item.macaddr | default(omit) }}"
