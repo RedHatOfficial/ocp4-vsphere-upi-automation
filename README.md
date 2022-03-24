@@ -14,7 +14,7 @@ As it stands right now, the repo works for several installation use cases:
 
 ## Quickstart
 This is a concise summary of everything you need to do to use the repo. Rest of the document goes into details of every step.
-1. Setup [helper node](https://github.com/RedHatOfficial/ocp4-helpernode)
+1. Setup [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) or ensure appropriate services (DNS/DHCP/LB/etc.) are available and properly referenced.
 2. Edit `group_vars/all.yml`, the following must be changed while the rest can remain the same
    * pull secret
    * ip and mac addresses, host/domain names
@@ -55,6 +55,7 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    6. Datacenter name *(created in the prerequisites mentioned above)*
    7. Datastore name
    8. Absolute path of the vCenter folder to use *(optional)*. If this field is not populated, its is auto-populated and points to `/${vcenter.datacenter}/vm/${config.cluster_name}`
+   9. Specify hardware version for VM compatibility.  Defaults to 15.
 3. Downloadable link to `govc` (vSphere CLI, *pre-populated*)
 4. OpenShift cluster
    1. base domain *(pre-populated with **example.com**)*
@@ -203,7 +204,7 @@ ansible-playbook -i staging restricted_static_ips_ova.yml
    ```
 ### Expected Outcome
 
-1. Necessary Linux packages installed for the installation
+1. Necessary Linux packages installed for the installation. NOTE: support for Mac client to run this automation has been added but is not guaranteed to be complete
 2. SSH key-pair generated, with key `~/.ssh/ocp4` and public key `~/.ssh/ocp4.pub`
 3. Necessary folders [bin, downloads, downloads/ISOs, install-dir] created
 4. OpenShift client, install and .ova binaries downloaded to the **downloads** folder
