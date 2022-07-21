@@ -21,6 +21,8 @@ This is a concise summary of everything you need to do to use the repo. Rest of 
    * enable/disable fips mode
    * networkType: OpenShiftSDN (default), OVNKubernetes (uncomment this setting to use)
    * isolationMode: NetworkPolicy (default), Multitenant, Subnet (uncomment and set to use Multitenant or Subnet)
+   * master_schedulable: false (default), set to true to install 3-node cluster
+     * set `worker_vms` to empty list (i.e. `[]`) while removing or commenting out list items for worker node details
    * vcenter details
      * datastore name
      * datacenter name
@@ -94,7 +96,15 @@ The machine network is the network on which the VMs are created. Be sure to spec
       port: 5000
       repo: ocp4/openshift4
    ```
-10. If you wish to install without enabling the Kubernetes vSphere Cloud Provider (Useful for mixed installs with both Virtual Nodes and Bare Metal Nodes), change the `provider: ` to `none` in all.yaml.
+10. NEW: disconnected/restricted install for existing registry
+   ```
+   registry:
+     enabled: true
+     host: registry.example.com (if not 443, include :<port> here)
+     repo_release: openshift/release (the actual OpenShift container images)
+     repo_images: openshift/release-images (the OpenShift release images, i.e. 4.y.z-x86_64)
+   ```
+12. If you wish to install without enabling the Kubernetes vSphere Cloud Provider (Useful for mixed installs with both Virtual Nodes and Bare Metal Nodes), change the `provider: ` to `none` in all.yaml.
    ```
    config:
      provider: none
