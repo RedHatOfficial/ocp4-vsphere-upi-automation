@@ -40,6 +40,10 @@ platform:
 fips: {{ config.fips }}
 pullSecret: '{{ config.pull_secret | to_json }}'
 sshKey: '{{ config.installer_ssh_key }}'
+{% if additionalTrustBundle is defined %}
+additionalTrustBundle: |
+  {{ additionalTrustBundle | indent(width=2) }}
+{% endif %}
 {% if proxy is defined and proxy.enabled == true %}
 proxy:
   httpProxy: {{ proxy.http_proxy }}
@@ -49,9 +53,9 @@ proxy:
 {% if registry is defined and registry.enabled == true %}
 imageContentSources:
 - mirrors:
-  - {{ registry.host }}:5000/{{ registry.repo }}
-  source: quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}
+  - {{ registry.host }}/{{ registry.repo_release }}
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 - mirrors:
-  - {{ registry.host }}:5000/{{ registry.repo }}
-  source: quay.io/{{ registry.product_repo }}/ocp-v4.0-art-dev
+  - {{ registry.host }}/{{ registry.repo_images }}
+  source: quay.io/openshift-release-dev/ocp-release
 {% endif %}
