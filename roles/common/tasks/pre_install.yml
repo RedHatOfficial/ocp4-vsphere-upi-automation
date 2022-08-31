@@ -157,4 +157,3 @@
     src: "{{ playbook_dir }}/install-dir/install-config.yaml"
     dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
     mode: '0664'
-  when: (registry is not defined) or (registry.enabled is not defined) or (registry.enabled == false) # noqa 601

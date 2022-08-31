@@ -2,6 +2,7 @@
   command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir" # noqa 301
 
 - name: Apply the patch to set mastersSchedulable to false
+  when: not config.master_schedulable
   patch:
     src: "cluster-scheduler-02-config.yml.patch"
     dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
