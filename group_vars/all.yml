@@ -9,6 +9,7 @@ config:
   #isolationMode: Multitenant
   installer_ssh_key: "{{ lookup('file', '~/.ssh/ocp4.pub') }}"
   pull_secret: "{{ lookup('file', '~/pullsecret') }}"
+  master_schedulable: false
 vcenter:
   ip: 192.168.86.100
   datastore: datastore1
