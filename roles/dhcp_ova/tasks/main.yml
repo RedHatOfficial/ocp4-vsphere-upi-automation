@@ -73,7 +73,7 @@
       - name: "{{ vcenter.network }}"
         mac: "{{ item.macaddr | default(omit) }}"
       wait_for_ip_address: no
-      customvalues:
+      advanced_settings:
         - key: guestinfo.ignition.config.data
           value: "{{ bootstrapContent }}"
     loop: "{{ bootstrap_vms }}"
@@ -102,7 +102,7 @@
       - name: "{{ vcenter.network }}"
         mac: "{{ item.macaddr | default(omit) }}"
       wait_for_ip_address: no
-      customvalues:
+      advanced_settings:
        - key: guestinfo.ignition.config.data
          value: "{{ masterContent }}"
     loop: "{{ master_vms }}"
@@ -131,7 +131,7 @@
       - name: "{{ vcenter.network }}"
         mac: "{{ item.macaddr | default(omit) }}"
       wait_for_ip_address: no
-      customvalues:
+      advanced_settings:
        - key: guestinfo.ignition.config.data
          value: "{{ workerContent }}"
     loop: "{{ worker_vms }}"
