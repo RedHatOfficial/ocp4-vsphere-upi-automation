@@ -1,9 +1,10 @@
-# Note this file mostly matches the isolinux.cfg file from the Fedora 
+# Note this file mostly matches the isolinux.cfg file from the Fedora
 # Server DVD iso. Diff this file with that file in the future to pick up
 # changes.
 serial 0
 default vesamenu.c32
-timeout 100
+# timeout in units of 1/10s. 50 == 5 seconds
+timeout 50
 
 display boot.msg
 
@@ -66,7 +67,8 @@ label linux
   menu label ^RHEL CoreOS (Live)
   menu default
   kernel /images/pxeboot/vmlinuz
-  append initrd=/images/pxeboot/initrd.img,/images/ignition.img random.trust_cpu=on rd.luks.options=discard coreos.liveiso=RHCOS-x86_64 ignition.firstboot ignition.platform.id=metal {{ kernel_params }}
+  append initrd=/images/pxeboot/initrd.img,/images/ignition.img random.trust_cpu=on coreos.liveiso=RHCOS-x86_64 ignition.firstboot ignition.platform.id=metal {{ kernel_params }}
+################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################ COREOS_KARG_EMBED_AREA
 
 menu separator # insert an empty line
 
