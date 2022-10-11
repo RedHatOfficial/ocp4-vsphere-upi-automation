@@ -1,10 +1,11 @@
---- grub.cfg.orig	2020-03-29 22:25:32.556579084 -0700
-+++ grub.cfg	2020-03-29 22:25:48.537638957 -0700
-@@ -22,6 +22,6 @@
- 
+--- /tmp/030c2ad700f034f5db0c6a910382d07005076a10c2f1cc08e9d10cc8608cda47-dup/EFI/redhat/grub.cfg	2022-10-10 20:42:48.960220254 -0400
++++ /tmp/030c2ad700f034f5db0c6a910382d07005076a10c2f1cc08e9d10cc8608cda47-dup/EFI/redhat/grub.cfg.orig	2022-10-10 20:22:43.800782756 -0400
+@@ -30,7 +30,7 @@
+
  ### BEGIN /etc/grub.d/10_linux ###
- menuentry 'Install RHEL CoreOS' --class fedora --class gnu-linux --class gnu --class os {
--	linux /images/vmlinuz nomodeset rd.neednet=1 coreos.inst=yes
-+	linux /images/vmlinuz nomodeset rd.neednet=1 coreos.inst=yes {{kernel_params}}
- 	initrd /images/initramfs.img
+ menuentry 'RHEL CoreOS (Live)' --class fedora --class gnu-linux --class gnu --class os {
+-	linux /images/pxeboot/vmlinuz random.trust_cpu=on coreos.liveiso=rhcos-411.86.202207150124-0 ignition.firstboot ignition.platform.id=metal
++	linux /images/pxeboot/vmlinuz random.trust_cpu=on coreos.liveiso=RHCOS-x86_64 ignition.firstboot ignition.platform.id=metal {{kernel_params}}
+ ################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################ COREOS_KARG_EMBED_AREA
+ 	initrd /images/pxeboot/initrd.img /images/ignition.img
  }
