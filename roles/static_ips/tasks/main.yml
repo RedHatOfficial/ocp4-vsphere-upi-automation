@@ -128,6 +128,6 @@
     command: "govc device.cdrom.insert -vm {{ item.name }} -ds {{ vcenter.datastore }} ./{{ item.name }}.iso" # noqa 301
     loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
 
-  - name: Power-On all the VMs
+  - name: Power-On the bootstrap and master VMs
     command: "govc vm.power -on {{ item.name }}" # noqa 301
-    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
+    loop: "{{ bootstrap_vms + master_vms }}"
