@@ -1,0 +1,137 @@
+- name: Create bootstrap VM from the template
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.service_account_username }}"
+    password: "{{ vcenter.service_account_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}"
+    state: poweredoff
+    template: "{{ vcenter.template_name }}"
+    disk:
+    - size_gb: 120
+      type: thin
+      datastore: "{{ vcenter.datastore }}"
+    hardware:
+      memory_mb: "{{ item.ram }}"
+      num_cpus: "{{ item.cpu }}"
+      memory_reservation_lock: True
+      version: "{{ vcenter.hw_version }}"
+    wait_for_ip_address: no
+    advanced_settings:
+      - key: guestinfo.ignition.config.data
+        value: "{{ BootstrapContent }}"
+      - key: guestinfo.ignition.config.data.encoding
+        value: base64
+      - key: guestinfo.afterburn.initrd.network-kargs
+        value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
+  loop: "{{ bootstrap_vms }}"
+
+- name: Configure network for bootstrap VM
+  vmware_guest_network:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.service_account_username }}"
+    password: "{{ vcenter.service_account_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    name: "{{ item.name }}"
+    network_name: "{{ vcenter.network }}"
+    mac_address: "{{ item.macaddr | default(omit) }}"
+  loop: "{{ bootstrap_vms }}"
+
+- name: Power on bootstrap VM
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.service_account_username }}"
+    password: "{{ vcenter.service_account_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}"
+    state: poweredon
+  loop: "{{ bootstrap_vms }}"
+
+- name: Create control plane VMs from the template
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.service_account_username }}"
+    password: "{{ vcenter.service_account_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}"
+    state: poweredoff
+    template: "{{ vcenter.template_name }}"
+    disk:
+    - size_gb: 120
+      type: thin
+      datastore: "{{ vcenter.datastore }}"
+    hardware:
+      memory_mb: "{{ item.ram }}"
+      num_cpus: "{{ item.cpu }}"
+      memory_reservation_lock: True
+      version: "{{ vcenter.hw_version }}"
+    wait_for_ip_address: no
+    customvalues:
+     - key: guestinfo.ignition.config.data
+       value: "{{ masterContent }}"
+     - key: guestinfo.ignition.config.data.encoding
+       value: base64
+     - key: guestinfo.afterburn.initrd.network-kargs
+       value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
+  loop: "{{ master_vms }}"
+
+- name: Configure network for control plane VMs
+  vmware_guest_network:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.service_account_username }}"
+    password: "{{ vcenter.service_account_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    name: "{{ item.name }}"
+    network_name: "{{ vcenter.network }}"
+    mac_address: "{{ item.macaddr | default(omit) }}"
+  loop: "{{ master_vms }}"
+
+- name: Power on control plane VMs
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.service_account_username }}"
+    password: "{{ vcenter.service_account_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}"
+    state: poweredon
+  loop: "{{ master_vms }}"
+
+- name: Create worker VMs from the template
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.service_account_username }}"
+    password: "{{ vcenter.service_account_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}"
+    state: poweredoff
+    template: "{{ vcenter.template_name }}"
+    disk:
+    - size_gb: 120
+      type: thin
+      datastore: "{{ vcenter.datastore }}"
+    hardware:
+      memory_mb: "{{ item.ram }}"
+      num_cpus: "{{ item.cpu }}"
+      memory_reservation_lock: True
+      version: "{{ vcenter.hw_version }}"
+    wait_for_ip_address: no
+    advanced_settings:
+     - key: guestinfo.ignition.config.data
+       value: "{{ workerContent }}"
+     - key: guestinfo.ignition.config.data.encoding
+       value: base64
+     - key: guestinfo.afterburn.initrd.network-kargs
+       value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
+  loop: "{{ worker_vms }}"

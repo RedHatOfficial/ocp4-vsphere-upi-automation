@@ -45,101 +45,12 @@
     msg: "{{ workerContent }}"
     verbosity: 1
 
-- name: Create bootstrap VM from the template
-  vmware_guest:
-    hostname: "{{ vcenter.ip }}"
-    username: "{{ vcenter.service_account_username }}"
-    password: "{{ vcenter.service_account_password }}"
-    datacenter: "{{ vcenter.datacenter }}"
-    validate_certs: no
-    folder: "{{ vcenter.folder_absolute_path }}"
-    name: "{{ item.name }}"
-    state: "{{ vcenter.vm_power_state }}"
-    template: "{{ vcenter.template_name }}"
-    disk:
-    - size_gb: 120
-      type: thin
-      datastore: "{{ vcenter.datastore }}"
-    hardware:
-      memory_mb: "{{ item.ram }}"
-      num_cpus: "{{ item.cpu }}"
-      memory_reservation_lock: True
-      version: "{{ vcenter.hw_version }}"
-    networks:
-    - name: "{{ vcenter.network }}"
-      mac: "{{ item.macaddr | default(omit) }}"
-    wait_for_ip_address: no
-    advanced_settings:
-      - key: guestinfo.ignition.config.data
-        value: "{{ BootstrapContent }}"
-      - key: guestinfo.ignition.config.data.encoding
-        value: base64
-      - key: guestinfo.afterburn.initrd.network-kargs
-        value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
-  loop: "{{ bootstrap_vms }}"
+- name: Create control plane VMs from the template (ansible < 2.10)
+  when: ansible_version.full is version('2.10.0', '<')
+  include_tasks:
+    file: vmware_guest-ansible-2.9.yml
 
-- name: Create master VMs from ther template
-  vmware_guest:
-    hostname: "{{ vcenter.ip }}"
-    username: "{{ vcenter.service_account_username }}"
-    password: "{{ vcenter.service_account_password }}"
-    datacenter: "{{ vcenter.datacenter }}"
-    validate_certs: no
-    folder: "{{ vcenter.folder_absolute_path }}"
-    name: "{{ item.name }}"
-    state: "{{ vcenter.vm_power_state }}"
-    template: "{{ vcenter.template_name }}"
-    disk:
-    - size_gb: 120
-      type: thin
-      datastore: "{{ vcenter.datastore }}"
-    hardware:
-      memory_mb: "{{ item.ram }}"
-      num_cpus: "{{ item.cpu }}"
-      memory_reservation_lock: True
-      version: "{{ vcenter.hw_version }}"
-    networks:
-    - name: "{{ vcenter.network }}"
-      mac: "{{ item.macaddr | default(omit) }}"
-    wait_for_ip_address: no
-    advanced_settings:
-     - key: guestinfo.ignition.config.data
-       value: "{{ masterContent }}"
-     - key: guestinfo.ignition.config.data.encoding
-       value: base64
-     - key: guestinfo.afterburn.initrd.network-kargs
-       value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
-  loop: "{{ master_vms }}"
-
-- name: Create worker VMs from the template
-  vmware_guest:
-    hostname: "{{ vcenter.ip }}"
-    username: "{{ vcenter.service_account_username }}"
-    password: "{{ vcenter.service_account_password }}"
-    datacenter: "{{ vcenter.datacenter }}"
-    validate_certs: no
-    folder: "{{ vcenter.folder_absolute_path }}"
-    name: "{{ item.name }}"
-    state: poweredoff
-    template: "{{ vcenter.template_name }}"
-    disk:
-    - size_gb: 120
-      type: thin
-      datastore: "{{ vcenter.datastore }}"
-    hardware:
-      memory_mb: "{{ item.ram }}"
-      num_cpus: "{{ item.cpu }}"
-      memory_reservation_lock: True
-      version: "{{ vcenter.hw_version }}"
-    networks:
-    - name: "{{ vcenter.network }}"
-      mac: "{{ item.macaddr | default(omit) }}"
-    wait_for_ip_address: no
-    advanced_settings:
-     - key: guestinfo.ignition.config.data
-       value: "{{ workerContent }}"
-     - key: guestinfo.ignition.config.data.encoding
-       value: base64
-     - key: guestinfo.afterburn.initrd.network-kargs
-       value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}:ens192:off:{{ static_ip.dns }}"
-  loop: "{{ worker_vms }}"
+- name: Create control plane VMs from the template (ansible > 2.9)
+  when: ansible_version.full is version('2.10.0', '>=')
+  include_tasks:
+    file: vmware_guest-ansible-2.12.yml
