@@ -32,7 +32,7 @@
 
 - name: "Bootstrap base64"
   debug:
-    msg: "{{ BootstrapContent }}"
+    msg: "{{ bootstrapContent }}"
     verbosity: 1
 
 - name: "Master base64"

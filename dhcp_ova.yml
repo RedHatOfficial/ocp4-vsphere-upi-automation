@@ -1,6 +1,6 @@
 ---
 - hosts: all
-  gather_facts: False
+  gather_facts: True
   tasks:
     - name: Set the cache of all the download links
       import_role:
