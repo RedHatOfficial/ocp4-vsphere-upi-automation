@@ -1,34 +1,34 @@
-  - name: Fetch the content of the sha256sum.txt from the clients downloads page
-    uri:
-      url: "{{ download.clients_url }}/sha256sum.txt"
-      return_content: yes
-    register: clients_content
+- name: Fetch the content of the sha256sum.txt from the clients downloads page
+  uri:
+    url: "{{ download.clients_url }}/sha256sum.txt"
+    return_content: yes
+  register: clients_content
 
-  - name: Fetch the content of the sha256sum.txt from the dependencies downloads page
-    uri:
-      url: "{{ download.dependencies_url }}/sha256sum.txt"
-      return_content: yes
-    register: dependencies_content
+- name: Fetch the content of the sha256sum.txt from the dependencies downloads page
+  uri:
+    url: "{{ download.dependencies_url }}/sha256sum.txt"
+    return_content: yes
+  register: dependencies_content
 
-  - name:  Set the download facts for webservers group, which will be used later
-    set_fact:
-      download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
-    when: "'webservers' in group_names"
-    loop:
-      - { key: "raw", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.raw.gz') }}" }
-      - { key: "kernel", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*kernel.*') }}" }
-      - { key: "initramfs", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*initramfs.*') }}" }
+- name:  Set the download facts for webservers group, which will be used later
+  set_fact:
+    download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
+  when: "'webservers' in group_names"
+  loop:
+    - { key: "raw", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.raw.gz') }}" }
+    - { key: "kernel", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*kernel.*') }}" }
+    - { key: "initramfs", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*initramfs.*') }}" }
 
-  - name: Set fact for mac vs linux binaries to download
-    set_fact:
-      family: "{{ 'mac' if ansible_os_family == 'Darwin' else 'linux' }}"
+- name: Set fact for mac vs linux binaries to download
+  set_fact:
+    family: "{{ 'mac' if ansible_os_family == 'Darwin' else 'linux' }}"
 
-  - name:  Set the download facts for localhost, which will be used later
-    set_fact:
-      download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
-    when: inventory_hostname == "localhost"
-    loop:
-      - { key: "iso", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.iso') }}" }
-      - { key: "ova", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.ova') }}" }
-      - { key: "openshiftClient", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-client-' + family + '-.*.tar.gz') }}" }
-      - { key: "openshiftInstall", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-install-' + family + '-.*.tar.gz') }}" }
+- name:  Set the download facts for localhost, which will be used later
+  set_fact:
+    download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
+  when: inventory_hostname == "localhost"
+  loop:
+    - { key: "iso", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.iso') }}" }
+    - { key: "ova", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.ova') }}" }
+    - { key: "openshiftClient", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-client-' + family + '-.*.tar.gz') }}" }
+    - { key: "openshiftInstall", value: "{{ download.clients_url }}/{{ clients_content.content | regex_search('openshift-install-' + family + '-.*.tar.gz') }}" }
