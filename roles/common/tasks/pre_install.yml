@@ -147,7 +147,7 @@
     mode: '0664'
 
 - name: Run steps pertaining to proxy, if any
-  include: handle_proxy.yml
+  include_tasks: handle_proxy.yml
   when:
     - proxy is defined
     - proxy.enabled == true # noqa 601

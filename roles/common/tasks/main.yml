@@ -1,5 +1,5 @@
   - name: Run all the pre-install steps
-    include: pre_install.yml
+    include_tasks: pre_install.yml
 
   - name: Run all the install steps
-    include: install.yml
+    include_tasks: install.yml
