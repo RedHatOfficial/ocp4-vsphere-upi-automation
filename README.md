@@ -16,6 +16,8 @@ As it stands right now, the repo works for several installation use cases:
 This is a concise summary of everything you need to do to use the repo. Rest of the document goes into details of every step.
 1. Setup [helper node](https://github.com/RedHatOfficial/ocp4-helpernode) or ensure appropriate services (DNS/DHCP/LB/etc.) are available and properly referenced.
 2. Edit `group_vars/all.yml`, the following must be changed while the rest can remain the same
+   * helper_vm_ip (used for webserver to host ignition files)
+   * helper_vm_port (port used by webserver)
    * pull secret
    * ip and mac addresses, host/domain names
    * enable/disable fips mode
