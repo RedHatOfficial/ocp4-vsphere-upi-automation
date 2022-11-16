@@ -4,9 +4,11 @@
 #
 # One diff to note is we use linux and initrd instead of linuxefi and
 # initrdefi. We do this because it works and allows us to use this same
-# file on other architecutres. https://github.com/coreos/fedora-coreos-config/issues/63
+# file on other architectures. https://github.com/coreos/fedora-coreos-config/issues/63
 #
-# This file gets embedded into the efiboot.img
+# This file is loaded directly when booting via El Torito, and indirectly
+# from a stub config in efiboot.img when booting via the hybrid ESP.
+
 set default="1"
 
 function load_video {
@@ -28,6 +30,7 @@ set timeout=5
 
 ### BEGIN /etc/grub.d/10_linux ###
 menuentry 'RHEL CoreOS (Live)' --class fedora --class gnu-linux --class gnu --class os {
-	linux /images/pxeboot/vmlinuz random.trust_cpu=on rd.luks.options=discard coreos.liveiso=RHCOS-x86_64 ignition.firstboot ignition.platform.id=metal {{ kernel_params }}
-	initrd /images/pxeboot/initrd.img /images/ignition.img
+	linux /images/pxeboot/vmlinuz random.trust_cpu=on coreos.liveiso=RHCOS-x86_64 ignition.firstboot ignition.platform.id=metal {{ kernel_params }}
+################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################ COREOS_KARG_EMBED_AREA
+  initrd /images/pxeboot/initrd.img /images/ignition.img
 }

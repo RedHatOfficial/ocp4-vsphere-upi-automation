@@ -15,7 +15,7 @@
       download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
     when: "'webservers' in group_names"
     loop:
-      - { key: "raw", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.raw.gz') }}" }
+      - { key: "raw", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos-metal[.].*.raw.gz') }}" }
       - { key: "kernel", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*kernel.*') }}" }
       - { key: "initramfs", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*initramfs.*') }}" }
   
