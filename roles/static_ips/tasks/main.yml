@@ -1,127 +1,70 @@
-- name: Download Openshift 4 ISO file as rhcos-installer.iso
-  get_url:
-    url: "{{ download.iso }}"
-    dest: "{{ iso_dir }}/rhcos-installer.iso"
+  - name: Upload all the custom generated ISOs to the datastore
+    command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}.iso {{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}.iso" # noqa 301
+    loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
 
-- name: Get the sha265sum of the rhcos-installer.iso file
-  stat:
-    get_checksum: yes
-    checksum_algorithm: sha256
-    path: "{{ iso_dir }}/rhcos-installer.iso"
-  register: st
+  - name: Gather some info from all control plane nodes
+    vmware_guest_info:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.admin_username }}"
+      password: "{{ vcenter.admin_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      name: "{{item.name}}.{{config.cluster_name}}.{{config.base_domain}}"
+      schema: "vsphere"
+      properties: ["config.name", "config.hardware.device"]
+    register: control_vm_info
+    loop: "{{ master_vms + bootstrap_vms }}"
+    loop_control:
+      label: "Gathering info from {{ item.name }}"
 
-- name: Create the iso mount path (if one doesn't exist already)
-  file:
-    path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
-    state: directory
-    mode: '0775'
-    recurse: yes
+  - name: Gather some info from all worker nodes
+    vmware_guest_info:
+      hostname: "{{ vcenter.ip }}"
+      username: "{{ vcenter.admin_username }}"
+      password: "{{ vcenter.admin_password }}"
+      datacenter: "{{ vcenter.datacenter }}"
+      name: "{{item.name}}.{{config.cluster_name}}.{{config.base_domain}}"
+      schema: "vsphere"
+      properties: ["config.name", "config.hardware.device"]
+    register: compute_vm_info
+    loop: "{{ worker_vms }}"
+    loop_control:
+      label: "Gathering info from {{ item.name }}"
+    when: "worker_vms is defined and not config.hybrid | bool"
 
-- name: Create duplicate dir of the iso mount path (if one doesn't exist already)
-  file:
-    path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
-    state: directory
-    mode: '0775'
-    recurse: yes
+  - name: Get list of control plane devices
+    vars:
+      devices: "{{ item.instance.config.hardware.device | map(attribute='_vimtype') | list }}"
+    set_fact:
+      control_device_list: "{{ control_device_list|default({}) | combine( { item.instance.config.name.split('.')[0]: { 'name':item.instance.config.name.split('.')[0], 'devices': devices|list } } ) }}"
+    loop: "{{control_vm_info.results}}"
+    loop_control:
+      label: "Defining devices on {{ item.instance.config.name.split('.')[0] }}"
 
-- name: Mount the rhcos-installer.iso onto the mount path {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
-  mount:
-    path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
-    src: "{{ iso_dir }}/rhcos-installer.iso"
-    fstype: iso9660
-    opts: ro
-    state: mounted
-  become: true
+  - name: Get list of worker devices
+    when: not config.hybrid | bool
+    vars:
+      devices: "{{ item.instance.config.hardware.device | map(attribute='_vimtype') | list }}"
+    set_fact:
+      worker_device_list: "{{ worker_device_list|default({}) | combine( { item.instance.config.name.split('.')[0]: { 'name':item.instance.config.name.split('.')[0], 'devices': devices|list } } ) }}"
+    loop: "{{compute_vm_info.results}}"
+    loop_control:
+      label: "Defining devices on workers"
 
-- name: Synchronization between the mount path and dup
-  synchronize:
-    src: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}/"
-    dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+  - name: Add a cdrom device to all the boostrap and master VMs
+    command: 'govc device.cdrom.add -vm "{{ vcenter.folder_absolute_path }}/{{ item.key }}.{{config.cluster_name}}.{{config.base_domain}}"' # noqa 301
+    loop: "{{ control_device_list | dict2items }}"
+    loop_control:
+      label: "Adding cd to {{ item.key }}"
+    when: "'vim.vm.device.VirtualCdrom' not in item.value.devices"
 
-- name: Recursively apply permission of 775 to {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
-  file:
-    path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
-    mode: '0775'
-    recurse: yes
+  - name: Insert the uploaded ISO file into boostrap and master VMs
+    command: 'govc device.cdrom.insert -vm "{{ vcenter.folder_absolute_path }}/{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}" -ds {{ vcenter.datastore }} ./{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}.iso' # noqa 301
+    loop: "{{ bootstrap_vms + master_vms }}"
 
-- name: Make a copy of the isolinux.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
-  copy:
-    src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/isolinux/isolinux.cfg"
-    dest: "{{ role_path }}/files/"
-    mode: '0664'
+  - name: Power-On the bootstrap and master VMs
+    command: 'govc vm.power -on "{{ vcenter.folder_absolute_path }}/{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"' # noqa 301
+    loop: "{{ bootstrap_vms + master_vms }}"
 
-- name: Make a copy of the grub.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
-  copy:
-    src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/EFI/redhat/grub.cfg"
-    dest: "{{ role_path }}/files/"
-    mode: '0664'
-
-- name: Unmount the iso mount path
-  mount:
-    path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
-    state: absent
-  become: true
-
-- name: Set the kernel param template name
-  set_fact:
-    kernel_param_template: kernel-params.j2
-    generate_iso_task: generate_custom_iso.yml
-
-- name: Set the pre-4.6 kernel param template name
-  when: '"4.6" in download.iso'
-  set_fact:
-    kernel_param_template: kernel-params-pre-4.6.j2
-    generate_iso_task: generate_custom_iso-pre-4.6.yml
-
-- name: Generate kernel params for bootstrap
-  vars:
-    machine_name: "{{ item.name }}"
-    machine_type: bootstrap
-    machine_ip: "{{ item.ipaddr }}"
-  template:
-    src: "{{ kernel_param_template }}"
-    dest: "{{ role_path }}/files/{{ item.name }}-kernel-params.txt"
-    mode: '0664'
-  loop: "{{ bootstrap_vms }}"
-
-- name: Generate kernel params for all masters
-  vars:
-    machine_name: "{{ item.name }}"
-    machine_type: master
-    machine_ip: "{{ item.ipaddr }}"
-  template:
-    src: "{{ kernel_param_template }}"
-    dest: "{{ role_path }}/files/{{ item.name }}-kernel-params.txt"
-    mode: '0664'
-  loop: "{{ master_vms }}"
-
-- name: Generate kernel params for all workers
-  vars:
-    machine_name: "{{ item.name }}"
-    machine_type: worker
-    machine_ip: "{{ item.ipaddr }}"
-  template:
-    src: "{{ kernel_param_template }}"
-    dest: "{{ role_path }}/files/{{ item.name }}-kernel-params.txt"
-    mode: '0664'
-  loop: "{{ worker_vms }}"
-
-- name: Generate custom iso files for all VMs
-  include_tasks: "{{ generate_iso_task }}"
-  loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
-
-- name: Upload all the custom generated ISOs to the datastore
-  command: "govc datastore.upload -ds {{ vcenter.datastore }} {{ iso_dir }}/{{ item.name }}.iso {{ item.name }}.iso" # noqa 301
-  loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
-
-- name: Add a cdrom device to all the OpenShift VMs
-  command: "govc device.cdrom.add -vm {{ item.name }}" # noqa 301
-  loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
-
-- name: Insert the uploaded ISO file {{ item.name }}.iso as cdrom to VM {{ item.name }}
-  command: "govc device.cdrom.insert -vm {{ item.name }} -ds {{ vcenter.datastore }} ./{{ item.name }}.iso" # noqa 301
-  loop: "{{ bootstrap_vms + master_vms + worker_vms }}"
-
-- name: Power-On the bootstrap and master VMs
-  command: "govc vm.power -on {{ item.name }}" # noqa 301
-  loop: "{{ bootstrap_vms + master_vms }}"
+  - name: Setup worker VMs if it not hybrid
+    include: vm_worker.yml
+    when: "worker_device_list is defined and worker_vms is defined"

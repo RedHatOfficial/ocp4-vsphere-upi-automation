@@ -4,3 +4,4 @@ install-dir
 **/*.yml.git
 **/*.yml.orig
 **/pull-secret*.json
+ansible.log

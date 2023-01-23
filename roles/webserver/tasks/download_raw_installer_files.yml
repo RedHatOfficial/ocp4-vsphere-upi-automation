@@ -1,6 +1,13 @@
-  - name: Downloading OpenShift installer raw image
-    become: true
-    get_url:
-      url: "{{ download.raw }}"
-      dest: /var/www/html/install/rhcos.raw.gz
-      mode: 0555
+- name: Check if OpenShift raw installer already exists
+  stat:
+    path: /var/www/html/{{config.cluster_name}}/install/rhcos.raw.gz
+  register: rhcos_raw_installer
+  
+- name: Downloading OpenShift installer raw image
+  become: true
+  get_url:
+    url: "{{ download.raw }}"
+    validate_certs: no
+    dest: /var/www/html/{{config.cluster_name}}/install/rhcos.raw.gz
+    mode: 0555
+  when: not rhcos_raw_installer.stat.exists

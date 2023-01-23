@@ -2,7 +2,7 @@
     become: true
     copy:
       src: "{{ item }}"
-      dest: "/var/www/html/ignition/"
+      dest: "/var/www/html/{{ config.cluster_name }}/ignition/"
       mode: '0664'
       owner: root
     with_fileglob:

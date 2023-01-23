@@ -1,3 +1,0 @@
-masterContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/master.ign') | b64encode }}"
-workerContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/worker.ign') | b64encode }}"
-bootstrapContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/bootstrap.ign') | b64encode }}"

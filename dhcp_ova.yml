@@ -2,9 +2,16 @@
 - hosts: all
   gather_facts: True
   tasks:
+    - name: Initial setup and checks
+      import_role:
+        name: setup
+      tags:
+      - always
+
     - name: Set the cache of all the download links
       import_role:
         name: cache
+
 - hosts: localhost
   gather_facts: True
   environment:
@@ -13,6 +20,7 @@
     - name: Run all the common tasks
       import_role:
         name: common
+
 - hosts: localhost
   gather_facts: False
   environment:
@@ -23,12 +31,12 @@
     GOVC_DATACENTER: "{{ datacenter }}"
     GOVC_INSECURE: 1
   tasks:
-    - name: Run the vmware role to setup vCenter folder
+    - name: Create the DHCP based VMs
+      vars:
+        dhcp: true
       import_role:
-        name: vmware
-    - name: Run steps specific to DHCP and the use of an OVA file
-      import_role:
-        name: dhcp_ova
+        name: vsphere_vm
+
     - name: Run steps to finish cluster install
       import_role:
         name: finish_install

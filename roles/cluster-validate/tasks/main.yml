@@ -1,0 +1,50 @@
+- name: Get results from login attempt
+  shell: oc login -u {{ username }} -p {{ password }} --server https://api.{{ cluster }}.{{ config.base_domain }}:6443 --insecure-skip-tls-verify=true
+  register: result
+  until: "'Login successful.' in result['stdout_lines']"
+  retries: 30
+  delay: 30
+
+- name: Get cluster operators
+  k8s_info:
+    kind: ClusterOperator
+    validate_certs: false
+  register: operators
+
+- name: Check the operator
+  k8s_info:
+    kind: ClusterOperator
+    name: "{{ item.metadata.name }}"
+    validate_certs: false
+  register: operator
+  until:
+    - (operator.resources.0.status | community.general.json_query("conditions[?type=='Available'].status")).0 | bool
+    - not (operator.resources.0.status | community.general.json_query("conditions[?type=='Progressing'].status")).0 | bool
+    - not (operator.resources.0.status | community.general.json_query("conditions[?type=='Degraded'].status")).0|bool
+  retries: 360
+  delay: 15
+  loop: "{{ operators.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"
+
+- name: Get MachineConfigPools
+  k8s_info:
+    kind: MachineConfigPool
+    validate_certs: false
+  register: mcp
+  until:
+    - mcp.resources.0.status.degradedMachineCount == 0
+    - mcp.resources.0.status.readyMachineCount == mcp.resources.0.status.machineCount == mcp.resources.0.status.updatedMachineCount
+    - mcp.resources.0.status.unavailableMachineCount == 0
+    - mcp.resources.1.status.degradedMachineCount == 0
+    - mcp.resources.1.status.readyMachineCount == mcp.resources.1.status.machineCount == mcp.resources.1.status.updatedMachineCount
+    - mcp.resources.1.status.unavailableMachineCount == 0
+  retries: 120
+  delay: 15
+
+- name: Check ClusterVersion
+  k8s_info:
+    kind: ClusterVersion
+    validate_certs: false
+  register: cv
+  failed_when: not cv.resources.0.status.history.0.state == 'Completed' or not cv.resources.0.status.desired.version == cv.resources.0.status.history.0.version

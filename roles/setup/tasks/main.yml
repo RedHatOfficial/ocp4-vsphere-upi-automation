@@ -1,0 +1,57 @@
+- fail:
+    msg: "Bailing out: this play requires 'cluster'"
+  when: cluster is not defined
+  tags:
+  - always
+
+- name: Check for cluster file
+  stat:
+    path: "{{ clusters_folder }}/{{ cluster }}.yaml"
+  register: cluster_file
+  tags:
+  - always
+
+- fail:
+    msg: "Bailing out: cluster file is not found in the '{{ clusters_folder }}' folder"
+  when: not cluster_file.stat.exists
+  tags:
+  - always
+
+- include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
+  tags:
+  - always
+
+- name: Update config.cluster_base_version var if using latest
+  vars:
+    cbv: "{{ config.cluster_version | regex_search('.*-.*') | split('-') | last }}"
+  set_fact:
+    config: "{{ config | combine( { 'cluster_base_version':  cbv }, recursive=True, list_merge='keep' ) }}"
+  when: config.cluster_version | regex_search('latest') == 'latest'
+  tags:
+  - always
+
+- name: Update config.cluster_base_version var if using specific version
+  vars:
+    vers_parts: "{{ config.cluster_version | split('.') }}"
+    cbv: "{{ vers_parts[0] + '.' + vers_parts[1] }}"
+  set_fact:
+    config: "{{ config | combine( { 'cluster_base_version': cbv  }, recursive=True, list_merge='keep' ) }}"
+  when: config.cluster_version | regex_search('latest') != 'latest'
+  tags:
+  - always
+
+- name:  Update config.cluster_base_version release_version which will be used later
+  set_fact:
+    config: "{{ config | combine({ item.key : item.value }, recursive=True) }}"
+  when: inventory_hostname == "localhost"
+  loop:
+    - { key: "release_version", value: "{{ release_content.content | regex_search(config.cluster_base_version + '.[0-9]+') }}" }
+  tags:
+  - always
+
+- name: Update the registry.product_release_version var if registry is enabled
+  set_fact:
+    registry: "{{ registry | combine( { 'product_release_version': config.release_version + '-x86_64'  }, recursive=True, list_merge='keep' ) }}"
+  when: registry.enabled | bool
+  tags:
+  - always

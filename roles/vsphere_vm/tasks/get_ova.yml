@@ -1,0 +1,28 @@
+- name: Download the ova file
+  get_url:
+    url: "{{ download.ova }}"
+    dest: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
+    validate_certs: no
+
+- name: Deploy the OVF template into the folder
+  vmware_deploy_ovf:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.admin_username }}"
+    password: "{{ vcenter.admin_password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    datastore: "{{ vcenter.datastore }}"
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: '{{ vcenter.template_name }}'
+    allow_duplicates: False
+    disk_provisioning: thin
+    networks: "{u'VM Network':u'{{ vcenter.network }}'}"
+    ova: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
+    power_on: False
+    validate_certs: False
+
+- name: Remove the Network Adapter
+  command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0"
+  when: ansible_version.full is version('2.10.0', '<')
+
+- name: Update VM options on the template
+  command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204

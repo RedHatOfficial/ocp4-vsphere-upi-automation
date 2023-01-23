@@ -10,11 +10,14 @@
      vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredon'}, recursive=True) }}"
 
  - name: Power-On the worker VMs
-   command: "{{ playbook_dir }}/bin/govc vm.power -on {{ item.name }}"
+   command: "{{ playbook_dir }}/bin/govc vm.power -on {{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
    loop: "{{ worker_vms }}"
+   loop_control:
+     label: "Power On {{ item.name }}"
+   when: not config.hybrid | bool
 
  - name: Delete Bootstrap VM
-   command: "{{ playbook_dir }}/bin/govc vm.destroy {{ item.name }}"  # noqa 301
+   command: "{{ playbook_dir }}/bin/govc vm.destroy {{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"  # noqa 301
    loop: "{{ bootstrap_vms }}"
    when: result_bootstrap.rc == 0
 
@@ -24,6 +27,7 @@
    until: result_csr['stdout_lines']|count == worker_vms|count
    retries: 60
    delay: 60
+   ignore_errors: yes
 
  - name: Approve the csrs
    command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa 301
@@ -35,10 +39,50 @@
    until: result_system['stdout_lines']|count == worker_vms|count
    retries: 60
    delay: 60
+   ignore_errors: yes
 
  - name: Approve the csrs
    command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa 301
    loop: "{{ result_system['stdout_lines'] }}"
+
+ - name: Create Infra List
+   set_fact:
+     infra_vms: "{{ worker_vms|select('search','isinfra') | list }}"
+
+ - name: Check for infra nodes and label accordingly
+   environment:
+     KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+   k8s:
+     state: patched
+     merge_type: merge
+     definition:
+       apiVersion: v1
+       kind: Node
+       metadata:
+         name: "{{ item.name }}.{{ cluster }}.{{ config.base_domain }}"
+         labels:
+           node-role.kubernetes.io/infra: ""
+   loop: "{{ infra_vms }}"
+   when: infra_vms | length > 0
+
+ - name: Change ingress controller node selector
+   environment:
+     KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+   k8s:
+     state: patched
+     merge_type: merge
+     definition:
+       apiVersion: "operator.openshift.io/v1"
+       kind: IngressController
+       metadata:
+         name: default
+         namespace: openshift-ingress-operator
+       spec:
+        nodePlacement:
+          nodeSelector:
+            matchLabels:
+              node-role.kubernetes.io/infra: ""
+   when: infra_vms | length > 0
 
  - name: Wait for install complete
    command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug # noqa 301

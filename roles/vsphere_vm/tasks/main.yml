@@ -1,0 +1,48 @@
+- name: Check if the vCenter folder already exists
+  command: "govc folder.info '{{ vcenter.folder_absolute_path }}'" # noqa 301
+  register: folder_exists
+  ignore_errors: yes
+
+- name: Create the vCenter folder by the same name as the cluster, only if it doesn't exist
+  command: "govc folder.create '{{ vcenter.folder_absolute_path }}'" # noqa 301
+  when: folder_exists.rc != 0
+
+- name: "Bootstrap base64"
+  debug:
+    msg: "{{ bootstrapContent }}"
+    verbosity: 1
+
+- name: "Master base64"
+  debug:
+    msg: "{{ masterContent }}"
+    verbosity: 1
+
+- name: "Worker base64 "
+  debug:
+    msg: "{{ workerContent }}"
+    verbosity: 1
+
+- name: Download the OVA file to create the VM
+  when: skip_ova is not defined
+  include_tasks:
+    file: get_ova.yml
+
+- name: Create control plane VMs from the template (ansible < 2.10)
+  when: ansible_version.full is version('2.10.0', '<') and dhcp |bool
+  include_tasks:
+    file: dhcp-ansible-2.9.yml
+
+- name: Create control plane VMs from the template (ansible > 2.9)
+  when: ansible_version.full is version('2.10.0', '>=') and dhcp |bool
+  include_tasks:
+    file: dhcp-ansible-2.12.yml
+
+- name: Create control plane VMs with static IPs from the template (ansible < 2.10)
+  when: ansible_version.full is version('2.10.0', '<') and static |bool
+  include_tasks:
+    file: static-ansible-2.9.yml
+
+- name: Create control plane VMs with static IPs from the template (ansible > 2.9)
+  when: ansible_version.full is version('2.10.0', '>=') and static |bool
+  include_tasks:
+    file: static-ansible-2.12.yml

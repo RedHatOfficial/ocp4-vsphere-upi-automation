@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Initial setup and checks
+      import_role:
+        name: setup
+      tags:
+      - always
+
+    - name: Validate the cluster is up
+      import_role:
+        name: cluster-validate
+      tags:
+      - validate

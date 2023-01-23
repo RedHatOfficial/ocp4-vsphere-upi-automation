@@ -26,8 +26,12 @@
 
 - name: Generate a SSH key-pair
   openssh_keypair:
-    path: ~/.ssh/ocp4
+    path: "~/.ssh/{{ cluster }}_id_rsa"
     force: false
+
+- name: Set installer ssh key variable
+  set_fact: 
+    installer_ssh_key: "{{ lookup('file', '~/.ssh/{{ cluster }}_id_rsa.pub') }}"
 
 - name: Set the datacenter variable
   set_fact:
@@ -63,9 +67,13 @@
   when: ansible_python_version is match("3.*") and ansible_os_family != 'Darwin'
   become: true
 
-- name: Install pyvmomi
+- name: Install Python Modules
   pip:
-    name: pyvmomi
+    name: "{{ item }}"
+    extra_args: --user
+  loop:
+    - pyvmomi
+    - requests
 
 - name: Clean up existing bin, install-dir and downloads folders
   file:
@@ -157,3 +165,4 @@
     src: "{{ playbook_dir }}/install-dir/install-config.yaml"
     dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
     mode: '0664'
+  # when: (registry is not defined) or (registry.enabled is not defined) or (registry.enabled == false) # noqa 601

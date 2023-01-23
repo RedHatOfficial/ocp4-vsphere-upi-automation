@@ -2,9 +2,16 @@
 - hosts: all
   gather_facts: True
   tasks:
+    - name: Initial setup and checks
+      import_role:
+        name: setup
+      tags:
+      - always
+
     - name: Set the cache of all the download links
       import_role:
         name: cache
+
 - hosts: localhost
   gather_facts: True
   environment:
@@ -14,6 +21,7 @@
       import_role:
         name: common
         tasks_from: pre_install
+
 - hosts: registries
   gather_facts: False
   tasks:
@@ -21,6 +29,7 @@
       import_role:
         name: restricted
         tasks_from: setup_registry
+
 - hosts: localhost
   gather_facts: False
   tasks:
@@ -28,6 +37,7 @@
       import_role:
         name: restricted
         tasks_from: utilize_registry
+
 - hosts: localhost
   gather_facts: True
   environment:
@@ -37,6 +47,7 @@
       import_role:
         name: common
         tasks_from: install
+
 - hosts: webservers
   gather_facts: False
   environment:
@@ -50,6 +61,7 @@
       import_role:
         name: webserver
         tasks_from: download_raw_installer_files
+
 - hosts: localhost
   gather_facts: False
   environment:
@@ -60,20 +72,23 @@
     GOVC_DATACENTER: "{{ datacenter }}"
     GOVC_INSECURE: 1
   tasks:
-    - name: Run the vmware role to setup vCenter folder
-      import_role:
-        name: vmware
     - name: Reset the vcenter.vm_power_state to poweredoff
       set_fact:
         vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredoff'}, recursive=True) }}"
+
     - name: Echo the value of the variable vcenter.vm_power_state
       debug: var=vcenter.vm_power_state
-    - name: Run steps specific to DHCP and PXE boot
+
+    - name: Create the DHCP based VMs
+      vars:
+        static: true
       import_role:
-        name: dhcp_pxe
+        name: vsphere_vm
+
     - name: Run steps for static ip setup of VMs
       import_role:
         name: static_ips
+
     - name: Run steps to finish cluster install
       import_role:
         name: finish_install

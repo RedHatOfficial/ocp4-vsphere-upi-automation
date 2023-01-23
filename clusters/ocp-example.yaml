@@ -1,10 +1,10 @@
-helper_vm_ip: 192.168.1.5
+helper_vm_ip: 192.168.80.114
 bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/{{ cluster }}/ignition/bootstrap.ign"
 config:
   provider: vsphere
   base_domain: mydomain.com
   cluster_name: "{{ cluster }}"
-  cluster_version: "4.11.22"
+  cluster_version: "4.10.28"
   ignition_version: "3.2.0"
   fips: false
   #networkType: OVNKubernetes
@@ -17,12 +17,14 @@ vcenter:
   ip: vcenter01.mydomain.com
   datastore: datastore1
   network: "VM Network"
-  service_account_username: vsphere_sa_user #[CHANGE ME]
-  service_account_password: vsphere_sa_pass #[CHANGE ME]
-  admin_username: vsphere_admin_user #[CHANGE ME]
-  admin_password: vsphere_admin_pass #[CHANGE ME]
+  # service_account_username: ''  # password: "{{ lookup('env','vCenterAdminPass') }}" or -e $(extravar)
+  # service_account_password: ''
+  admin_username: "{{ service_account_username }}"
+  admin_password: "{{ service_account_password }}"
+  # admin_username: [CHANGE ME]
+  # admin_password: [CHANGE ME]
   datacenter: 'dc1'
-  folder_absolute_path: '/dc1/vm/{{ cluster }}'
+  folder_absolute_path: '/dc1/vm/OpenShift/{{ cluster }}'
   template_folder: '/dc1/vm/OCP Templates'
   vm_power_state: poweredon
   template_name: rhcos-vmware
@@ -30,31 +32,31 @@ vcenter:
 download:
   clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ config.cluster_version }}"
   dependencies_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/{{ config.cluster_base_version }}/latest"
-  govc: "https://artifactory.mydomain.com/artifactory/list/github-releases/vmware/govmomi/releases/download/v0.29.0"
+  govc: "https://github.com/vmware/govmomi/releases/download/v0.30.0"
 bootstrap_vms:
   - { name: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120}
 master_vms:
-  - { name: "master1", macaddr: "00:50:56:be:1a:81", ipaddr: "192.168.1.81", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "master2", macaddr: "00:50:56:be:1a:82", ipaddr: "192.168.1.82", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "master3", macaddr: "00:50:56:be:1a:83", ipaddr: "192.168.1.83", cpu: 8, ram: 16384, size_gb: 120}
-worker_vms:
-  - { name: "worker1", macaddr: "00:50:56:be:1a:91", ipaddr: "192.168.1.91", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "worker2", macaddr: "00:50:56:be:1a:92", ipaddr: "192.168.1.92", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "worker3", macaddr: "00:50:56:be:1a:93", ipaddr: "192.168.1.93", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master0", macaddr: "00:50:56:be:1a:89", ipaddr: "192.168.1.43", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master1", macaddr: "00:50:56:be:4c:49", ipaddr: "192.168.1.44", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master2", macaddr: "00:50:56:be:1d:17", ipaddr: "192.168.1.45", cpu: 8, ram: 16384, size_gb: 120}
+worker_vms: # Can be [] if hybrid or 3 node cluster
+  - { name: "worker0", macaddr: "00:50:56:be:d3:cb", ipaddr: "192.168.1.48", cpu: 4, ram: 16384, size_gb: 120}
+  - { name: "worker1", macaddr: "00:50:56:be:0f:22", ipaddr: "192.168.1.49", cpu: 4, ram: 16384, size_gb: 120}
+  - { name: "worker2", macaddr: "00:50:56:be:42:8a", ipaddr: "192.168.1.50", cpu: 4, ram: 16384, size_gb: 120}
 static_ip:
   gateway: 192.168.1.1
   netmask: 255.255.255.0
   dns: 192.168.1.250
   network_interface_name: ens192
 network_modifications:
-  enabled: false
-  # clusterNetwork:
-  # - cidr: 100.68.0.0/14
-  #   hostPrefix: 23
-  # serviceNetwork:
-  # - cidr: 100.66.0.0/15
-  # machineNetwork:
-  # - cidr: 192.168.1.0/21
+  enabled: true
+  clusterNetwork:
+  - cidr: 100.68.0.0/14
+    hostPrefix: 23
+  serviceNetwork:
+  - cidr: 100.66.0.0/15
+  machineNetwork:
+  - cidr: 192.168.1.0/21
 proxy:
   enabled: false
   # http_proxy: "http://internet.mydomain.com:8080"
@@ -68,8 +70,8 @@ registry:
   enabled: false
   # product_repo: openshift-release-dev
   # product_release_name: ocp-release
-  # username: artifactory-user #[CHANGE ME]
-  # password: artifactory-pass #[CHANGE ME]
+  # username: artifactory-user # Change Me
+  # password: artifactory-pass # Change Me
   # email: user@mydomain.com
   # cert_content:
   # host: artifactory.mydomain.com
@@ -77,7 +79,7 @@ registry:
   # repo: ocp/openshift4
   # disconnected: true
 ntp:
-  custom: false
-  # ntp_server_list:
-  #   - ntp1.mydomain.com
-  #   - ntp2.mydomain.com
+  custom: true
+  ntp_server_list:
+    - ntp1.mydomain.com
+    - ntp2.mydomain.com
