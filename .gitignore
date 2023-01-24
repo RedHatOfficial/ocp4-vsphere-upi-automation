@@ -4,4 +4,7 @@ install-dir
 **/*.yml.git
 **/*.yml.orig
 **/pull-secret*.json
+**/pullsecret*
 ansible.log
+roles/node_isos/files/*.txt
+roles/node_isos/files/*.cfg

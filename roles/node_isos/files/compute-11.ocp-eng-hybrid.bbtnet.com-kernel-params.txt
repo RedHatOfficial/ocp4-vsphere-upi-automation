@@ -1,1 +1,0 @@
-coreos.inst.insecure=true coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://192.168.80.114:8080/ocp-eng-hybrid/ignition/worker.ign ip=10.82.64.224::10.82.64.1:255.252.0.0:compute-11.ocp-eng-hybrid.bbtnet.com:ens192:none nameserver=10.164.15.250
