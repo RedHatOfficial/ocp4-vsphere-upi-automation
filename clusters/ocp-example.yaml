@@ -3,7 +3,7 @@ bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/{{ cluster }}/ignition/boo
 config:
   provider: vsphere
   base_domain: mydomain.com
-  cluster_name: "{{ cluster }}"
+  cluster_name: "{{ cluster }}" # Can also be in format latest-4.11
   cluster_version: "4.10.28"
   ignition_version: "3.2.0"
   fips: false
@@ -31,7 +31,6 @@ vcenter:
   hw_version: 15
 download:
   clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ config.cluster_version }}"
-  dependencies_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/{{ config.cluster_base_version }}/latest"
   govc: "https://github.com/vmware/govmomi/releases/download/v0.30.0"
 bootstrap_vms:
   - { name: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120}

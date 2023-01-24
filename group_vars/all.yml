@@ -4,7 +4,7 @@ config:
   provider: vsphere
   base_domain: mydomain.com
   cluster_name: "{{ cluster }}"
-  cluster_version: "4.11.22"
+  cluster_version: "4.11.22" # Can also be in format latest-4.11
   ignition_version: "3.2.0"
   fips: false
   #networkType: OVNKubernetes
@@ -29,7 +29,6 @@ vcenter:
   hw_version: 15
 download:
   clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ config.cluster_version }}"
-  dependencies_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/{{ config.cluster_base_version }}/latest"
   govc: "https://artifactory.mydomain.com/artifactory/list/github-releases/vmware/govmomi/releases/download/v0.29.0"
 bootstrap_vms:
   - { name: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120}
