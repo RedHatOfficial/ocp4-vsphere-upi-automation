@@ -28,6 +28,8 @@
         value: "{{ bootstrapContent }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
+      - key: disk.EnableUUID
+        value: TRUE
   loop: "{{ bootstrap_vms }}"
 
 - name: Create control plane VMs from the template
@@ -60,6 +62,8 @@
        value: "{{ masterContent }}"
      - key: guestinfo.ignition.config.data.encoding
        value: base64
+     - key: disk.EnableUUID
+       value: TRUE
   loop: "{{ master_vms }}"
 
 - name: Create worker VMs from the template
@@ -92,4 +96,6 @@
        value: "{{ workerContent }}"
      - key: guestinfo.ignition.config.data.encoding
        value: base64
+     - key: disk.EnableUUID
+       value: TRUE
   loop: "{{ worker_vms }}"

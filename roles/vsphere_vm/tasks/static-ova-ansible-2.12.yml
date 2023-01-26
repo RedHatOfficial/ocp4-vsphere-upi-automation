@@ -24,6 +24,8 @@
         value: "{{ bootstrapContent }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
+      - key: disk.EnableUUID
+        value: TRUE
       - key: guestinfo.afterburn.initrd.network-kargs
         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}:ens192:off:{{ static_ip.dns }}"
   loop: "{{ bootstrap_vms }}"
@@ -78,6 +80,8 @@
         value: "{{ masterContent }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
+      - key: disk.EnableUUID
+        value: TRUE
       - key: guestinfo.afterburn.initrd.network-kargs
         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}:ens192:off:{{ static_ip.dns }}"
 
@@ -133,6 +137,8 @@
         value: "{{ workerContent }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
+      - key: disk.EnableUUID
+        value: TRUE
       - key: guestinfo.afterburn.initrd.network-kargs
         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}:ens192:off:{{ static_ip.dns }}"
 

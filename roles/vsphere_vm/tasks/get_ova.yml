@@ -19,6 +19,3 @@
     ova: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
     power_on: False
     validate_certs: False
-
-- name: Update VM options on the template
-  command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204

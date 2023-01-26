@@ -42,6 +42,8 @@
         value: "{{ bootstrapContent }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
+      - key: disk.EnableUUID
+        value: TRUE
     loop: "{{ bootstrap_vms }}"
     loop_control:
       label: "{{ item.name }}"
@@ -75,6 +77,8 @@
         value: "{{ masterContent }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
+      - key: disk.EnableUUID
+        value: TRUE
     loop: "{{ master_vms }}"
     loop_control:
       label: "{{ item.name }}"
@@ -166,6 +170,8 @@
         value: "{{ workerContent }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
+      - key: disk.EnableUUID
+        value: TRUE
     loop: "{{ worker_vms }}"
     loop_control:
       label: "{{ item.name }}"
