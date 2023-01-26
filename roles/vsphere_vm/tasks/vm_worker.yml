@@ -1,0 +1,10 @@
+- name: Add a cdrom device to all the worker VMs
+  command: 'govc device.cdrom.add -vm "{{ vcenter.folder_absolute_path }}/{{ item.key }}.{{config.cluster_name}}.{{config.base_domain}}"' # noqa 301
+  loop: "{{ worker_device_list | dict2items }}"
+  loop_control:
+    label: "Adding cd to {{ item.key }}"
+  when: "'vim.vm.device.VirtualCdrom' not in item.value.devices"
+
+- name: Insert the uploaded ISO file into the worker VMs
+  command: 'govc device.cdrom.insert -vm "{{ vcenter.folder_absolute_path }}/{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}" -ds {{ vcenter.datastore }} ./{{ vcenter.iso_dir }}/{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}.iso' # noqa 301
+  loop: "{{ worker_vms }}"

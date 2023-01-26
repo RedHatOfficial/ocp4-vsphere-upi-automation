@@ -1,7 +1,7 @@
 apiVersion: v1
 baseDomain: {{ config.base_domain }}
 compute:
-- hyperthreading: Enabled   
+- hyperthreading: Enabled
   name: worker
 {% if config.provider is defined and not 'none' in config.provider %}
   replicas: {{ worker_vms | length }}
@@ -9,13 +9,13 @@ compute:
   replicas: 0
 {% endif %}
 controlPlane:
-  hyperthreading: Enabled   
+  hyperthreading: Enabled
   name: master
-  replicas: 3 
+  replicas: 3
 metadata:
   name: {{ config.cluster_name }}
 networking:
-  networkType: {{ config.networkType | default('OpenShiftSDN') }} 
+  networkType: {{ config.networkType | default('OpenShiftSDN') }}
 {% if network_modifications is defined and network_modifications.enabled == true %}
   clusterNetwork:
   - cidr: {{ network_modifications.clusterNetwork[0].cidr }}
@@ -31,8 +31,8 @@ platform:
 {% else %}
   vsphere:
     vcenter: {{ vcenter.ip }}
-    username: {{ service_account_username }}
-    password: {{ service_account_password }}
+    username: {{ vcenter.service_account_username }}
+    password: {{ vcenter.service_account_password }}
     datacenter: {{ vcenter.datacenter }}
     defaultDatastore: {{ vcenter.datastore }}
     folder: {{ vcenter.folder_absolute_path | default(omit) }}
@@ -46,7 +46,7 @@ proxy:
   https_proxy: {{ proxy.https_proxy }}
   no_proxy: {{ proxy.no_proxy }}
 {% endif %}
-{% if registry is defined and registry.disconnected == true %}
+{% if registry is defined and registry.disconnected is defined and registry.disconnected == true %}
 imageContentSources:
 - mirrors:
   - {{ registry.host }}/{{ registry.repo }}

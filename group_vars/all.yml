@@ -1,4 +1,4 @@
-helper_vm_ip: 192.168.1.5
+helper_vm_ip: 192.168.1.20
 bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/{{ cluster }}/ignition/bootstrap.ign"
 config:
   provider: vsphere
@@ -9,13 +9,14 @@ config:
   fips: false
   #networkType: OVNKubernetes
   #isolationMode: Multitenant
-  pull_secret: "{{ lookup('file', 'pullsecret') }}"
+  pull_secret: "{{ lookup('file', '/path/to/pullsecret') }}"
   master_schedulable: false
   hybrid: false
 vcenter:
   cluster: vsphere-cluster-1
   ip: vcenter01.mydomain.com
   datastore: datastore1
+  iso_dir: ocp_install_isos
   network: "VM Network"
   service_account_username: vsphere_sa_user #[CHANGE ME]
   service_account_password: vsphere_sa_pass #[CHANGE ME]
@@ -23,23 +24,19 @@ vcenter:
   admin_password: vsphere_admin_pass #[CHANGE ME]
   datacenter: 'dc1'
   folder_absolute_path: '/dc1/vm/{{ cluster }}'
-  template_folder: '/dc1/vm/OCP Templates'
-  vm_power_state: poweredon
   template_name: rhcos-vmware
   hw_version: 15
 download:
   clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ config.cluster_version }}"
   govc: "https://artifactory.mydomain.com/artifactory/list/github-releases/vmware/govmomi/releases/download/v0.29.0"
-bootstrap_vms:
-  - { name: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120}
-master_vms:
-  - { name: "master1", macaddr: "00:50:56:be:1a:81", ipaddr: "192.168.1.81", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "master2", macaddr: "00:50:56:be:1a:82", ipaddr: "192.168.1.82", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "master3", macaddr: "00:50:56:be:1a:83", ipaddr: "192.168.1.83", cpu: 8, ram: 16384, size_gb: 120}
-worker_vms:
-  - { name: "worker1", macaddr: "00:50:56:be:1a:91", ipaddr: "192.168.1.91", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "worker2", macaddr: "00:50:56:be:1a:92", ipaddr: "192.168.1.92", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "worker3", macaddr: "00:50:56:be:1a:93", ipaddr: "192.168.1.93", cpu: 8, ram: 16384, size_gb: 120}
+nodes:
+  - { name: "bootstrap", type: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120}
+  - { name: "master0", type: "master", macaddr: "00:50:56:be:1a:81", ipaddr: "192.168.1.81", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master1", type: "master", macaddr: "00:50:56:be:1a:82", ipaddr: "192.168.1.82", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master2", type: "master", macaddr: "00:50:56:be:1a:83", ipaddr: "192.168.1.83", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "worker0", type: "worker", macaddr: "00:50:56:be:1a:91", ipaddr: "192.168.1.91", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "worker1", type: "worker", macaddr: "00:50:56:be:1a:92", ipaddr: "192.168.1.92", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "worker2", type: "worker", macaddr: "00:50:56:be:1a:93", ipaddr: "192.168.1.93", cpu: 8, ram: 16384, size_gb: 120}
 static_ip:
   gateway: 192.168.1.1
   netmask: 255.255.255.0

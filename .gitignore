@@ -8,3 +8,4 @@ install-dir
 ansible.log
 roles/node_isos/files/*.txt
 roles/node_isos/files/*.cfg
+clusters/ocp-test.yaml

@@ -28,6 +28,12 @@
     config: "{{ config | combine( { 'cluster_base_version': cbv  }, recursive=True, list_merge='keep' ) }}"
   when: config.cluster_version | regex_search('latest') != 'latest'
 
+- name: Fetch the content of the release.txt from the clients downloads page
+  uri:
+    url: "{{ download.clients_url }}/release.txt"
+    return_content: yes
+  register: release_content
+
 - name:  Update config.cluster_base_version release_version which will be used later
   set_fact:
     config: "{{ config | combine({ item.key : item.value }, recursive=True) }}"
@@ -43,3 +49,27 @@
 - name: Update download.dependencies_url
   set_fact:
     download: "{{ download | combine( {'dependencies_url': 'https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/' + config.cluster_base_version + '/latest'} ) }}"
+
+- name: Set bootstrap list
+  set_fact:
+    bootstrap_vms: "{{ bootstrap_vms|default([]) + [item] }}"
+  when: item.type == 'bootstrap'
+  loop: "{{ nodes }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Set master list
+  set_fact:
+    master_vms: "{{ master_vms|default([]) + [item] }}"
+  when: item.type == 'master'
+  loop: "{{ nodes }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Set worker list
+  set_fact:
+    worker_vms: "{{ worker_vms|default([]) + [item] }}"
+  when: item.type == 'worker'
+  loop: "{{ nodes }}"
+  loop_control:
+    label: "{{ item.name }}"

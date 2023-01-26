@@ -20,9 +20,5 @@
     power_on: False
     validate_certs: False
 
-- name: Remove the Network Adapter
-  command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0"
-  when: ansible_version.full is version('2.10.0', '<')
-
 - name: Update VM options on the template
   command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204

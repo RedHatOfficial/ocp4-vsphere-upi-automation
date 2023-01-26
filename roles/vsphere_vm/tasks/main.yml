@@ -7,6 +7,12 @@
   command: "govc folder.create '{{ vcenter.folder_absolute_path }}'" # noqa 301
   when: folder_exists.rc != 0
 
+- name: Encode node ignition files
+  set_fact:
+    masterContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/master.ign') | b64encode }}"
+    workerContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/worker.ign') | b64encode }}"
+    bootstrapContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/bootstrap.ign') | b64encode }}"
+
 - name: "Bootstrap base64"
   debug:
     msg: "{{ bootstrapContent }}"
@@ -27,22 +33,11 @@
   include_tasks:
     file: get_ova.yml
 
-- name: Create control plane VMs from the template (ansible < 2.10)
-  when: ansible_version.full is version('2.10.0', '<') and dhcp |bool
+- name: Create VMs
+  vars:
+    ip_alloc: "{% if dhcp | default(false) %}dhcp{% else %}static{% endif %}"
+    medium: "{% if iso | default(false) | bool %}iso{% else %}ova{% endif %}"
+    version: "{% if ansible_version.full is version('2.10.0', '>=') %}2.12{% else %}2.9{% endif %}"
+    name: "{% if ip_alloc == 'dhcp' %}{{ ip_alloc }}-{% else %}{{ ip_alloc }}-{{ medium }}-{% endif %}ansible-{{ version }}.yml"
   include_tasks:
-    file: dhcp-ansible-2.9.yml
-
-- name: Create control plane VMs from the template (ansible > 2.9)
-  when: ansible_version.full is version('2.10.0', '>=') and dhcp |bool
-  include_tasks:
-    file: dhcp-ansible-2.12.yml
-
-- name: Create control plane VMs with static IPs from the template (ansible < 2.10)
-  when: ansible_version.full is version('2.10.0', '<') and static |bool
-  include_tasks:
-    file: static-ansible-2.9.yml
-
-- name: Create control plane VMs with static IPs from the template (ansible > 2.9)
-  when: ansible_version.full is version('2.10.0', '>=') and static |bool
-  include_tasks:
-    file: static-ansible-2.12.yml
+    file: "{{ name }}"

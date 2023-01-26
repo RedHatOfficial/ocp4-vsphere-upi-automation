@@ -5,10 +5,6 @@
    register: result_bootstrap
    until: result_bootstrap.rc == 0
 
- - name: Reset the vcenter.vm_power_state to poweredon
-   set_fact:
-     vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredon'}, recursive=True) }}"
-
  - name: Power-On the worker VMs
    command: "{{ playbook_dir }}/bin/govc vm.power -on {{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
    loop: "{{ worker_vms }}"

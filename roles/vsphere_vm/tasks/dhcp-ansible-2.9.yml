@@ -4,11 +4,12 @@
     username: "{{ vcenter.service_account_username }}"
     password: "{{ vcenter.service_account_password }}"
     datacenter: "{{ vcenter.datacenter }}"
+    guest_id: "rhel8_64Guest"
     validate_certs: no
     folder: "{{ vcenter.folder_absolute_path }}"
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
-    state: state: "{{ vcenter.vm_power_state | default('poweredon')}}"
-    template: "{{ vcenter.template_name }}"
+    state: poweredon
+    template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
     disk:
     - size_gb: "{{ item.size_gb | default(120) }}"
       type: thin
@@ -27,6 +28,7 @@
         value: "{{ bootstrapContent }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
+  loop: "{{ bootstrap_vms }}"
 
 - name: Create control plane VMs from the template
   vmware_guest:
@@ -34,11 +36,12 @@
     username: "{{ vcenter.service_account_username }}"
     password: "{{ vcenter.service_account_password }}"
     datacenter: "{{ vcenter.datacenter }}"
+    guest_id: "rhel8_64Guest"
     validate_certs: no
     folder: "{{ vcenter.folder_absolute_path }}"
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
-    state: state: "{{ vcenter.vm_power_state | default('poweredon')}}"
-    template: "{{ vcenter.template_name }}"
+    state: poweredon
+    template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
     disk:
     - size_gb: "{{ item.size_gb | default(120) }}"
       type: thin
@@ -57,6 +60,7 @@
        value: "{{ masterContent }}"
      - key: guestinfo.ignition.config.data.encoding
        value: base64
+  loop: "{{ master_vms }}"
 
 - name: Create worker VMs from the template
   vmware_guest:
@@ -64,11 +68,12 @@
     username: "{{ vcenter.service_account_username }}"
     password: "{{ vcenter.service_account_password }}"
     datacenter: "{{ vcenter.datacenter }}"
+    guest_id: "rhel8_64Guest"
     validate_certs: no
     folder: "{{ vcenter.folder_absolute_path }}"
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
     state: poweredoff
-    template: "{{ vcenter.template_name }}"
+    template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
     disk:
     - size_gb: "{{ item.size_gb | default(120) }}"
       type: thin
@@ -87,3 +92,4 @@
        value: "{{ workerContent }}"
      - key: guestinfo.ignition.config.data.encoding
        value: base64
+    loop: "{{ worker_vms }}"

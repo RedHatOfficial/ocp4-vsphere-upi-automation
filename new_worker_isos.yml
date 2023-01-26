@@ -19,10 +19,6 @@
 
     - include_vars: "{{ clusters_folder }}/{{ cluster }}_additional_nodes.yaml"
 
-    - name: Creating the additional nodes variable
-      set_fact:
-        nodes: "{{ bootstrap_vms + master_vms + worker_vms }}"
-
     - name: Fetch the content of the sha256sum.txt from the dependencies downloads page
       uri:
         url: "{{ download.dependencies_url }}/sha256sum.txt"

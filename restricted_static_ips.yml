@@ -72,13 +72,6 @@
     GOVC_DATACENTER: "{{ datacenter }}"
     GOVC_INSECURE: 1
   tasks:
-    - name: Reset the vcenter.vm_power_state to poweredoff
-      set_fact:
-        vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredoff'}, recursive=True) }}"
-
-    - name: Echo the value of the variable vcenter.vm_power_state
-      debug: var=vcenter.vm_power_state
-
     - name: Create the DHCP based VMs
       vars:
         static: true

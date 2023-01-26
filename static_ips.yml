@@ -1,6 +1,9 @@
 ---
-- hosts: all
+- name: Initial Environment setup
+  hosts: localhost
   gather_facts: True
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
     - name: Initial setup and checks
       import_role:
@@ -11,17 +14,17 @@
     - name: Set the cache of all the download links
       import_role:
         name: cache
+      tags:
+      - always
 
-- hosts: localhost
-  gather_facts: True
-  environment:
-    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
-  tasks:
     - name: Run all the common tasks
       import_role:
         name: common
+      tags:
+      - always
 
-- hosts: webservers
+- name: Setup webserver
+  hosts: webservers
   gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
@@ -30,16 +33,19 @@
       import_role:
         name: webserver
         tasks_from: create_cluster_dir
+
     - name: Copy over generated ignition files to webserver
       import_role:
         name: webserver
         tasks_from: copy_ign_files
+
     - name: Download the installer raw.gz file to webserver
       import_role:
         name: webserver
         tasks_from: download_raw_installer_files
 
-- hosts: localhost
+- name: Create VMs and install
+  hosts: localhost
   gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
@@ -49,26 +55,17 @@
     GOVC_DATACENTER: "{{ vcenter.datacenter }}"
     GOVC_INSECURE: 1
   tasks:
-    - name: Reset the vcenter.vm_power_state to poweredoff
-      set_fact:
-        vcenter: "{{ vcenter | combine({'vm_power_state': 'poweredoff'}, recursive=True) }}"
-
-    - name: Echo the value of the variable vcenter.vm_power_state
-      debug: var=vcenter.vm_power_state
-
     - name: Generate isos for all nodes
       import_role:
         name: node_isos
+      when: skip_iso is not defined
 
-    - name: Create the DHCP based VMs
+    - name: Create, Configure and boot the VMs
       vars:
-        static: true
+        iso: true
+        skip_ova: true
       import_role:
         name: vsphere_vm
-
-    - name: Configure, and boot VMs
-      import_role:
-        name: static_ips
 
     - name: Run steps to finish cluster install
       import_role:
