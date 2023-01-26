@@ -206,67 +206,25 @@ ansible-playbook -i staging -e "cluster=ocp-example" new_worker_isos.yml
 
 == Final Check:
 
-If everything goes well you should be able to log into all of the machines using the following command:
-
-[%hardbreaks%]
-Assuming you are able to resolve bootstrap.mycluster.mydomain.com on this machine
-Replace the bootstrap hostname with any of the master or worker hostnames
-----
-ssh -i ~/.ssh/ocp4 core@bootstrap.mycluster.mydomain.com
-----
-
-Once logged in, on **bootstrap** node run the following command to understand if/how the masters are (being) setup:
+If everything goes well you should be able validate the cluster using the included `validateCluster.yml` playbook.
 
 ----
-journalctl -b -f -u bootkube.service
+$ ansible-playbook -i staging -e 'cluster=mycluster' -e "username=kubeadmin" -e "password=$(cat install-dir/auth/kubeadmin-password)" validateCluster.yml
 ----
 
-Once the `bootkube.service` is complete, the bootstrap VM can safely be `poweredoff` and the VM deleted. Finish by checking on the OpenShift with the following commands:
 
-.Run from top level of repo
+You can also manually review with the following commands:
+
+.Manually review the cluster objects after install
 ----
-export KUBECONFIG=$(pwd)/install-dir/auth/kubeconfig
-export PATH=$(pwd)/bin:$PATH
-
-oc whoami
-oc get co
-oc get mcp
-oc get csr
+oc --kubeconfig=$(pwd)/install-dir/auth/kubeconfig get nodes
+oc --kubeconfig=$(pwd)/install-dir/auth/kubeconfig co
+oc --kubeconfig=$(pwd)/install-dir/auth/kubeconfig get mcp
+oc --kubeconfig=$(pwd)/install-dir/auth/kubeconfig get csr
 ----
 
-=== Debugging
+NOTE: You can also `export KUBECONFIG=$(pwd)/install-dir/auth/kubeconfig` rather than using `--kubeconfig=` on oc commands. Always remember to `unset KUBECONFIG` when done though to avoid corrupting your system:admin kubeconfig. It is the only copy of this special users kubeconfig.
 
-To check if the proxy information has been picked up:
-
-.On Master
-----
- cat /etc/systemd/system/machine-config-daemon-host.service.d/10-default-env.conf
-----
-
-.On Bootstrap
-----
- cat /etc/systemd/system.conf.d/10-default-env.conf
-----
-
-To check if the registry information has been picked up:
-
-.On Master or Bootstrap
-----
-cat /etc/containers/registries.conf
-cat /root/.docker/config.json
-----
-
-To check if your certs have been picked up:
-
-.On Master
-----
-cat /etc/pki/ca-trust/source/anchors/openshift-config-user-ca-bundle.crt
-----
-
-.On Bootstrap
-----
-cat /etc/pki/ca-trust/source/anchors/ca.crt
-----
 
 
 == In the works and wishlist (Call to arms)
@@ -278,8 +236,6 @@ This repo is always in a state of development and as we all know OpenShift updat
 
 === Actively in development
 
-* Moving all iso generation tasks into their own role
-* Creating plays for adding isos for additional worker nodes (post-install)
 * Code cleanup/refactoring
 
 === Wishlist
