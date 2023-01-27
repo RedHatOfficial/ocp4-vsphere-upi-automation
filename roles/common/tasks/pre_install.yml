@@ -132,6 +132,22 @@
   set_fact:
     family: "{{ ansible_os_family if ansible_os_family == 'Darwin' else 'Linux' }}"
 
+- name: Download govc
+  get_url:
+    url: "{{ download.govc }}/govc_{{ family }}_x86_64.tar.gz"
+    dest: "{{ playbook_dir }}/downloads/govc.gz"
+    validate_certs: no
+
+- name: Unarchive govc
+  unarchive:
+    src: "{{ playbook_dir }}/downloads/govc.gz"
+    dest: "{{ playbook_dir }}/bin"
+    mode: 0755
+    exclude:
+      - CHANGELOG.md
+      - LICENSE.txt
+      - README.md
+
 - name: Copy install-config.yaml file into install-dir
   template:
     src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.j2"

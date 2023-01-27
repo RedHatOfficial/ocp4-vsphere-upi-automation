@@ -22,29 +22,10 @@
     power_on: False
   when: skip_ova is not defined
 
-- name: Gather Template facts
-  vmware_vm_info:
-    hostname: "{{ vcenter.ip }}"
-    username: "{{ vcenter.username }}"
-    password: "{{ vcenter.password }}"
-    validate_certs: False
-    folder: "{{ vcenter.folder_absolute_path }}"
-    vm_name: '{{ vcenter.template_name }}'
-    vm_type: vm
-  delegate_to: localhost
-  register: template_info
-  when: dhcp is defined
+- name: Remove the Network Adapter
+  command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0"
+  when: skip_ova is not defined
 
-- name: Remove network card if it exists and if using DHCP
-  vmware_guest_network:
-    hostname: "{{ vcenter.ip }}"
-    username: "{{ vcenter.username }}"
-    password: "{{ vcenter.password }}"
-    datacenter: "{{ vcenter.datacenter }}"
-    validate_certs: False
-    folder: "{{ vcenter.folder_absolute_path }}"
-    mac_address: "{{ template_info.virtual_machines.0.mac_address.0 }}"
-    folder: "{{ vcenter.folder_absolute_path }}"
-    name: '{{ vcenter.template_name }}'
-    state: absent
-  when: dhcp is defined and template_info.virtual_machines.0.mac_address.0 is defined
+- name: Update VM options on the template
+  command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204
+  when: skip_ova is not defined

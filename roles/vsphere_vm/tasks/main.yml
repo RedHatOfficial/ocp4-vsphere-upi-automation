@@ -30,7 +30,6 @@
     verbosity: 1
 
 - name: Download the OVA file to create the VM
-  #when: skip_ova is not defined
   include_tasks:
     file: get_ova.yml
 
