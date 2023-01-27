@@ -20,6 +20,21 @@
     label: "Power On {{ item.name }}"
   when: not config.hybrid | bool
 
+- name: Power-Off the bootstrap VMs
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredoff
+  loop: "{{ bootstrap_vms }}"
+  loop_control:
+    label: "Power Off {{ item.name }}"
+  when: not config.hybrid | bool
+
 - name: Delete Bootstrap VM
   vmware_guest:
     hostname: "{{ vcenter.ip }}"
