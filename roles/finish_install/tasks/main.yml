@@ -15,10 +15,10 @@
     folder: "{{ vcenter.folder_absolute_path }}"
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
     state: poweredon
-    loop: "{{ worker_vms | default([]) }}"
-    loop_control:
-      label: "Power On {{ item.name }}"
-    when: not config.hybrid | bool
+  loop: "{{ worker_vms | default([]) }}"
+  loop_control:
+    label: "Power On {{ item.name }}"
+  when: not config.hybrid | bool
 
 - name: Delete Bootstrap VM
   vmware_guest:
@@ -30,10 +30,10 @@
     folder: "{{ vcenter.folder_absolute_path }}"
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
     state: absent
-    loop: "{{ bootstrap_vms }}"
-    loop_control:
-      label: "Power On {{ item.name }}"
-    when: result_bootstrap.rc == 0
+  loop: "{{ bootstrap_vms }}"
+  loop_control:
+    label: "Power On {{ item.name }}"
+  when: result_bootstrap.rc == 0
 
 - name: Wait for node-bootstraper csrs to approve
   shell: "{{ playbook_dir }}/bin/oc get csr -o json --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig | jq -r '.items[] | select(.status == {}) | .metadata.name'" # noqa 301 306
