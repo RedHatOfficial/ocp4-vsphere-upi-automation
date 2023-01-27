@@ -1,89 +1,107 @@
- - name: Wait for bootstrap to complete prior to starting workers
-   command: "{{ playbook_dir }}/bin/openshift-install --dir={{ playbook_dir }}/install-dir wait-for bootstrap-complete --log-level debug" # noqa 301
-   retries: 180
-   delay: 10
-   register: result_bootstrap
-   until: result_bootstrap.rc == 0
+- name: Wait for bootstrap to complete prior to starting workers
+  command: "{{ playbook_dir }}/bin/openshift-install --dir={{ playbook_dir }}/install-dir wait-for bootstrap-complete --log-level debug" # noqa 301
+  retries: 180
+  delay: 10
+  register: result_bootstrap
+  until: result_bootstrap.rc == 0
 
- - name: Power-On the worker VMs
-   command: "{{ playbook_dir }}/bin/govc vm.power -on {{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
-   loop: "{{ worker_vms }}"
-   loop_control:
-     label: "Power On {{ item.name }}"
-   when: not config.hybrid | bool
+- name: Power-On the worker VMs
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredon
+    loop: "{{ worker_vms | default([]) }}"
+    loop_control:
+      label: "Power On {{ item.name }}"
+    when: not config.hybrid | bool
 
- - name: Delete Bootstrap VM
-   command: "{{ playbook_dir }}/bin/govc vm.destroy {{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"  # noqa 301
-   loop: "{{ bootstrap_vms }}"
-   when: result_bootstrap.rc == 0
+- name: Delete Bootstrap VM
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: absent
+    loop: "{{ bootstrap_vms }}"
+    loop_control:
+      label: "Power On {{ item.name }}"
+    when: result_bootstrap.rc == 0
 
- - name: Wait for node-bootstraper csrs to approve
-   shell: "{{ playbook_dir }}/bin/oc get csr -o json --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig | jq -r '.items[] | select(.status == {}) | .metadata.name'" # noqa 301 306
-   register: result_csr
-   until: result_csr['stdout_lines']|count == worker_vms|count
-   retries: 60
-   delay: 60
-   ignore_errors: yes
+- name: Wait for node-bootstraper csrs to approve
+  shell: "{{ playbook_dir }}/bin/oc get csr -o json --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig | jq -r '.items[] | select(.status == {}) | .metadata.name'" # noqa 301 306
+  register: result_csr
+  until: result_csr['stdout_lines']|count == worker_vms|count
+  retries: 60
+  delay: 60
+  ignore_errors: yes
 
- - name: Approve the csrs
-   command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa 301
-   loop: "{{ result_csr['stdout_lines'] }}"
+- name: Approve the csrs
+  command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa 301
+  loop: "{{ result_csr['stdout_lines'] }}"
 
- - name: Wait for system:node csrs to approve
-   shell: "{{ playbook_dir }}/bin/oc get csr -o json --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig | jq -r '.items[] | select(.status == {}) | .metadata.name'"  # noqa 301 306
-   register: result_system
-   until: result_system['stdout_lines']|count == worker_vms|count
-   retries: 60
-   delay: 60
-   ignore_errors: yes
+- name: Wait for system:node csrs to approve
+  shell: "{{ playbook_dir }}/bin/oc get csr -o json --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig | jq -r '.items[] | select(.status == {}) | .metadata.name'"  # noqa 301 306
+  register: result_system
+  until: result_system['stdout_lines']|count == worker_vms|count
+  retries: 60
+  delay: 60
+  ignore_errors: yes
 
- - name: Approve the csrs
-   command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa 301
-   loop: "{{ result_system['stdout_lines'] }}"
+- name: Approve the csrs
+  command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa 301
+  loop: "{{ result_system['stdout_lines'] }}"
 
- - name: Create Infra List
-   set_fact:
-     infra_vms: "{{ worker_vms|select('search','isinfra') | list }}"
+- name: Create Infra List
+  set_fact:
+   infra_vms: "{{ worker_vms|select('search','isinfra') | list }}"
 
- - name: Check for infra nodes and label accordingly
-   environment:
-     KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
-   k8s:
-     state: patched
-     merge_type: merge
-     definition:
-       apiVersion: v1
-       kind: Node
-       metadata:
-         name: "{{ item.name }}.{{ cluster }}.{{ config.base_domain }}"
-         labels:
-           node-role.kubernetes.io/infra: ""
-   loop: "{{ infra_vms }}"
-   when: infra_vms | length > 0
+- name: Check for infra nodes and label accordingly
+  environment:
+   KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+  k8s:
+   state: patched
+   merge_type: merge
+   definition:
+     apiVersion: v1
+     kind: Node
+     metadata:
+       name: "{{ item.name }}.{{ cluster }}.{{ config.base_domain }}"
+       labels:
+         node-role.kubernetes.io/infra: ""
+  loop: "{{ infra_vms }}"
+  when: infra_vms | length > 0
 
- - name: Change ingress controller node selector
-   environment:
-     KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
-   k8s:
-     state: patched
-     merge_type: merge
-     definition:
-       apiVersion: "operator.openshift.io/v1"
-       kind: IngressController
-       metadata:
-         name: default
-         namespace: openshift-ingress-operator
-       spec:
-        nodePlacement:
-          nodeSelector:
-            matchLabels:
-              node-role.kubernetes.io/infra: ""
-   when: infra_vms | length > 0
+- name: Change ingress controller node selector
+  environment:
+   KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+  k8s:
+   state: patched
+   merge_type: merge
+   definition:
+     apiVersion: "operator.openshift.io/v1"
+     kind: IngressController
+     metadata:
+       name: default
+       namespace: openshift-ingress-operator
+     spec:
+      nodePlacement:
+        nodeSelector:
+          matchLabels:
+            node-role.kubernetes.io/infra: ""
+  when: infra_vms | length > 0
 
- - name: Wait for install complete
-   command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug # noqa 301
-   register: result_complete
+- name: Wait for install complete
+  command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug # noqa 301
+  register: result_complete
 
- - name: Output results from openshift-install wait-for install-complete
-   debug:
-     msg: "{{ result_complete.stderr | regex_findall('level=info.*') | list }}"
+- name: Output results from openshift-install wait-for install-complete
+  debug:
+   msg: "{{ result_complete.stderr | regex_findall('level=info.*') | list }}"

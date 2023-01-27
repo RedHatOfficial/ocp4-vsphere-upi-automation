@@ -1,11 +1,12 @@
-- name: Check if the vCenter folder already exists
-  command: "govc folder.info '{{ vcenter.folder_absolute_path }}'" # noqa 301
-  register: folder_exists
-  ignore_errors: yes
-
 - name: Create the vCenter folder by the same name as the cluster, only if it doesn't exist
-  command: "govc folder.create '{{ vcenter.folder_absolute_path }}'" # noqa 301
-  when: folder_exists.rc != 0
+  community.vmware.vcenter_folder:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter_name: "{{ vcenter.datacenter }}"
+    folder_name: "{{ cluster }}"
+    folder_type: vm
+    state: present
 
 - name: Encode node ignition files
   set_fact:
@@ -29,7 +30,7 @@
     verbosity: 1
 
 - name: Download the OVA file to create the VM
-  when: skip_ova is not defined
+  #when: skip_ova is not defined
   include_tasks:
     file: get_ova.yml
 

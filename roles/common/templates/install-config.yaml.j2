@@ -31,8 +31,8 @@ platform:
 {% else %}
   vsphere:
     vcenter: {{ vcenter.ip }}
-    username: {{ vcenter.service_account_username }}
-    password: {{ vcenter.service_account_password }}
+    username: {{ vcenter.username }}
+    password: {{ vcenter.password }}
     datacenter: {{ vcenter.datacenter }}
     defaultDatastore: {{ vcenter.datastore }}
     folder: {{ vcenter.folder_absolute_path | default(omit) }}

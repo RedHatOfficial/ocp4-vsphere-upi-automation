@@ -3,14 +3,16 @@
     url: "{{ download.ova }}"
     dest: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
     validate_certs: no
+  when: skip_ova is not defined
 
 - name: Deploy the OVF template into the folder
   vmware_deploy_ovf:
     hostname: "{{ vcenter.ip }}"
-    username: "{{ vcenter.admin_username }}"
-    password: "{{ vcenter.admin_password }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
     datacenter: "{{ vcenter.datacenter }}"
     datastore: "{{ vcenter.datastore }}"
+    validate_certs: False
     folder: "{{ vcenter.folder_absolute_path }}"
     name: '{{ vcenter.template_name }}'
     allow_duplicates: False
@@ -18,4 +20,31 @@
     networks: "{u'VM Network':u'{{ vcenter.network }}'}"
     ova: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
     power_on: False
+  when: skip_ova is not defined
+
+- name: Gather Template facts
+  vmware_vm_info:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
     validate_certs: False
+    folder: "{{ vcenter.folder_absolute_path }}"
+    vm_name: '{{ vcenter.template_name }}'
+    vm_type: vm
+  delegate_to: localhost
+  register: template_info
+  when: dhcp is defined
+
+- name: Remove network card if it exists and if using DHCP
+  vmware_guest_network:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: False
+    folder: "{{ vcenter.folder_absolute_path }}"
+    mac_address: "{{ template_info.virtual_machines.0.mac_address.0 }}"
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: '{{ vcenter.template_name }}'
+    state: absent
+  when: dhcp is defined and template_info.virtual_machines.0.mac_address.0 is defined

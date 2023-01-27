@@ -1,76 +1,8 @@
-- name: Create bootstrap VM from the template
+- name: Create bootstrap and master VMs from the template
   vmware_guest:
     hostname: "{{ vcenter.ip }}"
-    username: "{{ vcenter.service_account_username }}"
-    password: "{{ vcenter.service_account_password }}"
-    datacenter: "{{ vcenter.datacenter }}"
-    guest_id: "rhel8_64Guest"
-    validate_certs: no
-    folder: "{{ vcenter.folder_absolute_path }}"
-    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
-    state: poweredon
-    template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
-    disk:
-    - size_gb: "{{ item.size_gb | default(120) }}"
-      type: thin
-      datastore: "{{ vcenter.datastore }}"
-    hardware:
-      memory_mb: "{{ item.ram | default(16384) }}"
-      num_cpus: "{{ item.cpu | default(4) }}"
-      memory_reservation_lock: True
-      version: "{{ vcenter.hw_version }}"
-    networks:
-    - name: "{{ vcenter.network }}"
-      mac: "{{ item.macaddr | default(omit) }}"
-    wait_for_ip_address: no
-    advanced_settings:
-      - key: guestinfo.ignition.config.data
-        value: "{{ bootstrapContent }}"
-      - key: guestinfo.ignition.config.data.encoding
-        value: base64
-      - key: disk.EnableUUID
-        value: TRUE
-  loop: "{{ bootstrap_vms }}"
-
-- name: Create control plane VMs from the template
-  vmware_guest:
-    hostname: "{{ vcenter.ip }}"
-    username: "{{ vcenter.service_account_username }}"
-    password: "{{ vcenter.service_account_password }}"
-    datacenter: "{{ vcenter.datacenter }}"
-    guest_id: "rhel8_64Guest"
-    validate_certs: no
-    folder: "{{ vcenter.folder_absolute_path }}"
-    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
-    state: poweredon
-    template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
-    disk:
-    - size_gb: "{{ item.size_gb | default(120) }}"
-      type: thin
-      datastore: "{{ vcenter.datastore }}"
-    hardware:
-      memory_mb: "{{ item.ram | default(16384) }}"
-      num_cpus: "{{ item.cpu | default(8) }}"
-      memory_reservation_lock: True
-      version: "{{ vcenter.hw_version }}"
-    networks:
-    - name: "{{ vcenter.network }}"
-      mac: "{{ item.macaddr | default(omit) }}"
-    wait_for_ip_address: no
-    advanced_settings:
-     - key: guestinfo.ignition.config.data
-       value: "{{ masterContent }}"
-     - key: guestinfo.ignition.config.data.encoding
-       value: base64
-     - key: disk.EnableUUID
-       value: TRUE
-  loop: "{{ master_vms }}"
-
-- name: Create worker VMs from the template
-  vmware_guest:
-    hostname: "{{ vcenter.ip }}"
-    username: "{{ vcenter.service_account_username }}"
-    password: "{{ vcenter.service_account_password }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
     datacenter: "{{ vcenter.datacenter }}"
     guest_id: "rhel8_64Guest"
     validate_certs: no
@@ -87,9 +19,68 @@
       num_cpus: "{{ item.cpu | default(4) }}"
       memory_reservation_lock: True
       version: "{{ vcenter.hw_version }}"
-    networks:
-    - name: "{{ vcenter.network }}"
-      mac: "{{ item.macaddr | default(omit) }}"
+    wait_for_ip_address: no
+    advanced_settings:
+    - key: guestinfo.ignition.config.data
+      value: "{{ bootstrapContent }}"
+    - key: guestinfo.ignition.config.data.encoding
+      value: base64
+    - key: disk.EnableUUID
+      value: TRUE
+  loop: "{{ bootstrap_vms + master_vms }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Setup NIC on bootstrap and master VMs
+  vmware_guest_network:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    mac_address: "{{ item.macaddr | default(omit) }}"
+    network_name: "{{ vcenter.network }}"
+    state: present
+  loop: "{{ bootstrap_vms + master_vms }}"
+  loop_control:
+    label: "{{ item.name }}({{ item.macaddr | default('00:00:00:00:00:00') }}): {{ item.ipaddr | default('DHCP') }}"
+
+- name: Start bootstrap and master VMs
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    guest_id: "rhel8_64Guest"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredon
+  loop: "{{ bootstrap_vms + master_vms }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create worker VMs from the template
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    guest_id: "rhel8_64Guest"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredoff
+    template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
+    disk:
+    - size_gb: "{{ item.size_gb | default(120) }}"
+      type: thin
+      datastore: "{{ vcenter.datastore }}"
+    hardware:
+      memory_mb: "{{ item.ram | default(16384) }}"
+      num_cpus: "{{ item.cpu | default(4) }}"
+      memory_reservation_lock: True
+      version: "{{ vcenter.hw_version }}"
     wait_for_ip_address: no
     advanced_settings:
      - key: guestinfo.ignition.config.data
@@ -99,3 +90,19 @@
      - key: disk.EnableUUID
        value: TRUE
   loop: "{{ worker_vms }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Setup NIC on worker VMs
+  vmware_guest_network:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    mac_address: "{{ item.macaddr | default(omit) }}"
+    network_name: "{{ vcenter.network }}"
+    state: present
+  loop: "{{ worker_vms }}"
+  loop_control:
+    label: "{{ item.name }}({{ item.macaddr | default('00:00:00:00:00:00') }}): {{ item.ipaddr | default('DHCP') }}"

@@ -49,11 +49,6 @@
   gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
-    GOVC_USERNAME: "{{ vcenter.admin_username }}"
-    GOVC_PASSWORD: "{{ vcenter.admin_password }}"
-    GOVC_URL: "https://{{ vcenter.ip }}"
-    GOVC_DATACENTER: "{{ vcenter.datacenter }}"
-    GOVC_INSECURE: 1
   tasks:
     - name: Generate isos for all nodes
       import_role:

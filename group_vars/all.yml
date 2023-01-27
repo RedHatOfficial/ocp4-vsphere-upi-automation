@@ -18,17 +18,14 @@ vcenter:
   datastore: datastore1
   iso_dir: ocp_install_isos
   network: "VM Network"
-  service_account_username: vsphere_sa_user #[CHANGE ME]
-  service_account_password: vsphere_sa_pass #[CHANGE ME]
-  admin_username: vsphere_admin_user #[CHANGE ME]
-  admin_password: vsphere_admin_pass #[CHANGE ME]
+  username: vsphere_admin_user #[CHANGE ME]
+  password: vsphere_admin_pass #[CHANGE ME]
   datacenter: 'dc1'
   folder_absolute_path: '/dc1/vm/{{ cluster }}'
   template_name: rhcos-vmware
   hw_version: 15
 download:
   clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ config.cluster_version }}"
-  govc: "https://artifactory.mydomain.com/artifactory/list/github-releases/vmware/govmomi/releases/download/v0.29.0"
 nodes:
   - { name: "bootstrap", type: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120}
   - { name: "master0", type: "master", macaddr: "00:50:56:be:1a:81", ipaddr: "192.168.1.81", cpu: 8, ram: 16384, size_gb: 120}
