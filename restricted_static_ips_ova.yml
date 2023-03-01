@@ -55,6 +55,12 @@
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
     - name: Create the DHCP based VMs
+      environment:
+        GOVC_USERNAME: "{{ vcenter.username }}"
+        GOVC_PASSWORD: "{{ vcenter.password }}"
+        GOVC_URL: "https://{{ vcenter.ip }}"
+        GOVC_DATACENTER: "{{ vcenter.datacenter }}"
+        GOVC_INSECURE: 1
       vars:
         static: true
       import_role:

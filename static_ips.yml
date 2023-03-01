@@ -56,6 +56,12 @@
       when: skip_iso is not defined
 
     - name: Create, Configure and boot the VMs
+      environment:
+        GOVC_USERNAME: "{{ vcenter.username }}"
+        GOVC_PASSWORD: "{{ vcenter.password }}"
+        GOVC_URL: "https://{{ vcenter.ip }}"
+        GOVC_DATACENTER: "{{ vcenter.datacenter }}"
+        GOVC_INSECURE: 1
       vars:
         iso: true
         skip_ova: true
