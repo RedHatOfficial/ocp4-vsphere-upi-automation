@@ -4,6 +4,7 @@
     username: "{{ vcenter.username }}"
     password: "{{ vcenter.password }}"
     datacenter_name: "{{ vcenter.datacenter }}"
+    validate_certs: no
     folder_name: "{{ cluster }}"
     folder_type: vm
     state: present

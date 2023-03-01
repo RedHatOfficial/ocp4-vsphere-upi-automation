@@ -13,6 +13,10 @@
 
 - include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
 
+- set_fact:
+    vcenter:
+      folder_absolute_path: '/{{ vcenter.datacenter }}/vm/{{ cluster }}'
+
 - name: Update config.cluster_base_version var if using latest
   vars:
     cbv: "{{ config.cluster_version | regex_search('.*-.*') | split('-') | last }}"
