@@ -20,7 +20,7 @@ This repo is most ideal for Home Lab and Proof-of-Concept scenarios. Having said
 The quickstart section is a brief summary of everything you need to do to use this repo. There are more details later in this document.
 
 1. Setup https://github.com/RedHatOfficial/ocp4-helpernode[helper node] or ensure appropriate services (DNS/DHCP/LB/etc.) are available and properly referenced.
-2. Copy `group_vars/all.yml` into a new file named the same as your cluster with a `.yaml` extension and only change the parts that are required
+2. Copy `group_vars/all.yml` into a new file under the `clusters` folder named the same as your cluster with a `.yaml` extension and only change the parts that are required
 3. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required
 4. Run one of the several link:README.adoc#run-installation-playbook[install options]
 
