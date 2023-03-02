@@ -74,7 +74,11 @@
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
     network_name: "{{ vcenter.network }}"
     mac_address: "{{ item.macaddr | default(omit) }}"
+    state: present
+    start_connected: true
   loop: "{{ bootstrap_vms + master_vms }}"
+  loop_control:
+    label: "{{ item.name }} on"
 
 - name: Start bootstrap and master VMs
   vmware_guest:
@@ -134,4 +138,8 @@
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
     network_name: "{{ vcenter.network }}"
     mac_address: "{{ item.macaddr | default(omit) }}"
+    state: present
+    start_connected: true
   loop: "{{ worker_vms | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"

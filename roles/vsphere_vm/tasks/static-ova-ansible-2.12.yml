@@ -7,7 +7,7 @@
     validate_certs: no
     folder: "{{ vcenter.folder_absolute_path }}"
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
-    state: poweredon
+    state: poweredoff
     template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
     disk:
     - size_gb: "{{ item.size_gb | default(120) }}"
@@ -18,9 +18,6 @@
       num_cpus: "{{ item.cpu | default(4) }}"
       memory_reservation_lock: True
       version: "{{ vcenter.hw_version }}"
-    networks:
-    - name: "{{ vcenter.network }}"
-      mac: "{{ item.macaddr | default(omit) }}"
     wait_for_ip_address: no
     advanced_settings:
       - key: guestinfo.ignition.config.data
@@ -34,6 +31,37 @@
   loop: "{{ bootstrap_vms + master_vms }}"
   loop_control:
     label: "{{ item.name }}"
+
+- name: Configure network for bootstrap and master VMs
+  vmware_guest_network:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    network_name: "{{ vcenter.network }}"
+    mac_address: "{{ item.macaddr | default(omit) }}"
+    state: present
+    start_connected: true
+  loop: "{{ bootstrap_vms + master_vms }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Start bootstrap and master VMs
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    guest_id: "rhel8_64Guest"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredon
+  loop: "{{ bootstrap_vms + master_vms }}"
+  loop_control:
+    label: "{{ item.name }} on"
 
 - name: Create worker VMs from the template
   vmware_guest:
@@ -55,9 +83,6 @@
       num_cpus: "{{ item.cpu | default(4) }}"
       memory_reservation_lock: True
       version: "{{ vcenter.hw_version }}"
-    networks:
-    - name: "{{ vcenter.network }}"
-      mac: "{{ item.macaddr | default(omit) }}"
     wait_for_ip_address: no
     advanced_settings:
       - key: guestinfo.ignition.config.data
@@ -69,5 +94,21 @@
       - key: guestinfo.afterburn.initrd.network-kargs
         value: "ip={{ item.ipaddr }}::{{ static_ip.gateway }}:{{ static_ip.netmask }}:{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}:ens192:off:{{ static_ip.dns }}"
   loop: "{{ worker_vms }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Configure network for worker VMs
+  vmware_guest_network:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    network_name: "{{ vcenter.network }}"
+    mac_address: "{{ item.macaddr | default(omit) }}"
+    state: present
+    start_connected: true
+  loop: "{{ worker_vms | default([]) }}"
   loop_control:
     label: "{{ item.name }}"
