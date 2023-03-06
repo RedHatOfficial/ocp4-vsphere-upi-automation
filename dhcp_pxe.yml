@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Initial Environment setup
+  hosts: localhost
   gather_facts: True
   tasks:
     - name: Initial setup and checks
@@ -34,7 +35,7 @@
         - config is not defined
         - download is not defined
         - inventory_hostname != "localhost"
-        
+
     - name: Copy over generated ignition files to webserver
       import_role:
         name: webserver

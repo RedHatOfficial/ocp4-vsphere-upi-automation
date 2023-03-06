@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Initial Environment setup
+  hosts: localhost
   gather_facts: True
   tasks:
     - name: Initial setup and checks
