@@ -29,6 +29,7 @@
       import_role:
         name: restricted
         tasks_from: setup_registry
+      when: registry.enabled | bool and registry.disconnected | bool
 
 - hosts: localhost
   gather_facts: False
@@ -37,6 +38,7 @@
       import_role:
         name: restricted
         tasks_from: utilize_registry
+      when: registry.enabled | bool and registry.disconnected | bool
 
 - hosts: localhost
   gather_facts: True
@@ -61,7 +63,7 @@
         - config is not defined
         - download is not defined
         - inventory_hostname != "localhost"
-        
+
     - name: Copy over generated ignition files to webserver
       import_role:
         name: webserver

@@ -26,10 +26,10 @@
   gather_facts: False
   tasks:
     - name: Run the setup tasks for a restricted environment
-      when: registry.create_registry
       import_role:
         name: restricted
         tasks_from: setup_registry
+      when: registry.enabled | bool and registry.disconnected | bool
 
 - hosts: localhost
   gather_facts: False
@@ -38,6 +38,7 @@
       import_role:
         name: restricted
         tasks_from: utilize_registry
+      when: registry.enabled | bool and registry.disconnected | bool
 
 - hosts: localhost
   gather_facts: False
