@@ -14,6 +14,8 @@
 - include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
 
 - set_fact:
+    webserverUri:  "{{ helper_vm_protocol }}//{{ helper_vm }}{% if helper_vm_port != 80 %}:{{ helper_vm_port }}{% endif %}"
+    bootstrap_ignition_url: "{{ helper_vm_protocol }}//{{ helper_vm }}{% if helper_vm_port != 80 %}:{{ helper_vm_port }}{% endif %}/{{ cluster }}/ignition/bootstrap.ign"
     vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+ vcenter.datacenter + '/vm/' + cluster}, recursive=True) }}"
 
 - name: Update config.cluster_base_version var if using latest

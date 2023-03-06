@@ -1,5 +1,6 @@
-helper_vm_ip: 192.168.1.20
-bootstrap_ignition_url: "http://{{helper_vm_ip}}:8080/{{ cluster }}/ignition/bootstrap.ign"
+helper_vm: 192.168.1.20
+helper_vm_port: 80
+helper_vm_protocol: http
 config:
   provider: vsphere
   base_domain: mydomain.com
