@@ -14,7 +14,7 @@
 - include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
 
 - set_fact:
-    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+ vcenter.datacenter + '/vm/' + cluster}, recursive=True) }}"folder_absolute_path: '/{{ vcenter.datacenter }}/vm/{{ cluster }}'
+    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+ vcenter.datacenter + '/vm/' + cluster}, recursive=True) }}"
 
 - name: Update config.cluster_base_version var if using latest
   vars:
