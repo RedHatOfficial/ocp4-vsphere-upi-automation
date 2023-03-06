@@ -29,6 +29,15 @@
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
+    - name: Set required facts
+      set_fact:
+        download: "{{ hostvars[groups['all'].0].download }}"
+        config: "{{ hostvars[groups['all'].0].config }}"
+      when:
+        - config is not defined
+        - download is not defined
+        - inventory_hostname != "localhost"
+
     - name: Create webserver paths for the cluster
       import_role:
         name: webserver
