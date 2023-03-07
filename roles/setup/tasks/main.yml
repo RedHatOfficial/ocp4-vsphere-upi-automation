@@ -18,20 +18,12 @@
     bootstrap_ignition_url: "{{ helper_vm_protocol }}://{{ helper_vm }}{% if helper_vm_port != 80 %}:{{ helper_vm_port }}{% endif %}/{{ cluster }}/ignition/bootstrap.ign"
     vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+ vcenter.datacenter + '/vm/' + cluster}, recursive=True) }}"
 
-- name: Update config.cluster_base_version var if using latest
+- name: Update config.cluster_base_version var
   vars:
-    cbv: "{{ config.cluster_version | regex_search('.*-.*') | split('-') | last }}"
+    cbv_arr: "{% if config.cluster_version | regex_search('latest') == 'latest' or config.cluster_version | regex_search('stable') == 'stable' %}{{ config.cluster_version | regex_search('.*-.*') | split('-') | last | split('.') }}{% else %}{{ config.cluster_version | split('.') }}{% endif %}"
+    cbv: "{{ cbv_arr[0] + '.' + cbv_arr[1] }}"
   set_fact:
     config: "{{ config | combine( { 'cluster_base_version':  cbv }, recursive=True, list_merge='keep' ) }}"
-  when: config.cluster_version | regex_search('latest') == 'latest'
-
-- name: Update config.cluster_base_version var if using specific version
-  vars:
-    vers_parts: "{{ config.cluster_version | split('.') }}"
-    cbv: "{{ vers_parts[0] + '.' + vers_parts[1] }}"
-  set_fact:
-    config: "{{ config | combine( { 'cluster_base_version': cbv  }, recursive=True, list_merge='keep' ) }}"
-  when: config.cluster_version | regex_search('latest') != 'latest'
 
 - name: Fetch the content of the release.txt from the clients downloads page
   uri:
