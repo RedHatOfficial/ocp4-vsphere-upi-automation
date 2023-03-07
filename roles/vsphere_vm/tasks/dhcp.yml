@@ -1,0 +1,112 @@
+- name: Create bootstrap and master VMs from the template
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    guest_id: "rhel8_64Guest"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredoff
+    template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
+    disk:
+    - size_gb: "{{ item.size_gb | default(120) }}"
+      type: thin
+      datastore: "{{ vcenter.datastore }}"
+    hardware:
+      memory_mb: "{{ item.ram | default(16384) }}"
+      num_cpus: "{{ item.cpu | default(4) }}"
+      memory_reservation_lock: True
+      version: "{{ vcenter.hw_version }}"
+    wait_for_ip_address: no
+    advanced_settings:
+    - key: guestinfo.ignition.config.data
+      value: "{{ bootstrapContent if item.type == 'bootstrap' else masterContent }}"
+    - key: guestinfo.ignition.config.data.encoding
+      value: base64
+    - key: disk.EnableUUID
+      value: TRUE
+  loop: "{{ bootstrap_vms + master_vms }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Configure network for bootstrap and master VMs
+  vmware_guest_network:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    network_name: "{{ vcenter.network }}"
+    mac_address: "{{ item.macaddr | default(omit) }}"
+    state: present
+    start_connected: true
+  loop: "{{ bootstrap_vms + master_vms }}"
+  loop_control:
+    label: "{{ item.name }} on"
+
+- name: Start bootstrap and master VMs
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    guest_id: "rhel8_64Guest"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredon
+  loop: "{{ bootstrap_vms + master_vms }}"
+  loop_control:
+    label: "{{ item.name }} on"
+
+- name: Create worker VMs from the template
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    guest_id: "rhel8_64Guest"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredoff
+    template: "{{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }}"
+    disk:
+    - size_gb: "{{ item.size_gb | default(120) }}"
+      type: thin
+      datastore: "{{ vcenter.datastore }}"
+    hardware:
+      memory_mb: "{{ item.ram | default(16384) }}"
+      num_cpus: "{{ item.cpu | default(4) }}"
+      memory_reservation_lock: True
+      version: "{{ vcenter.hw_version }}"
+    wait_for_ip_address: no
+    advanced_settings:
+    - key: guestinfo.ignition.config.data
+      value: "{{ workerContent }}"
+    - key: guestinfo.ignition.config.data.encoding
+      value: base64
+    - key: disk.EnableUUID
+      value: TRUE
+  loop: "{{ worker_vms | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Configure network for worker VMs
+  vmware_guest_network:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    network_name: "{{ vcenter.network }}"
+    mac_address: "{{ item.macaddr | default(omit) }}"
+    state: present
+    start_connected: true
+  loop: "{{ worker_vms | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"

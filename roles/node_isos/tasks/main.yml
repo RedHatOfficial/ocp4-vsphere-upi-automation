@@ -1,0 +1,111 @@
+- name: Download Openshift 4 ISO file as rhcos-installer.iso
+  get_url:
+    url: "{{ download.iso }}"
+    dest: "{{ iso_dir }}/rhcos-installer.iso"
+
+- name: Discover old files
+  find:
+    paths: "{{ role_path }}/files"
+    file_type: file
+    excludes:
+      - ".keep"
+  register: found_files
+
+- name: Clean up old files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ found_files['files'] }}"
+  loop_control:
+    label: "Cleaning {{ item.path }}"
+
+- name: Get the sha265sum of the rhcos-installer.iso file
+  stat:
+    get_checksum: yes
+    checksum_algorithm: sha256
+    path: "{{ iso_dir }}/rhcos-installer.iso"
+  register: st
+
+- name: Create the iso mount path (if one doesn't exist already)
+  file:
+    path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+    state: directory
+    mode: '0775'
+    recurse: yes
+
+- name: Create duplicate dir of the iso mount path (if one doesn't exist already)
+  file:
+    path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+    state: directory
+    mode: '0775'
+    recurse: yes
+
+- name: Mount the rhcos-installer.iso onto the mount path {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+  mount:
+    path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+    src: "{{ iso_dir }}/rhcos-installer.iso"
+    fstype: iso9660
+    opts: ro
+    state: mounted
+  become: true
+
+- name: Synchronization between the mount path and dup
+  synchronize:
+    src: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}/"
+    dest: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+
+- name: Recursively apply permission of 775 to {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+  file:
+    path: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}"
+    mode: '0775'
+    recurse: yes
+
+- name: Make a copy of the isolinux.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+  copy:
+    src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/isolinux/isolinux.cfg"
+    dest: "{{ role_path }}/files/"
+    mode: '0664'
+
+- name: Make a copy of the grub.cfg from the {{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}
+  copy:
+    src: "{{ iso_mount_path_dup | default('/tmp/'+st.stat.checksum+'-dup') }}/EFI/redhat/grub.cfg"
+    dest: "{{ role_path }}/files/"
+    mode: '0664'
+
+- name: Unmount the iso mount path
+  mount:
+    path: "{{ iso_mount_path | default('/tmp/'+st.stat.checksum) }}"
+    state: absent
+  become: true
+
+- name: Set the kernel param template name
+  set_fact:
+    kernel_param_template: kernel-params.j2
+    generate_iso_task: generate_custom_iso.yml
+
+- name: Generate kernel params for all workers
+  vars:
+    machine_name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    machine_type: "{{ item.type }}"
+    machine_ip: "{{ item.ipaddr }}"
+  template:
+    src: "{{ kernel_param_template }}"
+    dest: "{{ role_path }}/files/{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}-kernel-params.txt"
+    mode: '0664'
+  loop: "{{ nodes }}"
+  loop_control:
+    label: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+
+- name: Generate custom iso files for all VMs
+  include: "{{ generate_iso_task }}"
+  loop: "{{ nodes }}"
+  loop_control:
+    label: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+
+- name: Set permission on custom iso files
+  become: true
+  file:
+    path: "{{ playbook_dir }}/downloads/ISOs"
+    owner: "{{ ansible_user_uid }}"
+    group: "{{ ansible_user_gid }}"
+    recurse: yes

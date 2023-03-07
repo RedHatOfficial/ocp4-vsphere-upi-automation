@@ -1,8 +1,0 @@
-  - name: Check if the vCenter folder already exists
-    command: "govc folder.info {{ vcenter.folder_absolute_path }}" # noqa 301
-    register: folder_exists
-    ignore_errors: yes
-
-  - name: Create the vCenter folder by the same name as the cluster, only if it doesn't exist
-    command: "govc folder.create {{ vcenter.folder_absolute_path }}" # noqa 301
-    when: folder_exists.rc != 0

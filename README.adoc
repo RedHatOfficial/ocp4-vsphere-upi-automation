@@ -1,0 +1,244 @@
+= OCP 4.x VMware vSphere and Hybrid UPI Automation
+:toc:
+
+NOTE: This repository was derived from the original works of Mike Allman located in the https://github.com/RedHatOfficial/ocp4-vsphere-upi-automation[Official Red Hat Official GitHub repo]
+
+The goal of this repo is to automate the deployment (and redeployment) of OpenShift v4 clusters. Using the same repo and with minor tweaks, it can be applied to any version of OpenShift higher than 4.4. As it stands right now, the repo works for several installation use cases:
+
+* vSphere cluster (3 node master only or traditional 5+ node clusters with worker nodes)
+* Hybrid cluster (vSphere masters and baremetal workers)
+* Static IPs for nodes (lack of isolated network to let helper run DHCP server)
+* DHCP/Dynamic IPs for nodes (requires reservations in DHCP server config)
+* w/o Cluster-wide Proxy (HTTP and SSL/TLS with certs supported)
+* Restricted network (with or without DHCP)
+* No Cloud Provider (Useful for mixed clusters with both virtual and physical Nodes)
+
+This repo is most ideal for Home Lab and Proof-of-Concept scenarios. Having said that, if prerequisites (below) can be met and if the vCenter service account can be locked down to access only certain resources and perform only certain actions, the same repo can then be used for DEV or higher environments. Refer to the https://docs.openshift.com/container-platform/4.11/installing/installing_vsphere/installing-vsphere-installer-provisioned.html#installation-vsphere-installer-infra-requirements_installing-vsphere-installer-provisioned[`Required vCenter account privileges`] section in the OCP documentation for more details on required permissions for a vCenter service account.
+
+== Quickstart
+
+The quickstart section is a brief summary of everything you need to do to use this repo. There are more details later in this document.
+
+1. Setup https://github.com/RedHatOfficial/ocp4-helpernode[helper node] or ensure appropriate services (DNS/DHCP/LB/etc.) are available and properly referenced.
+2. Copy `group_vars/all.yml` into a new file under the `clusters` folder named the same as your cluster with a `.yaml` extension and only change the parts that are required
+3. Customize `ansible.cfg` and use/copy/modify `staging` inventory file as required
+4. Run one of the several link:README.adoc#run-installation-playbook[install options]
+
+NOTE: In your cluster vars file created in step 2 you only need to add override vars. The `group_vars/all.yaml` file will be the defaults if not overridden in the cluster file.
+
+== Prerequisites
+
+1. vSphere ESXi and vCenter 6.7 (or higher) installed
+2. A datacenter created with a vSphere host added to it, a datastore exists and has adequate capacity
+3. The playbook(s) assumes you are running a https://github.com/RedHatOfficial/ocp4-helpernode[helper node] in the same network to provide all the necessary services such as [DHCP/DNS/HAProxy as LB]. Also, the MAC addresses for the machines should match between helper repo and this. If not using the helper node, the minimum expectation is that the webserver and tftp server (for PXE boot) are running on the same external host, which we will then treat as a helper node.
+4. The necessary services such as [DNS/DHCP/LB(Load Balancer)] must be up and running before this repo can be used
+5. Python 3+ and the following modules installed
+* `*openshift*`
+6. Ansible 2.11+
+7. Ansible Galaxy modules
+* `*kubernetes.core*`
+* `*community.general*`
+* `community.crypto`
+
+== Installation Steps
+
+=== Variables
+
+Pre-populated entries in **group_vars/all.yml** are used as default values, to customize further you need to create a cluster file under the clusters folder.
+Any updates described below refer to changes made in cluster files (See: link:clusters/ocp-example.yml[example cluster file]) unless otherwise specified.
+
+.Default Values (Too much detail? Click here)
+[%collapsible%]
+----
+include::group_vars/all.yml[]
+----
+
+
+* The `helper_vm_ip` is used to build the `bootstrap_ignition_url` and the `no_proxy` values if there is a proxy in the environment. The ``
+* The `config` key and it's child keys are for cluster settings
+* The `nodes` key is how you define the nodes, this array will get further split by *type* as set in each node object.
+- If you delete macaddr from the node dictionaries VMware will auto-generate your MAC addresses. If you are using DHCP, defining macaddr will allow you to reserve the specified IP addresses on your DHCP server to ensure the OpenShift nodes always get the same IP address.
+* The `static_ips` key and it's child keys are used for non-DHCP configurations.
+* The `network_modifications` key Network CIDRs default to sensible ranges. If a conflict is present (these ranges of addresses are assigned elsewhere in the organization), you may select other non-conflicting CIDR ranges by changing "enabled: false" to "enabled: true" and entering the new ranges. The ranges shown in the repository are the ones that are used by default, even if "enabled: false" is left as it is.
+- The machine network is the network on which the VMs are created. Be sure to specify the right machine network if you set enabled: true
+* The `proxy` key and it's child keys are for configuring cluster-wide proxy settings
+* The `registry` key and it's child keys are for configuring offline or disconnected registries for clusters in restricted networks
+* The `ntp` key and it's child keys are for configuring time servers to keep the cluster in sync
+
+
+
+=== Set Ansible Inventory and Configuration
+
+Now configure `ansible.cfg` and `staging` inventory file based on your environment before picking one of the 5 different install options listed below.
+
+==== Update the `staging` inventory file
+Under the `webservers.hosts` entry, use one of two options below:
+
+   1. **localhost** : if the `ansible-playbook` is being run on the same host  as the webserver that would eventually host bootstrap.ign file
+   2. the IP address or FQDN of the machine that would run the webserver.
+
+==== Update the `ansible.cfg` based on your needs
+
+* Running the playbook as a **root** user
+- If the localhost runs the webserver
+----
+    [defaults]
+    host_key_checking = False
+----
+- If the remote host runs the webserver
+----
+    [defaults]
+    host_key_checking = False
+    remote_user = root
+    ask_pass = True
+----
+* Running the playbook as a **non-root** user
+- If the localhost runs the webserver
+----
+    [defaults]
+    host_key_checking = False
+
+    [privilege_escalation]
+    become_ask_pass = True
+----
+- If the remote host runs the webserver
+----
+    [defaults]
+    host_key_checking = False
+    remote_user = root
+    ask_pass = True
+
+    [privilege_escalation]
+    become_ask_pass = True
+----
+
+=== Run Installation Playbook
+
+
+.Static IPs
+----
+# Option 1: Static IPs + use of OVA template
+ansible-playbook -i staging -e cluster=[cluster_name] static_ips_ova.yml
+
+# Option 2: ISO + Static IPs
+ansible-playbook -i staging -e cluster=[cluster_name] static_ips.yml
+----
+
+.DHCP - Refer to restricted.adoc[] file for more details
+----
+# Option 3: DHCP + use of OVA template
+ansible-playbook -i staging -e cluster=[cluster_name] dhcp_ova.yml
+
+# Option 4: DHCP + PXE boot
+ansible-playbook -i staging -e cluster=[cluster_name] dhcp_pxe.yml
+----
+
+.Restricted Networks - Refer to restricted.adoc file for more details
+----
+# Option 5: DHCP + use of OVA template in a Restricted Network
+ansible-playbook -i staging -e cluster=[cluster_name] restricted_dhcp_ova.yml
+
+# Option 6: Static IPs + use of ISO images in a Restricted Network
+ansible-playbook -i staging -e cluster=[cluster_name] restricted_static_ips.yml
+
+
+# Option 7: Static IPs + use of OVA template in a Restricted Network
+# Note: OpenShift 4.6 or higher required
+ansible-playbook -i staging -e cluster=[cluster_name] restricted_static_ips_ova.yml
+----
+
+
+=== Miscellaneous
+
+* If you are re-running the installation playbook make sure to blow away any existing VMs (in `ocp4` folder) listed below:
+- bootstrap
+- masters
+- workers
+- `rhcos-vmware` template (if not using the extra param as shown below)
+* If a template by the name `rhcos-vmware` already exists in vCenter, you want to reuse it and  skip the OVA **download** from Red Hat and **upload** into vCenter, use the following extra param.
+
+----
+  -e skip_ova=true
+----
+
+* If you would rather want to clean all folders `bin`, `downloads`, `install-dir` and re-download all the artifacts, append the following to the command you chose in the first step
+----
+  -e clean=true
+----
+
+=== Expected Outcome
+
+1. Necessary Linux packages installed for the installation. NOTE: support for Mac client to run this automation has been added but is not guaranteed to be complete
+2. SSH key-pair generated, with key `~/.ssh/ocp4` and public key `~/.ssh/ocp4.pub`
+3. Necessary folders [bin, downloads, downloads/ISOs, install-dir] created
+4. OpenShift client, install and .ova binaries downloaded to the **downloads** folder
+5. Unzipped versions of the binaries installed in the **bin** folder
+6. In the **install-dir** folder:
+   1. append-bootstrap.ign file with the HTTP URL of the **boostrap.ign** file
+   2. master.ign and worker.ign
+   3. base64 encoded files (append-bootstrap.64, master.64, worker.64) for (append-bootstrap.ign, master.ign, worker.ign) respectively. This step assumes you have **base64** installed and in your **$PATH**
+7. The **bootstrap.ign** is copied over to the web server in the designated location
+8. A folder is created in the vCenter under the mentioned datacenter and the template is imported
+9. The template file is edited to carry certain default settings and runtime parameters common to all the VMs
+10. VMs (bootstrap, master0-2, worker0-2) are generated in the designated folder and (in state of) **poweredon**
+
+== Post Install (Hybrid clusters)
+
+In the event that you need to add nodes to a hybrid cluster post install, there is a `new_worker_iso.yml` that can generate additional ISOs for new nodes. The requirements to this playbook are the same as the other playbooks here with 1 exception, you need to create a new `{{ clusters_folder }}/{{ cluster }}_additional_nodes.yaml` file.
+The format of that file is as follows:
+
+.Additional node file
+[source,yaml]
+----
+include::clusters/ocp-example_additional_nodes.yaml[]
+----
+
+By calling this file we override the node type arrays found in the main cluster file to either an empty array `[]` or an array of new nodes. This allows us to only create new ISOs not re-create any ISOs you have already created using the static_ips playbook and do not wish to re-create.
+
+NOTE: If you wish to re-create any previously created ISOs then make sure that the node is represented in this file as well when calling this playbook.
+
+NOTE: The role that we use for this playbook is a shared role and is used by the static_ips playbook as well. This means that we need the same variables defined in this playbook as we had defined in the static_ips playbook.
+
+.Example run
+----
+ansible-playbook -i staging -e "cluster=ocp-example" new_worker_isos.yml
+----
+
+== Final Check:
+
+If everything goes well you should be able validate the cluster using the included `validateCluster.yml` playbook.
+
+----
+$ ansible-playbook -i staging -e 'cluster=mycluster' -e "username=kubeadmin" -e "password=$(cat install-dir/auth/kubeadmin-password)" validateCluster.yml
+----
+
+
+You can also manually review with the following commands:
+
+.Manually review the cluster objects after install
+----
+oc --kubeconfig=$(pwd)/install-dir/auth/kubeconfig get nodes
+oc --kubeconfig=$(pwd)/install-dir/auth/kubeconfig co
+oc --kubeconfig=$(pwd)/install-dir/auth/kubeconfig get mcp
+oc --kubeconfig=$(pwd)/install-dir/auth/kubeconfig get csr
+----
+
+NOTE: You can also `export KUBECONFIG=$(pwd)/install-dir/auth/kubeconfig` rather than using `--kubeconfig=` on oc commands. Always remember to `unset KUBECONFIG` when done though to avoid corrupting your system:admin kubeconfig. It is the only copy of this special users kubeconfig.
+
+
+
+== In the works and wishlist (Call to arms)
+
+NOTE: Contributions are Welcomed!
+
+This repo is always in a state of development and as we all know OpenShift updates/changes can often break automation code. This means that we will from time to time need to update plays, tasks, and even vars to reflect these new changes. Also, this is a derived work and not all of the code has been thoroughly  tested (specifically restricted and dhcp requires updating). So please, do feel free to fork this code and contribute changes where needed!
+
+
+=== Actively in development
+
+* Code cleanup/refactoring
+
+=== Wishlist
+
+* More common roles and tasks and less duplication of code
+* One playbook to rule them all (using tags?)

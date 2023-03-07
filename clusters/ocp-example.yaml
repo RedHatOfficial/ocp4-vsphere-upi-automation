@@ -4,8 +4,8 @@ helper_vm_protocol: http
 config:
   provider: vsphere
   base_domain: mydomain.com
-  cluster_name: "{{ cluster }}"
-  cluster_version: "4.11.22" # Can also be in format latest-4.11
+  cluster_name: "{{ cluster }}" # Can also be in format latest-4.11
+  cluster_version: "4.10.28"
   ignition_version: "3.2.0"
   fips: false
   #networkType: OVNKubernetes
@@ -19,8 +19,8 @@ vcenter:
   datastore: datastore1
   iso_dir: ocp_install_isos
   network: "VM Network"
-  username: vsphere_admin_user #[CHANGE ME]
-  password: vsphere_admin_pass #[CHANGE ME]
+  # username: [CHANGE ME]
+  # password: [CHANGE ME]
   datacenter: 'dc1'
   template_name: rhcos-vmware
   hw_version: 15
@@ -29,26 +29,26 @@ download:
   clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ config.cluster_version }}"
 nodes:
   - { name: "bootstrap", type: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120}
-  - { name: "master0", type: "master", macaddr: "00:50:56:be:1a:81", ipaddr: "192.168.1.81", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "master1", type: "master", macaddr: "00:50:56:be:1a:82", ipaddr: "192.168.1.82", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "master2", type: "master", macaddr: "00:50:56:be:1a:83", ipaddr: "192.168.1.83", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "worker0", type: "worker", macaddr: "00:50:56:be:1a:91", ipaddr: "192.168.1.91", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "worker1", type: "worker", macaddr: "00:50:56:be:1a:92", ipaddr: "192.168.1.92", cpu: 8, ram: 16384, size_gb: 120}
-  - { name: "worker2", type: "worker", macaddr: "00:50:56:be:1a:93", ipaddr: "192.168.1.93", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master0", type: "master", macaddr: "00:50:56:be:1a:89", ipaddr: "192.168.1.43", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master1", type: "master", macaddr: "00:50:56:be:4c:49", ipaddr: "192.168.1.44", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master2", type: "master", macaddr: "00:50:56:be:1d:17", ipaddr: "192.168.1.45", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "worker0", type: "worker", macaddr: "00:50:56:be:d3:cb", ipaddr: "192.168.1.48", cpu: 4, ram: 16384, size_gb: 120}
+  - { name: "worker1", type: "worker", macaddr: "00:50:56:be:0f:22", ipaddr: "192.168.1.49", cpu: 4, ram: 16384, size_gb: 120}
+  - { name: "worker2", type: "worker", macaddr: "00:50:56:be:42:8a", ipaddr: "192.168.1.50", cpu: 4, ram: 16384, size_gb: 120}
 static_ip:
   gateway: 192.168.1.1
   netmask: 255.255.255.0
   dns: 192.168.1.250
   network_interface_name: ens192
 network_modifications:
-  enabled: false
-  # clusterNetwork:
-  # - cidr: 100.68.0.0/14
-  #   hostPrefix: 23
-  # serviceNetwork:
-  # - cidr: 100.66.0.0/15
-  # machineNetwork:
-  # - cidr: 192.168.1.0/21
+  enabled: true
+  clusterNetwork:
+  - cidr: 100.68.0.0/14
+    hostPrefix: 23
+  serviceNetwork:
+  - cidr: 100.66.0.0/15
+  machineNetwork:
+  - cidr: 192.168.1.0/21
 proxy:
   enabled: false
   # http_proxy: "http://internet.mydomain.com:8080"
@@ -62,8 +62,8 @@ registry:
   enabled: false
   # product_repo: openshift-release-dev
   # product_release_name: ocp-release
-  # username: artifactory-user #[CHANGE ME]
-  # password: artifactory-pass #[CHANGE ME]
+  # username: artifactory-user # Change Me
+  # password: artifactory-pass # Change Me
   # email: user@mydomain.com
   # cert_content:
   # host: artifactory.mydomain.com
@@ -71,7 +71,7 @@ registry:
   # repo: ocp/openshift4
   # disconnected: true
 ntp:
-  custom: false
-  # ntp_server_list:
-  #   - ntp1.mydomain.com
-  #   - ntp2.mydomain.com
+  custom: true
+  ntp_server_list:
+    - ntp1.mydomain.com
+    - ntp2.mydomain.com

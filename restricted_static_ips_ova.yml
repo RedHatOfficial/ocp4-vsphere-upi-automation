@@ -2,6 +2,12 @@
 - hosts: localhost
   gather_facts: True
   tasks:
+    - name: Initial setup and checks
+      import_role:
+        name: setup
+      tags:
+      - always
+
     - name: Set the cache of all the download links
       import_role:
         name: cache
@@ -20,10 +26,10 @@
   gather_facts: False
   tasks:
     - name: Run the setup tasks for a restricted environment
-      when: registry.create_registry
       import_role:
         name: restricted
         tasks_from: setup_registry
+      when: registry.enabled | bool and registry.disconnected | bool
 
 - hosts: localhost
   gather_facts: False
@@ -32,6 +38,7 @@
       import_role:
         name: restricted
         tasks_from: utilize_registry
+      when: registry.enabled | bool and registry.disconnected | bool
 
 - hosts: localhost
   gather_facts: False
@@ -47,18 +54,18 @@
   gather_facts: False
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
-    GOVC_USERNAME: "{{ vcenter.admin_username }}"
-    GOVC_PASSWORD: "{{ vcenter.admin_password }}"
-    GOVC_URL: "https://{{ vcenter.ip }}"
-    GOVC_DATACENTER: "{{ datacenter }}"
-    GOVC_INSECURE: 1
   tasks:
-    - name: Run the vmware role to setup vCenter folder
+    - name: Create the DHCP based VMs
+      environment:
+        GOVC_USERNAME: "{{ vcenter.username }}"
+        GOVC_PASSWORD: "{{ vcenter.password }}"
+        GOVC_URL: "https://{{ vcenter.ip }}"
+        GOVC_DATACENTER: "{{ vcenter.datacenter }}"
+        GOVC_INSECURE: 1
+      vars:
+        static: true
       import_role:
-        name: vmware
-    - name: Run steps specific to DHCP and the use of an OVA file
-      import_role:
-        name: static_ips_ova
+        name: vsphere_vm
 
     - name: Run steps to finish cluster install
       import_role:

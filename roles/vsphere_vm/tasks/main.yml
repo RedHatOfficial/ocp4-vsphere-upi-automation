@@ -1,0 +1,43 @@
+- name: Create the vCenter folder by the same name as the cluster, only if it doesn't exist
+  community.vmware.vcenter_folder:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter_name: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder_name: "{{ cluster }}"
+    folder_type: vm
+    state: present
+
+- name: Encode node ignition files
+  set_fact:
+    masterContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/master.ign') | b64encode }}"
+    workerContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/worker.ign') | b64encode }}"
+    bootstrapContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/bootstrap.ign') | b64encode }}"
+
+- name: "Bootstrap base64"
+  debug:
+    msg: "{{ bootstrapContent }}"
+    verbosity: 1
+
+- name: "Master base64"
+  debug:
+    msg: "{{ masterContent }}"
+    verbosity: 1
+
+- name: "Worker base64 "
+  debug:
+    msg: "{{ workerContent }}"
+    verbosity: 1
+
+- name: Download the OVA file to create the VM
+  include_tasks:
+    file: get_ova.yml
+
+- name: Create VMs
+  vars:
+    ip_alloc: "{% if dhcp | default(false) %}dhcp{% else %}static{% endif %}"
+    medium: "{% if iso | default(false) | bool %}iso{% else %}ova{% endif %}"
+    name: "{% if ip_alloc == 'dhcp' %}{{ ip_alloc }}-{% else %}{{ ip_alloc }}-{{ medium }}{% endif %}.yml"
+  include_tasks:
+    file: "{{ name }}"

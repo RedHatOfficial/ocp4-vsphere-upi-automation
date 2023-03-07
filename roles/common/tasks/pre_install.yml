@@ -2,7 +2,7 @@
   assert:
     that:
       - config.networkType in [ 'OpenShiftSDN', 'OVNKubernetes' ]
-    fail_msg: 
+    fail_msg:
       - config.networkType = {{ config.networkType }}
       - config.networkType must be OpenShiftSDN or OVNKubernetes
     success_msg: config.network is valid
@@ -12,7 +12,7 @@
   assert:
     that:
       - config.isolationMode in [ 'NetworkPolicy', 'Multitenant', 'Subnet' ]
-    fail_msg: 
+    fail_msg:
       - config.isolationMode = {{ config.isolationMode }}
       - config.isolationMode must be NetworkPolicy, Multitenant, or Subnet
     success_msg: config.isolationMode is valid
@@ -26,8 +26,12 @@
 
 - name: Generate a SSH key-pair
   openssh_keypair:
-    path: ~/.ssh/ocp4
+    path: "~/.ssh/{{ cluster }}_id_rsa"
     force: false
+
+- name: Set installer ssh key variable
+  set_fact:
+    installer_ssh_key: "{{ lookup('file', '~/.ssh/{{ cluster }}_id_rsa.pub') }}"
 
 - name: Set the datacenter variable
   set_fact:
@@ -63,9 +67,13 @@
   when: ansible_python_version is match("3.*") and ansible_os_family != 'Darwin'
   become: true
 
-- name: Install pyvmomi
+- name: Install Python Modules
   pip:
-    name: pyvmomi
+    name: "{{ item }}"
+    extra_args: --user
+  loop:
+    - pyvmomi
+    - requests
 
 - name: Clean up existing bin, install-dir and downloads folders
   file:

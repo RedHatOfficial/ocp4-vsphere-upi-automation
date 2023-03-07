@@ -1,7 +1,9 @@
 all:
   hosts:
     localhost:
+        clusters_folder: clusters
         ansible_connection: local
+        ansible_python_interpreter: /usr/bin/python
   children:
     webservers:
       hosts:

@@ -1,0 +1,43 @@
+---
+- hosts: all
+  gather_facts: True
+  tasks:
+    - name: Initial setup and checks
+      import_role:
+        name: setup
+      tags:
+      - always
+
+    - name: Check for additional nodes file
+      stat:
+        path: "{{ clusters_folder }}/{{ cluster }}_additional_nodes.yaml"
+      register: nodes_file
+
+    - fail:
+        msg: "Bailing out: nodes file is not found in the '{{ clusters_folder }}' folder"
+      when: not nodes_file.stat.exists
+
+    - include_vars: "{{ clusters_folder }}/{{ cluster }}_additional_nodes.yaml"
+
+    - name: Fetch the content of the sha256sum.txt from the dependencies downloads page
+      uri:
+        url: "{{ download.dependencies_url }}/sha256sum.txt"
+        return_content: yes
+      register: dependencies_content
+
+    - name:  Set the download facts for localhost, which will be used later
+      set_fact:
+        download: "{{ download | combine({ item.key : item.value }, recursive=True) }}"
+      when: inventory_hostname == "localhost"
+      loop:
+        - { key: "iso", value: "{{ download.dependencies_url }}/{{ dependencies_content.content | regex_search('rhcos.*.iso') }}" }
+
+
+- hosts: localhost
+  gather_facts: False
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - name: Create webserver paths for the cluster
+      import_role:
+        name: node_isos
