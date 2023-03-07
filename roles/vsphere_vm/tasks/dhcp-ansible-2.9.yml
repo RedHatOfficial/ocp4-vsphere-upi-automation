@@ -20,7 +20,7 @@
       memory_reservation_lock: True
       version: "{{ vcenter.hw_version }}"
     wait_for_ip_address: no
-    advanced_settings:
+    customvalues:
     - key: guestinfo.ignition.config.data
       value: "{{ bootstrapContent if item.type == 'bootstrap' else masterContent }}"
     - key: guestinfo.ignition.config.data.encoding
