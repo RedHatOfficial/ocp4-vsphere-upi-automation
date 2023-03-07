@@ -42,7 +42,7 @@
     wait_for_ip_address: no
     customvalues:
       - key: guestinfo.ignition.config.data
-        value: "{% if item.type == 'bootstrap' %}{{ bootstrapContent }}{% else %}{{ masterContent }}{% endif %}"
+        value: "{{ bootstrapContent if item.type == 'bootstrap' else masterContent }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
       - key: disk.EnableUUID
