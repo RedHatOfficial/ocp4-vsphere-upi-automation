@@ -38,7 +38,6 @@
   vars:
     ip_alloc: "{% if dhcp | default(false) %}dhcp{% else %}static{% endif %}"
     medium: "{% if iso | default(false) | bool %}iso{% else %}ova{% endif %}"
-    version: "{% if ansible_version.full is version('2.10.0', '>=') %}2.12{% else %}2.9{% endif %}"
-    name: "{% if ip_alloc == 'dhcp' %}{{ ip_alloc }}-{% else %}{{ ip_alloc }}-{{ medium }}-{% endif %}ansible-{{ version }}.yml"
+    name: "{% if ip_alloc == 'dhcp' %}{{ ip_alloc }}-{% else %}{{ ip_alloc }}-{{ medium }}{% endif %}.yml"
   include_tasks:
     file: "{{ name }}"
