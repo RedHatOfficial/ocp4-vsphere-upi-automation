@@ -1,3 +1,7 @@
+- name: Set ova template name
+  set_fact:
+    vcenter: "{{ vcenter | combine({'template_name': 'rhcos-vmware-' +  download.ova | regex_search('4.[0-9]+.[0-9]+') + '.ova'}, recursive=True) }}"
+    
 - name: Download the ova file
   get_url:
     url: "{{ download.ova }}"
