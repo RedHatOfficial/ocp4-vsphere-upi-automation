@@ -34,8 +34,8 @@ NOTE: In your cluster vars file created in step 2 you only need to add override 
 4. The necessary services such as [DNS/DHCP/LB(Load Balancer)] must be up and running before this repo can be used
 5. Python 3+ and the following modules installed
 * `*openshift*`
-* `*ansible*` (provides ansible binaries)
-6. Ansible Galaxy modules
+6. Ansible 2.11+
+7. Ansible Galaxy modules
 * `*kubernetes.core*`
 * `*community.general*`
 * `community.crypto`
