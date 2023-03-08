@@ -1,7 +1,7 @@
 = OCP 4.x VMware vSphere and Hybrid UPI Automation
 :toc:
 
-NOTE: This repository was derived from the original works of Mike Allman located in the https://github.com/RedHatOfficial/ocp4-vsphere-upi-automation[Official Red Hat Official GitHub repo]
+NOTE: This repository was derived from the original works of Mike Allmen and Vijay Chintalapati located in the https://github.com/RedHatOfficial/ocp4-vsphere-upi-automation[Official Red Hat Official GitHub repo]
 
 The goal of this repo is to automate the deployment (and redeployment) of OpenShift v4 clusters. Using the same repo and with minor tweaks, it can be applied to any version of OpenShift higher than 4.4. As it stands right now, the repo works for several installation use cases:
 
@@ -38,7 +38,8 @@ NOTE: In your cluster vars file created in step 2 you only need to add override 
 7. Ansible Galaxy modules
 * `*kubernetes.core*`
 * `*community.general*`
-* `community.crypto`
+* `*community.crypto*`
+* `community.vsphere*`
 
 == Installation Steps
 
