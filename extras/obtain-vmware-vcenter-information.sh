@@ -1,9 +1,6 @@
 #!/usr/bin/sh
 
-export GOVC_USERNAME=administrator@vsphere.local
-export GOVC_PASSWORD=WeirdPassword
-export GOVC_URL=https://192.168.86.100 # vCenter URL
-export GOVC_INSECURE=1
+. $(pwd)/chk_creds.sh
 
 echo "=== vCenter Version ==="
 govc about
