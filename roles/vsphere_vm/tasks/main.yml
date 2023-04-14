@@ -7,6 +7,7 @@
     validate_certs: no
     folder_name: "{{ cluster }}"
     folder_type: vm
+    parent_folder: "{{ parent_folder }}"
     state: present
 
 - name: Encode node ignition files
