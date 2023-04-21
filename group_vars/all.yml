@@ -71,6 +71,7 @@ registry:
   # disconnected: true
 ntp:
   custom: false
+  # maxdistance: 16
   # ntp_server_list:
   #   - ntp1.mydomain.com
   #   - ntp2.mydomain.com
