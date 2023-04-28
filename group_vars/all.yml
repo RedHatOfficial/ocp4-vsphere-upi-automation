@@ -34,6 +34,10 @@ nodes:
   - { name: "worker0", type: "worker", macaddr: "00:50:56:be:1a:91", ipaddr: "192.168.1.91", cpu: 8, ram: 16384, size_gb: 120}
   - { name: "worker1", type: "worker", macaddr: "00:50:56:be:1a:92", ipaddr: "192.168.1.92", cpu: 8, ram: 16384, size_gb: 120}
   - { name: "worker2", type: "worker", macaddr: "00:50:56:be:1a:93", ipaddr: "192.168.1.93", cpu: 8, ram: 16384, size_gb: 120}
+vm_mods:
+  hotadd_cpu: true
+  hotremove_cpu: true
+  hotadd_memory: true
 static_ip:
   gateway: 192.168.1.1
   netmask: 255.255.255.0
