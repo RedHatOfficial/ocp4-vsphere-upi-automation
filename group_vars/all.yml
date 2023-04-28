@@ -27,13 +27,17 @@ download:
   govc: "https://github.com/vmware/govmomi/releases/download/v0.30.0"
   clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ config.cluster_version }}"
 nodes:
-  - { name: "bootstrap", type: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120, hotadd_cpu: true, hotremove_cpu: true, hotadd_memory: true }
-  - { name: "master0", type: "master", macaddr: "00:50:56:be:1a:81", ipaddr: "192.168.1.81", cpu: 8, ram: 16384, size_gb: 120, hotadd_cpu: true, hotremove_cpu: true, hotadd_memory: true}
-  - { name: "master1", type: "master", macaddr: "00:50:56:be:1a:82", ipaddr: "192.168.1.82", cpu: 8, ram: 16384, size_gb: 120, hotadd_cpu: true, hotremove_cpu: true, hotadd_memory: true}
-  - { name: "master2", type: "master", macaddr: "00:50:56:be:1a:83", ipaddr: "192.168.1.83", cpu: 8, ram: 16384, size_gb: 120, hotadd_cpu: true, hotremove_cpu: true, hotadd_memory: true}
-  - { name: "worker0", type: "worker", macaddr: "00:50:56:be:1a:91", ipaddr: "192.168.1.91", cpu: 8, ram: 16384, size_gb: 120, hotadd_cpu: true, hotremove_cpu: true, hotadd_memory: true}
-  - { name: "worker1", type: "worker", macaddr: "00:50:56:be:1a:92", ipaddr: "192.168.1.92", cpu: 8, ram: 16384, size_gb: 120, hotadd_cpu: true, hotremove_cpu: true, hotadd_memory: true}
-  - { name: "worker2", type: "worker", macaddr: "00:50:56:be:1a:93", ipaddr: "192.168.1.93", cpu: 8, ram: 16384, size_gb: 120, hotadd_cpu: true, hotremove_cpu: true, hotadd_memory: true}
+  - { name: "bootstrap", type: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120}
+  - { name: "master0", type: "master", macaddr: "00:50:56:be:1a:81", ipaddr: "192.168.1.81", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master1", type: "master", macaddr: "00:50:56:be:1a:82", ipaddr: "192.168.1.82", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "master2", type: "master", macaddr: "00:50:56:be:1a:83", ipaddr: "192.168.1.83", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "worker0", type: "worker", macaddr: "00:50:56:be:1a:91", ipaddr: "192.168.1.91", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "worker1", type: "worker", macaddr: "00:50:56:be:1a:92", ipaddr: "192.168.1.92", cpu: 8, ram: 16384, size_gb: 120}
+  - { name: "worker2", type: "worker", macaddr: "00:50:56:be:1a:93", ipaddr: "192.168.1.93", cpu: 8, ram: 16384, size_gb: 120}
+vm_mods:
+  hotadd_cpu: true
+  hotremove_cpu: true
+  hotadd_memory: true
 static_ip:
   gateway: 192.168.1.1
   netmask: 255.255.255.0

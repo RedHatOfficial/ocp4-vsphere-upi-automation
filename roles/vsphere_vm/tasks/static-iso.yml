@@ -34,8 +34,8 @@
       memory_reservation_lock: True
       version: "{{ vcenter.hw_version }}"
       hotadd_cpu: "{{ item.hotadd_cpu | default(omit) }}"
-      hotremove_cpu: "{{ item.hotremove_cpu | default(omit) }}"
-      hotadd_memory: "{{ item.hotadd_memory | default(omit) }}"
+      hotremove_cpu: "{{ vm_mods.hotremove_cpu | default(omit) }}"
+      hotadd_memory: "{{ vm_mods.hotadd_memory | default(omit) }}"
     cdrom:
     - state: present
       controller_number: 0
@@ -111,9 +111,9 @@
       unit_number: 0
       type: iso
       iso_path: "[{{ vcenter.datastore }}] {{ vcenter.iso_dir }}/{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}.iso"
-      hotadd_cpu: "{{ item.hotadd_cpu | default(omit) }}"
-      hotremove_cpu: "{{ item.hotremove_cpu | default(omit) }}"
-      hotadd_memory: "{{ item.hotadd_memory | default(omit) }}"
+      hotadd_cpu: "{{ vm_mods.hotadd_cpu | default(omit) }}"
+      hotremove_cpu: "{{ vm_mods.hotremove_cpu | default(omit) }}"
+      hotadd_memory: "{{ vm_mods.hotadd_memory | default(omit) }}"
     wait_for_ip_address: no
     advanced_settings:
       - key: guestinfo.ignition.config.data
