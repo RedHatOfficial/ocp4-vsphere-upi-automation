@@ -34,6 +34,10 @@ nodes:
   - { name: "worker0", type: "worker", macaddr: "00:50:56:be:d3:cb", ipaddr: "192.168.1.48", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2}
   - { name: "worker1", type: "worker", macaddr: "00:50:56:be:0f:22", ipaddr: "192.168.1.49", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2}
   - { name: "worker2", type: "worker", macaddr: "00:50:56:be:42:8a", ipaddr: "192.168.1.50", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2}
+vm_mods:
+  hotadd_cpu: true
+  hotremove_cpu: true
+  hotadd_memory: true
 static_ip:
   gateway: 192.168.1.1
   netmask: 255.255.255.0
@@ -71,6 +75,7 @@ registry:
   # disconnected: true
 ntp:
   custom: true
+  maxdistance: 16
   ntp_server_list:
     - ntp1.mydomain.com
     - ntp2.mydomain.com
