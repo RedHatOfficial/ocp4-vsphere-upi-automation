@@ -1,3 +1,35 @@
+- name: Check if parent folders exist (and create if needed)
+  block:
+    - name: Split path into parts
+      set_fact:
+        path_parts: "{{ parent_folder.split('/') |reject('match', '^$') }}"
+
+    - name: Debug path_parts
+      debug:
+        var: path_parts
+
+    - name: Build list of pairs (folder+parent)
+      set_fact:
+        path_pairs: "{{ path_pairs | default([]) + [pair] }}"
+      loop: "{{ range(path_parts|length) }}"
+      vars:
+        path_prefix: "{{ path_parts[:item]|join('/') }}"
+        pair: "{{ [path_parts[item], '/' ~ path_prefix] }}"
+
+    - name: Create the vCenter folder by the same name as the cluster, only if it doesn't exist
+      community.vmware.vcenter_folder:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.username }}"
+        password: "{{ vcenter.password }}"
+        datacenter_name: "{{ vcenter.datacenter }}"
+        validate_certs: no
+        folder_name: "{{ item[0] }}"
+        folder_type: vm
+        parent_folder: "{{ item[1] if item[1] not in ['', '/'] else omit }}"
+        state: present
+      loop: "{{ path_pairs }}"
+  when: vcenter.parent_folder is defined and vcenter.parent_folder is string
+
 - name: Create the vCenter folder by the same name as the cluster, only if it doesn't exist
   community.vmware.vcenter_folder:
     hostname: "{{ vcenter.ip }}"
