@@ -1,6 +1,6 @@
 bootstrap_vms: []
 master_vms: []
 worker_vms:
-  - { name: "worker3", macaddr: "00:50:56:be:d3:cb", ipaddr: "192.168.1.51", cpu: 4, ram: 16384, size_gb: 120}
-  - { name: "worker4", macaddr: "00:50:56:be:0f:22", ipaddr: "192.168.1.52", cpu: 4, ram: 16384, size_gb: 120}
-  - { name: "worker5", macaddr: "00:50:56:be:42:8a", ipaddr: "192.168.1.53", cpu: 4, ram: 16384, size_gb: 120}
+  - { name: "worker3", macaddr: "00:50:56:be:d3:cb", ipaddr: "192.168.1.51", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2}
+  - { name: "worker4", macaddr: "00:50:56:be:0f:22", ipaddr: "192.168.1.52", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2}
+  - { name: "worker5", macaddr: "00:50:56:be:42:8a", ipaddr: "192.168.1.53", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2}

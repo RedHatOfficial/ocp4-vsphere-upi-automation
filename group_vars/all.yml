@@ -37,7 +37,9 @@ nodes:
 vm_mods:
   hotadd_cpu: true
   hotremove_cpu: true
-  hotadd_memory: true
+  hotadd_memory: 
+  master_cores_per_socket: 2
+  worker_cores_per_socket: 2
 static_ip:
   gateway: 192.168.1.1
   netmask: 255.255.255.0

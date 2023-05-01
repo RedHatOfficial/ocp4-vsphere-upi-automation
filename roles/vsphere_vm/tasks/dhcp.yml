@@ -17,6 +17,7 @@
     hardware:
       memory_mb: "{{ item.ram | default(16384) }}"
       num_cpus: "{{ item.cpu | default(4) }}"
+      num_cpu_cores_per_socket: "{{ vm_mods.master_cores_per_socket | default(omit) }}"
       memory_reservation_lock: True
       version: "{{ vcenter.hw_version }}"
       hotadd_cpu: "{{ vm_mods.hotadd_cpu | default(omit) }}"
@@ -84,6 +85,7 @@
     hardware:
       memory_mb: "{{ item.ram | default(16384) }}"
       num_cpus: "{{ item.cpu | default(4) }}"
+      num_cpu_cores_per_socket: "{{ vm_mods.worker_cores_per_socket | default(omit) }}"
       memory_reservation_lock: True
       version: "{{ vcenter.hw_version }}"
       hotadd_cpu: "{{ vm_mods.hotadd_cpu | default(omit) }}"
