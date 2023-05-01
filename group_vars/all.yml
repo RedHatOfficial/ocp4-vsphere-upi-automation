@@ -19,6 +19,7 @@ vcenter:
   datastore: datastore1
   iso_dir: ocp_install_isos
   network: "VM Network"
+  parent_folder: "/parent/folder/"
   username: vsphere_admin_user #[CHANGE ME]
   password: vsphere_admin_pass #[CHANGE ME]
   datacenter: 'dc1'

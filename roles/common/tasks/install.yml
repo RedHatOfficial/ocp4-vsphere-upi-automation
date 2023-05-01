@@ -31,23 +31,3 @@
 
 - name: Generate the ignition configs
   command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir" # noqa 301
-
-- name: Get Cluster infraID
-  command: jq -r .infraID "{{ playbook_dir }}/install-dir/metadata.json"
-  register: infraID
-  when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
-
-- name: Set the vcenter.infraID fact
-  set_fact:
-    vcenter_folder: "{{ infraID.stdout }}"
-  when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
-
-- name: Set the vcenter.folder_absolute_path if not provided
-  set_fact:
-    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+datacenter+'/vm/'+vcenter_folder}, recursive=True) }}"
-  when: vcenter.folder_absolute_path is defined and vcenter.folder_absolute_path | type_debug == "NoneType"
-
-- name: Display the absolute folder path of the vCenter folder
-  debug:
-    var: vcenter.folder_absolute_path
-    verbosity: 1

@@ -13,10 +13,20 @@
 
 - include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
 
+- block:
+    - name: Check if parent folder looks correct 
+      fail:
+        msg: "Bailing out: vcenter.parent_folder does not look like a correct path '{{ vcenter.parent_folder }}' (cannot be just /)"
+      when: vcenter.parent_folder is not match('^\/?[a-zA-Z0-9_ -]+(\/[a-zA-Z0-9_ -]+)*\/?$')
+
+    - set_fact:
+        parent_folder: "{{ vcenter.parent_folder | regex_replace('^/', '') | regex_replace('/$', '') }}/"
+  when: vcenter.parent_folder is defined and vcenter.parent_folder
+
 - set_fact:
     webserverUri:  "{{ helper_vm_protocol }}://{{ helper_vm }}{% if helper_vm_port != 80 %}:{{ helper_vm_port }}{% endif %}"
     bootstrap_ignition_url: "{{ helper_vm_protocol }}://{{ helper_vm }}{% if helper_vm_port != 80 %}:{{ helper_vm_port }}{% endif %}/{{ cluster }}/ignition/bootstrap.ign"
-    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+ vcenter.datacenter + '/vm/' + cluster}, recursive=True) }}"
+    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+ vcenter.datacenter + '/vm/' + parent_folder | default('') + cluster}, recursive=True) }}"
 
 - name: Update config.cluster_base_version var
   vars:
@@ -70,3 +80,8 @@
   loop: "{{ nodes }}"
   loop_control:
     label: "{{ item.name }}"
+
+- name: Display the absolute folder path of the vCenter folder
+  debug:
+    var: vcenter.folder_absolute_path
+    verbosity: 0
