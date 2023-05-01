@@ -49,7 +49,7 @@ Pre-populated entries in **group_vars/all.yml** are used as default values, to c
 Any updates described below refer to changes made in cluster files (See: link:clusters/ocp-example.yml[example cluster file]) unless otherwise specified.
 
 .Default Values (Too much detail? Click here)
-[%collapsible%]
+[%collapsible]
 ----
 include::group_vars/all.yml[]
 ----
