@@ -48,11 +48,11 @@ NOTE: In your cluster vars file created in step 2 you only need to add override 
 Pre-populated entries in **group_vars/all.yml** are used as default values, to customize further you need to create a cluster file under the clusters folder.
 Any updates described below refer to changes made in cluster files (See: link:clusters/ocp-example.yml[example cluster file]) unless otherwise specified.
 
-.Default Values (Too much detail? Click here)
-[%collapsible]
-----
+.Default Values (Too much detail? Click here.)
+[%collapsible%open]
+====
 include::group_vars/all.yml[]
-----
+====
 
 
 * The `helper_vm_ip` is used to build the `bootstrap_ignition_url` and the `no_proxy` values if there is a proxy in the environment. The ``
