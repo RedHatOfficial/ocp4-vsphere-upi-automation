@@ -59,7 +59,7 @@ include::group_vars/all.yml[]
 * The `config` key and it's child keys are for cluster settings
 * The `nodes` key is how you define the nodes, this array will get further split by *type* as set in each node object.
 - If you delete macaddr from the node dictionaries VMware will auto-generate your MAC addresses. If you are using DHCP, defining macaddr will allow you to reserve the specified IP addresses on your DHCP server to ensure the OpenShift nodes always get the same IP address.
-* The `vm_mods` key allows you to specify hotadd and core_per_socket options on the vms.
+* The `vm_mods` key allows you to specify hotadd and core_per_socket options on the vms.  These settings are optional.
 * The `static_ips` key and it's child keys are used for non-DHCP configurations.
 * The `network_modifications` key Network CIDRs default to sensible ranges. If a conflict is present (these ranges of addresses are assigned elsewhere in the organization), you may select other non-conflicting CIDR ranges by changing "enabled: false" to "enabled: true" and entering the new ranges. The ranges shown in the repository are the ones that are used by default, even if "enabled: false" is left as it is.
 - The machine network is the network on which the VMs are created. Be sure to specify the right machine network if you set enabled: true
