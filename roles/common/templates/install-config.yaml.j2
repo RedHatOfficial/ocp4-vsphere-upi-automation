@@ -42,9 +42,9 @@ pullSecret: '{{ config.pull_secret | to_json }}'
 sshKey: '{{ installer_ssh_key }}'
 {% if proxy is defined and proxy.enabled == true %}
 proxy:
-  http_proxy: {{ proxy.http_proxy }}
-  https_proxy: {{ proxy.https_proxy }}
-  no_proxy: {{ proxy.no_proxy }}
+  httpProxy: {{ proxy.http_proxy }}
+  httpsProxy: {{ proxy.https_proxy }}
+  noProxy: {{ proxy.no_proxy }}
 {% endif %}
 {% if registry is defined and registry.disconnected is defined and registry.disconnected == true %}
 imageContentSources:
