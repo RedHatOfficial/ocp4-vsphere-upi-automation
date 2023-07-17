@@ -71,6 +71,6 @@
   vars:
     ip_alloc: "{% if dhcp | default(false) %}dhcp{% else %}static{% endif %}"
     medium: "{% if iso | default(false) | bool %}iso{% else %}ova{% endif %}"
-    name: "{% if ip_alloc == 'dhcp' %}{{ ip_alloc }}-{% else %}{{ ip_alloc }}-{{ medium }}{% endif %}.yml"
+    name: "{% if ip_alloc == 'dhcp' %}{{ ip_alloc }}{% else %}{{ ip_alloc }}-{{ medium }}{% endif %}.yml"
   include_tasks:
     file: "{{ name }}"
