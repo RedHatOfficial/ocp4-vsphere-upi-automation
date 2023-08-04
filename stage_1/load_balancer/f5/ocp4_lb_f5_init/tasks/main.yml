@@ -1,0 +1,104 @@
+---
+- name: Rollback if requested
+  ansible.builtin.include_tasks:
+    file: rollback.yml
+  when: rollback | default(false)
+
+- name: Configure F5
+  block:
+
+    - name: Create API Pool
+      f5networks.f5_modules.bigip_pool:
+        provider: "{{ provider }}"
+        name: "{{ api_vip.pool_name }}"
+        lb_method: round-robin
+        monitors: /Common/tcp
+        monitor_type: and_list
+      delegate_to: localhost
+
+    - name: Create and add API Pool Members
+      f5networks.f5_modules.bigip_pool_member:
+        provider: "{{ provider }}"
+        pool: "{{ api_vip.pool_name }}"
+        name: "{{ item.key }}"
+        address: "{{ item.value.address }}"
+        port: "6443"
+      delegate_to: localhost
+      with_dict: "{{ api_vip.nodes }}"
+
+    - name: Create F5 API VIP
+      f5networks.f5_modules.bigip_virtual_server:
+        provider: "{{ provider }}"
+        description: "{{ api_vip.description }}"
+        destination: "{{ api_vip.vip_address }}"
+        name: "{{ api_vip.vip_name }}"
+        pool: "{{ api_vip.pool_name }}"
+        port: "6443"
+        snat: "{{ api_vip.vip_snat | default('automap') }}"
+      delegate_to: localhost
+
+    - name: Create APP HTTPS Pool
+      f5networks.f5_modules.bigip_pool:
+        provider: "{{ provider }}"
+        name: "{{ app_vip.pool_name }}-https"
+        lb_method: round-robin
+        monitors: /Common/tcp
+        monitor_type: and_list
+      delegate_to: localhost
+
+    - name: Create and add APP HTTPS Pool Members
+      f5networks.f5_modules.bigip_pool_member:
+        provider: "{{ provider }}"
+        pool: "{{ app_vip.pool_name }}-https"
+        name: "{{ item.key }}"
+        address: "{{ item.value.address }}"
+        port: "443"
+      delegate_to: localhost
+      with_dict: "{{ app_vip.nodes }}"
+
+    - name: Create F5 APP HTTPS VIP
+      f5networks.f5_modules.bigip_virtual_server:
+        provider: "{{ provider }}"
+        description: "{{ app_vip.description }}"
+        destination: "{{ app_vip.vip_address }}"
+        name: "{{ app_vip.vip_name }}-https"
+        pool: "{{ app_vip.pool_name }}-https"
+        port: "443"
+        snat: "{{ app_vip.vip_snat | default('automap') }}"
+      delegate_to: localhost
+
+
+    - name: Create APP HTTP Pool
+      f5networks.f5_modules.bigip_pool:
+        provider: "{{ provider }}"
+        name: "{{ app_vip.pool_name }}-http"
+        lb_method: round-robin
+        monitors: /Common/tcp
+        monitor_type: and_list
+      delegate_to: localhost
+
+    - name: Create and add APP HTTP Pool Members
+      f5networks.f5_modules.bigip_pool_member:
+        provider: "{{ provider }}"
+        pool: "{{ app_vip.pool_name }}-http"
+        name: "{{ item.key }}"
+        address: "{{ item.value.address }}"
+        port: "80"
+      delegate_to: localhost
+      with_dict: "{{ app_vip.nodes }}"
+
+    - name: Create F5 APP HTTPS VIP
+      f5networks.f5_modules.bigip_virtual_server:
+        provider: "{{ provider }}"
+        description: "{{ app_vip.description }}-http"
+        destination: "{{ app_vip.vip_address }}"
+        name: "{{ app_vip.vip_name }}-http"
+        pool: "{{ app_vip.pool_name }}-http"
+        port: "80"
+        snat: "{{ app_vip_http.vip_snat | default('automap') }}"
+      delegate_to: localhost
+
+  rescue:
+    - name: Deploy failed, rolling back
+      ansible.builtin.include_tasks:
+        file: rollback.yml
