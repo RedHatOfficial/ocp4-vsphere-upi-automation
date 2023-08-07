@@ -1,7 +1,7 @@
 Role Name
 =========
 
-A role for configuring the necessary components of an F5 Load Balancer for connectivity of an OpenShift 4 cluster.
+A role for configuring the necessary components of an F5 Load Balancer for initial connectivity of an OpenShift 4 cluster in a UPI install.
 
 Requirements
 ------------
@@ -29,39 +29,31 @@ provider:
 api_vip:
   vip_address: 9.9.9.9
   vip_name: "ocp4-api-vip"
-  vip_port: 6443
   vip_snat: "automap"
   description: "VIP-for_OpenShift_API"
   pool_name: "ocp4-api-pool"
   nodes:
     node1:
       address: "1.1.1.1"
-      port: 6443
     node2:
       address: "2.2.2.2"
-      port: 6443
     node3:
       address: "3.3.3.3"
-      port: 6443
 
-# a dictionary describing the https portion of the APPS VIP and its dependencies
-app_vip_https:
+# a dictionary describing APPS VIP and its dependencies
+app_vip:
   vip_address: 8.8.8.8
   vip_name: "ocp4-httpsapp-vip"
-  vip_port: 443
   vip_snat: "automap"
   description: "VIP-for_OpenShift_APPs_https"
   pool_name: "ocp4-https-app-pool"
   nodes:
     node1:
       address: "4.4.4.4"
-      port: 443
     node2:
       address: "5.5.5.5"
-      port: 443
     node3:
       address: "6.6.6.6"
-      port: 443
 
 # the configuration applied by this role can be rolled back by specifying the rollback variable
 rollback: true
@@ -93,4 +85,4 @@ BSD
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Brandon Marlow - Red Hat

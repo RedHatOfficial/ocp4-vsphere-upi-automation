@@ -1,0 +1,6 @@
+- name: AS3
+  hosts: '*'
+  gather_facts: false
+  connection: local
+  roles:
+    - ocp4_lb_f5_init
