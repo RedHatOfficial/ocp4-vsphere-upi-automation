@@ -1,0 +1,117 @@
+---
+- name: Rollback if requested
+  ansible.builtin.include_tasks:
+    file: rollback_f5.yml
+  when: f5.rollback | default(false)
+
+- name: Get F5 Hardware Data
+  f5networks.f5_modules.bigip_device_info:
+    provider: "{{ f5.provider }}"
+    gather_subset: sync-status
+  register: f5_info
+  delegate_to: localhost
+
+- name: Configure F5
+  block:
+
+    - name: Create API Pool
+      f5networks.f5_modules.bigip_pool:
+        provider: "{{ f5.provider }}"
+        name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
+        lb_method: round-robin
+        monitors: /Common/tcp
+        monitor_type: and_list
+      delegate_to: localhost
+
+    - name: Create and add API Pool Members
+      f5networks.f5_modules.bigip_pool_member:
+        provider: "{{ f5.provider }}"
+        pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
+        name: "{{ item.name }}.{{ config.base_domain }}"
+        address: "{{ item.ipaddr }}"
+        port: "6443"
+      delegate_to: localhost
+      loop: "{{ nodes }}"
+      when: item.type == "master"
+
+    - name: Create F5 API VIP
+      f5networks.f5_modules.bigip_virtual_server:
+        provider: "{{ f5.provider }}"
+        destination: "{{ f5.api_vip }}"
+        name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
+        pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
+        port: "6443"
+        snat: "{{ f5.api_vip_snat | default('automap') }}"
+      delegate_to: localhost
+
+    - name: Create APP HTTPS Pool
+      f5networks.f5_modules.bigip_pool:
+        provider: "{{ f5.provider }}"
+        name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
+        lb_method: round-robin
+        monitors: /Common/tcp
+        monitor_type: and_list
+      delegate_to: localhost
+
+    - name: Create and add APP HTTPS Pool Members
+      f5networks.f5_modules.bigip_pool_member:
+        provider: "{{ f5.provider }}"
+        pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
+        name: "{{ item.name }}.{{ config.base_domain }}"
+        address: "{{ item.ipaddr }}"
+        port: "443"
+      delegate_to: localhost
+      loop: "{{ nodes }}"
+      when: item.type == "worker"
+
+    - name: Create F5 APP HTTPS VIP
+      f5networks.f5_modules.bigip_virtual_server:
+        provider: "{{ f5.provider }}"
+        destination: "{{ f5.api_vip }}"
+        name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
+        pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
+        port: "443"
+        snat: "{{ f5.app_vip_snat | default('automap') }}"
+      delegate_to: localhost
+
+
+    - name: Create APP HTTP Pool
+      f5networks.f5_modules.bigip_pool:
+        provider: "{{ f5.provider }}"
+        name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
+        lb_method: round-robin
+        monitors: /Common/tcp
+        monitor_type: and_list
+      delegate_to: localhost
+
+    - name: Create and add APP HTTP Pool Members
+      f5networks.f5_modules.bigip_pool_member:
+        provider: "{{ f5.provider }}"
+        pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
+        name: "{{ item.name }}.{{ config.base_domain }}"
+        address: "{{ item.ipaddr }}"
+        port: "80"
+      delegate_to: localhost
+      loop: "{{ nodes }}"
+      when: item.type == "worker"
+
+    - name: Create F5 APP HTTPS VIP
+      f5networks.f5_modules.bigip_virtual_server:
+        provider: "{{ f5.provider }}"
+        destination: "{{ f5.api_vip }}"
+        name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
+        pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
+        port: "80"
+        snat: "{{ f5.app_vip_snat | default('automap') }}"
+      delegate_to: localhost
+
+  rescue:
+    - name: Deploy failed, rolling back
+      ansible.builtin.include_tasks:
+        file: rollback.yml
+
+- name: Run F5 ConfigSync if F5 in HA
+  f5networks.f5_modules.bigip_configsync_action:
+    provider: "{{ f5.provider }}"
+    sync_device_to_group: true
+  when: f5_info.sync_status.0.mode != "standalone"
