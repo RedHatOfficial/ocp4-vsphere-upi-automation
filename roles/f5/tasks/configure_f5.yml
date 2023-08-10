@@ -1,9 +1,7 @@
 ---
-- name: Rollback if requested
-  ansible.builtin.include_tasks:
-    file: rollback_f5.yml
-  when: f5.rollback | default(false)
 
+
+# get the F5's sync status (used later for sync)
 - name: Get F5 Hardware Data
   f5networks.f5_modules.bigip_device_info:
     provider: "{{ f5.provider }}"
@@ -11,6 +9,7 @@
   register: f5_info
   delegate_to: localhost
 
+# configure F5 block, so it can all be rolled back if failure
 - name: Configure F5
   block:
 
@@ -23,6 +22,7 @@
         monitor_type: and_list
       delegate_to: localhost
 
+    # bootstrap node added for initial rollout
     - name: Create and add API Pool Members
       f5networks.f5_modules.bigip_pool_member:
         provider: "{{ f5.provider }}"
@@ -32,7 +32,7 @@
         port: "6443"
       delegate_to: localhost
       loop: "{{ nodes }}"
-      when: item.type == "master"
+      when: item.type == "master" or item.type == "bootstrap"
 
     - name: Create F5 API VIP
       f5networks.f5_modules.bigip_virtual_server:
