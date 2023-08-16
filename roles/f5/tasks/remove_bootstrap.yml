@@ -17,6 +17,16 @@
   loop: "{{ nodes }}"
   when: item.type == "bootstrap"
 
+- name: Remove bootstrap node from API INT pool
+  f5networks.f5_modules.bigip_pool_member:
+    provider: "{{ f5.provider }}"
+    state: absent
+    name: "{{ item.name }}.{{ config.base_domain }}"
+    pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
+  delegate_to: localhost
+  loop: "{{ nodes }}"
+  when: item.type == "bootstrap"
+
 - name: Delete bootstrap Node from F5
   f5networks.f5_modules.bigip_node:
     provider: "{{ f5.provider }}"

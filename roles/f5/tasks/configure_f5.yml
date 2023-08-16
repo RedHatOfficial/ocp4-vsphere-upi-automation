@@ -44,6 +44,37 @@
         snat: "{{ f5.api_vip_snat | default('automap') }}"
       delegate_to: localhost
 
+    - name: Create API INT Pool
+      f5networks.f5_modules.bigip_pool:
+        provider: "{{ f5.provider }}"
+        name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
+        lb_method: round-robin
+        monitors: /Common/tcp
+        monitor_type: and_list
+      delegate_to: localhost
+
+    # bootstrap node added for initial rollout
+    - name: Create and add API INT Pool Members
+      f5networks.f5_modules.bigip_pool_member:
+        provider: "{{ f5.provider }}"
+        pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
+        name: "{{ item.name }}.{{ config.base_domain }}"
+        address: "{{ item.ipaddr }}"
+        port: "6443"
+      delegate_to: localhost
+      loop: "{{ nodes }}"
+      when: item.type == "master" or item.type == "bootstrap"
+
+    - name: Create F5 API INT VIP
+      f5networks.f5_modules.bigip_virtual_server:
+        provider: "{{ f5.provider }}"
+        destination: "{{ f5.api_vip }}"
+        name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
+        pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
+        port: "6443"
+        snat: "{{ f5.api_vip_snat | default('automap') }}"
+      delegate_to: localhost
+
     - name: Create APP HTTPS Pool
       f5networks.f5_modules.bigip_pool:
         provider: "{{ f5.provider }}"
