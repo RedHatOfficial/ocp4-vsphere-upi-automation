@@ -98,7 +98,7 @@
     - name: Create F5 APP HTTPS VIP
       f5networks.f5_modules.bigip_virtual_server:
         provider: "{{ f5.provider }}"
-        destination: "{{ f5.api_vip }}"
+        destination: "{{ f5.app_vip }}"
         name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
         port: "443"
@@ -129,7 +129,7 @@
     - name: Create F5 APP HTTPS VIP
       f5networks.f5_modules.bigip_virtual_server:
         provider: "{{ f5.provider }}"
-        destination: "{{ f5.api_vip }}"
+        destination: "{{ f5.app_vip }}"
         name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
         port: "80"

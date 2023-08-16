@@ -110,6 +110,6 @@
     - name: Remove bootstrap server from API VIP on f5
       ansible.builtin.import_role:
         name: f5
-        vars:
-          bootstrap_finished: True
-  when: f5.enabled | default(False)
+      vars:
+        bootstrap_finished: True
+      when: f5.enabled | default(false)
