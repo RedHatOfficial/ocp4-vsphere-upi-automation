@@ -60,7 +60,7 @@
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
         name: "{{ item.name }}.{{ config.base_domain }}"
         address: "{{ item.ipaddr }}"
-        port: "6443"
+        port: "22623"
       delegate_to: localhost
       loop: "{{ nodes }}"
       when: item.type == "master" or item.type == "bootstrap"
@@ -71,7 +71,7 @@
         destination: "{{ f5.api_vip }}"
         name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
-        port: "6443"
+        port: "22623"
         snat: "{{ f5.api_vip_snat | default('automap') }}"
       delegate_to: localhost
 
