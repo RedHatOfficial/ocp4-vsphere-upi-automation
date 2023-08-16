@@ -139,7 +139,7 @@
   rescue:
     - name: Deploy failed, rolling back
       ansible.builtin.include_tasks:
-        file: rollback.yml
+        file: "{{ playbook_dir }}/roles/f5/tasks/rollback_f5.yml"
 
 - name: Run F5 ConfigSync if F5 in HA
   f5networks.f5_modules.bigip_configsync_action:
