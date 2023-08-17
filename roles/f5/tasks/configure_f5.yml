@@ -41,6 +41,7 @@
         name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
         port: "6443"
+        default_persistence_profile: "hash"
         snat: "{{ f5.api_vip_snat | default('automap') }}"
       delegate_to: localhost
 
@@ -72,6 +73,7 @@
         name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
         port: "22623"
+        default_persistence_profile: "hash"
         snat: "{{ f5.api_vip_snat | default('automap') }}"
       delegate_to: localhost
 
@@ -102,6 +104,7 @@
         name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
         port: "443"
+        default_persistence_profile: "hash"
         snat: "{{ f5.app_vip_snat | default('automap') }}"
       delegate_to: localhost
 
@@ -133,6 +136,7 @@
         name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
         port: "80"
+        default_persistence_profile: "hash"
         snat: "{{ f5.app_vip_snat | default('automap') }}"
       delegate_to: localhost
 
