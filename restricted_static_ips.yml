@@ -22,10 +22,16 @@
         name: common
         tasks_from: pre_install
 
+- name: F5 setup
+  hosts: f5
+  gather_facts: false
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+  tasks:
     - name: Configure F5
       ansible.builtin.import_role:
         name: f5
-      when: f5.enabled | default(False)
+      when: f5.enabled | default(false)
 
 - hosts: registries
   gather_facts: False
