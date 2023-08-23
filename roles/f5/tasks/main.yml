@@ -1,4 +1,8 @@
 ---
+# load the cluster vars
+- include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
+
+
 # if the user requests a rollback run the rollback playbook
 - name: Rollback if requested
   ansible.builtin.include_tasks:
