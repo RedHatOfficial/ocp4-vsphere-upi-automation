@@ -29,6 +29,9 @@
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
+    - name: Include the cluster vars
+      ansible.builtin.include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
+
     - name: Configure F5
       ansible.builtin.import_role:
         name: f5
