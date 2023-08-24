@@ -13,23 +13,19 @@
 - name: Configure F5
   block:
 
-    # shell command must be used because f5networks.f5_modules.bigip_profile_server_ssl
-    # has no support for specifying proxy-ssl-passthrough
-    - name: Create generic server-ssl passthrough profile
-      ansible.builtin.shell:
-        cmd: tmsh create ltm profile server-ssl ocp-server-ssl proxy-ssl enabled proxy-ssl-passthrough enabled options {No-TLSv1.3 No-DTLSv1.2}
-      register: serverssl
-      changed_when: serverssl.rc == 0
-      failed_when: "serverssl.rc !=0 and 'already exists' not in serverssl.stderr"
+    - name: Create API SNAT Pool
+      f5networks.f5_modules.bigip_snat_pool:
+        provider: "{{ f5.provider }}"
+        name: ocp-api-snat
+        members:
+          - "{{ f5.api_vip }}"
 
-    # shell command must be used because f5networks.f5_modules.bigip_profile_client_ssl
-    # has no support for specifying proxy-ssl-passthrough
-    - name: Create generic client-ssl passthrough profile
-      ansible.builtin.shell:
-        cmd: tmsh create ltm profile client-ssl ocp-client-ssl proxy-ssl enabled proxy-ssl-passthrough enabled options {No-TLSv1.3 No-DTLSv1.2}
-      register: clientssl
-      changed_when: clientssl.rc == 0
-      failed_when: "clientssl.rc !=0 and 'already exists' not in clientssl.stderr"
+    - name: Create APPS SNAT Pool
+      f5networks.f5_modules.bigip_snat_pool:
+        provider: "{{ f5.provider }}"
+        name: ocp-app-snat
+        members:
+          - "{{ f5.app_vip }}"
 
     - name: Create API Pool
       f5networks.f5_modules.bigip_pool:
@@ -58,12 +54,9 @@
         destination: "{{ f5.api_vip }}"
         name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
-        profiles:
-          - ocp-client-ssl
-          - ocp-server-ssl
         port: "6443"
         default_persistence_profile: "hash"
-        snat: "{{ f5.api_vip_snat | default('automap') }}"
+        snat: ocp-api-snat
       delegate_to: localhost
 
     - name: Create API INT Pool
@@ -93,12 +86,9 @@
         destination: "{{ f5.api_vip }}"
         name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
-        profiles:
-          - ocp-client-ssl
-          - ocp-server-ssl
         port: "22623"
         default_persistence_profile: "hash"
-        snat: "{{ f5.api_vip_snat | default('automap') }}"
+        snat: ocp-api-snat
       delegate_to: localhost
 
     - name: Create APP HTTPS Pool
@@ -129,7 +119,7 @@
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
         port: "443"
         default_persistence_profile: "hash"
-        snat: "{{ f5.app_vip_snat | default('automap') }}"
+        snat: ocp-app-snat
       delegate_to: localhost
 
 
@@ -161,7 +151,7 @@
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
         port: "80"
         default_persistence_profile: "hash"
-        snat: "{{ f5.app_vip_snat | default('automap') }}"
+        snat: ocp-app-snat
       delegate_to: localhost
 
   rescue:

@@ -31,20 +31,6 @@
   ignore_errors: true
   delegate_to: localhost
 
-- name: Delete ocp-server-ssl profile
-  f5networks.f5_modules.bigip_profile_server_ssl:
-    provider: "{{ f5.provider }}"
-    name: ocp-server-ssl
-    state: absent
-  delegate_to: localhost
-
-- name: Delete ocp-client-ssl profile
-  f5networks.f5_modules.bigip_profile_client_ssl:
-    provider: "{{ f5.provider }}"
-    name: ocp-client-ssl
-    state: absent
-  delegate_to: localhost
-
 - name: Delete API Pool
   f5networks.f5_modules.bigip_pool:
     provider: "{{ f5.provider }}"
@@ -106,6 +92,19 @@
   delegate_to: localhost
   loop: "{{ nodes }}"
   when: item.type == "worker"
+
+- name: Create API SNAT Pool
+  f5networks.f5_modules.bigip_snat_translation:
+    provider: "{{ f5.provider }}"
+    name: ocp-api-snat
+    state: absent
+
+- name: Create APP SNAT Pool
+  f5networks.f5_modules.bigip_snat_translation:
+    provider: "{{ f5.provider }}"
+    name: ocp-app-snat
+    state: absent
+
 
 - name: End playbook
   ansible.builtin.meta: end_play
