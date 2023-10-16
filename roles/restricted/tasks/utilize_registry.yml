@@ -1,53 +1,53 @@
-- name:  Capture the content of the certificate for self-signed cert
+- name: Capture the content of the certificate for self-signed cert
   when: registry.create_registry
-  set_fact:
-    registry: "{{ registry | combine({ 'cert_content' : lookup('file','/etc/pki/ca-trust/source/anchors/domain.crt') }, recursive=True) }}"
+  ansible.builtin.set_fact:
+    registry: "{{ registry | combine({'cert_content': lookup('file', '/etc/pki/ca-trust/source/anchors/domain.crt')}, recursive=True) }}"
 
 - name: Update the CA trust
   become: true
-  command: update-ca-trust extract # noqa 301
+  ansible.builtin.command: update-ca-trust extract # noqa no-changed-when
 
 - name: Pause for few seconds for the ca-trust to be updated
-  pause:
+  ansible.builtin.pause:
     seconds: 2
 
 - name: Register the registry credentials
-  set_fact:
+  ansible.builtin.set_fact:
     registry_credentials: "{{ registry.username }}:{{ registry.password }}"
 
 - name: Register the new pull secret
-  set_fact:
+  ansible.builtin.set_fact:
     registry_pull_secret: "{'{{ registry.host }}:{{ registry.port }}':{'auth':'{{ registry_credentials | b64encode }}','email': '{{ registry.email }}' }}"
 
 - name: Create the files directory in the restricted role, if it doesn't already exist
-  file:
+  ansible.builtin.file:
     path: "{{ role_path }}/files"
     state: directory
     mode: '0755'
 
 - name: Save the config.pull_secret variable into a file
-  copy:
+  ansible.builtin.copy:
     content: "{{ config.pull_secret | to_json }}"
     dest: "{{ role_path }}/files/pull-secret-orig.json"
     mode: '0664'
 
-- name: Create a new pull secret file with the newly added registry details # noqa 301
-  shell:  >
+- name: Create a new pull secret file with the newly added registry details # noqa no-changed-when
+  ansible.builtin.shell: >
     jq '.auths += {{ registry_pull_secret | to_json }}'
     < "{{ role_path }}/files/pull-secret-orig.json"
     > "{{ role_path }}/files/pull-secret.json"
 
-- name: Mirror the registry # noqa 301
+- name: Mirror the registry # noqa no-changed-when
   when: registry.create_registry
-  command: >
+  ansible.builtin.command: >
     "{{ playbook_dir }}/bin/oc" adm -a {{ role_path }}/files/pull-secret.json release mirror
     --from=quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}:{{ registry.product_release_version }}
     --to={{ registry.host }}:{{ registry.port }}/{{ registry.repo }}
     --to-release-image={{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}
 
-- name: Extract openshift-install from registry # noqa 301
+- name: Extract openshift-install from registry # noqa no-changed-when
   when: registry.create_registry
-  command: >
+  ansible.builtin.command: >
     "{{ playbook_dir }}"/bin/oc adm -a "{{ role_path }}/files/pull-secret.json"
     release extract
     --command=openshift-install
@@ -55,35 +55,37 @@
     "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
 
 - name: Point the pull secret to the local registry
-  set_fact:
+  ansible.builtin.set_fact:
     config: |
-      {% set auths=config['pull_secret'].pop('auths') %}
-      {{ config | combine({ 'pull_secret':{'auths' : registry_pull_secret}}, recursive=True) }} # noqa 206
+      {% set auths = config['pull_secret'].pop('auths') %}
+      {{ config | combine({'pull_secret': {'auths': registry_pull_secret}}, recursive=True) }}
 
 - name: Create a dictionary out of the install-config.yaml file
-  include_vars:
+  ansible.builtin.include_vars:
     file: '{{ playbook_dir }}/install-dir/install-config.yaml'
     name: install_config
 
 - name: Replace the pull_secret of the install-config.yml with the updated one
-  set_fact:
+  ansible.builtin.set_fact:
     install_config: |
-      {{ install_config | combine({'pullSecret': config.pull_secret | to_json }, recursive=True) }}
+      {{ install_config | combine({'pullSecret': config.pull_secret | to_json}, recursive=True) }}
 
 - name: Append to the additionalTrustBundle element in the install_config dict
-  set_fact:
-    install_config: "{{ install_config | combine({'additionalTrustBundle': install_config.additionalTrustBundle|default('') + registry.cert_content}, recursive=True) }}" # noqa 204
+  ansible.builtin.set_fact:
+    install_config: "{{ install_config | combine({'additionalTrustBundle': install_config.additionalTrustBundle | default('') + registry.cert_content}, recursive=True) }}" # noqa 204
 
 - name: Convert the install_config dict back into YAML for installation
-  copy:
+  ansible.builtin.copy:
     content: "{{ install_config | to_nice_yaml }}"
     dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
     mode: '0664'
 
 - name: Backup the install-config.yaml file
-  copy:
+  ansible.builtin.copy:
     src: "{{ playbook_dir }}/install-dir/install-config.yaml"
     dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
     mode: '0664'
 
-- pause: minutes=10
+- name: Pause for 10 minutes
+  ansible.builtin.pause:
+    minutes: 10

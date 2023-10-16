@@ -1,87 +1,93 @@
-- fail:
+- name: Fail if cluster var is not defined
+  ansible.builtin.fail:
     msg: "Bailing out: this play requires 'cluster'"
   when: cluster is not defined
 
 - name: Check for cluster file
-  stat:
+  ansible.builtin.stat:
     path: "{{ clusters_folder }}/{{ cluster }}.yaml"
   register: cluster_file
 
-- fail:
+- name: Fail if cluster file is not found
+  ansible.builtin.fail:
     msg: "Bailing out: cluster file is not found in the '{{ clusters_folder }}' folder"
   when: not cluster_file.stat.exists
 
-- include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
+- name: Include cluster file
+  ansible.builtin.include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
 
-- block:
-    - name: Check if parent folder looks correct 
-      fail:
+- name: Set vcenter folder variables
+  when: vcenter.parent_folder is defined and vcenter.parent_folder
+  block:
+    - name: Check if parent folder looks correct
+      ansible.builtin.fail:
         msg: "Bailing out: vcenter.parent_folder does not look like a correct path '{{ vcenter.parent_folder }}' (cannot be just /)"
       when: vcenter.parent_folder is not match('^\/?[a-zA-Z0-9_ -]+(\/[a-zA-Z0-9_ -]+)*\/?$')
 
-    - set_fact:
+    - name: Set parent folder variable
+      ansible.builtin.set_fact:
         parent_folder: "{{ vcenter.parent_folder | regex_replace('^/', '') | regex_replace('/$', '') }}/"
-  when: vcenter.parent_folder is defined and vcenter.parent_folder
 
-- set_fact:
-    webserverUri:  "{{ helper_vm_protocol }}://{{ helper_vm }}{% if helper_vm_port != 80 %}:{{ helper_vm_port }}{% endif %}"
+- name: Set bootstrap variables
+  ansible.builtin.set_fact:
+    webserver_uri: "{{ helper_vm_protocol }}://{{ helper_vm }}{% if helper_vm_port != 80 %}:{{ helper_vm_port }}{% endif %}"
     bootstrap_ignition_url: "{{ helper_vm_protocol }}://{{ helper_vm }}{% if helper_vm_port != 80 %}:{{ helper_vm_port }}{% endif %}/{{ cluster }}/ignition/bootstrap.ign"
-    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/'+ vcenter.datacenter + '/vm/' + parent_folder | default('') + cluster}, recursive=True) }}"
+    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/' + vcenter.datacenter + '/vm/' + parent_folder | default('') + cluster}, recursive=True) }}"
 
 - name: Update config.cluster_base_version var
   vars:
     cbv_arr: "{% if config.cluster_version | regex_search('latest') == 'latest' or config.cluster_version | regex_search('stable') == 'stable' %}{{ config.cluster_version | regex_search('.*-.*') | split('-') | last | split('.') }}{% else %}{{ config.cluster_version | split('.') }}{% endif %}"
     cbv: "{{ cbv_arr[0] + '.' + cbv_arr[1] }}"
-  set_fact:
-    config: "{{ config | combine( { 'cluster_base_version':  cbv }, recursive=True, list_merge='keep' ) }}"
+  ansible.builtin.set_fact:
+    config: "{{ config | combine({'cluster_base_version': cbv}, recursive=True, list_merge='keep') }}"
 
 - name: Fetch the content of the release.txt from the clients downloads page
-  uri:
+  ansible.builtin.uri:
     url: "{{ download.clients_url }}/release.txt"
-    return_content: yes
+    return_content: true
   register: release_content
 
-- name:  Update config.cluster_base_version release_version which will be used later
-  set_fact:
-    config: "{{ config | combine({ item.key : item.value }, recursive=True) }}"
+- name: Update config.cluster_base_version release_version which will be used later
+  ansible.builtin.set_fact:
+    config: "{{ config | combine({item.key: item.value}, recursive=True) }}"
   when: inventory_hostname == "localhost"
   loop:
     - { key: "release_version", value: "{{ release_content.content | regex_search(config.cluster_base_version + '.[0-9]+') }}" }
 
 - name: Update the registry.product_release_version var if registry is enabled
-  set_fact:
-    registry: "{{ registry | combine( { 'product_release_version': config.release_version + '-x86_64'  }, recursive=True, list_merge='keep' ) }}"
+  ansible.builtin.set_fact:
+    registry: "{{ registry | combine({'product_release_version': config.release_version + '-x86_64'}, recursive=True, list_merge='keep') }}"
   when: registry.enabled | bool
 
 - name: Update download.dependencies_url
-  set_fact:
-    download: "{{ download | combine( {'dependencies_url': 'https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/' + config.cluster_base_version + '/latest'} ) }}"
+  ansible.builtin.set_fact:
+    download: "{{ download | combine({'dependencies_url': 'https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/' + config.cluster_base_version + '/latest'}) }}"
 
 - name: Set bootstrap list
-  set_fact:
-    bootstrap_vms: "{{ bootstrap_vms|default([]) + [item] }}"
+  ansible.builtin.set_fact:
+    bootstrap_vms: "{{ bootstrap_vms | default([]) + [item] }}"
   when: item.type == 'bootstrap'
   loop: "{{ nodes }}"
   loop_control:
     label: "{{ item.name }}"
 
 - name: Set master list
-  set_fact:
-    master_vms: "{{ master_vms|default([]) + [item] }}"
+  ansible.builtin.set_fact:
+    master_vms: "{{ master_vms | default([]) + [item] }}"
   when: item.type == 'master'
   loop: "{{ nodes }}"
   loop_control:
     label: "{{ item.name }}"
 
 - name: Set worker list
-  set_fact:
-    worker_vms: "{{ worker_vms|default([]) + [item] }}"
+  ansible.builtin.set_fact:
+    worker_vms: "{{ worker_vms | default([]) + [item] }}"
   when: item.type == 'worker'
   loop: "{{ nodes }}"
   loop_control:
     label: "{{ item.name }}"
 
 - name: Display the absolute folder path of the vCenter folder
-  debug:
+  ansible.builtin.debug:
     var: vcenter.folder_absolute_path
     verbosity: 0

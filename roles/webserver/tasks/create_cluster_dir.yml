@@ -1,6 +1,6 @@
 - name: Create the cluster folder on webserver
   become: true
-  file:
+  ansible.builtin.file:
     path: "/var/www/html/{{ cluster }}/"
     owner: root
     mode: u=rwx,g=rx,o=rx
@@ -9,7 +9,7 @@
 
 - name: Create the cluster ignition folder on webserver
   become: true
-  file: 
+  ansible.builtin.file:
     path: "/var/www/html/{{ cluster }}/ignition/"
     owner: root
     mode: u=rwx,g=rx,o=rx
@@ -18,7 +18,7 @@
 
 - name: Create the cluster install folder on webserver
   become: true
-  file: 
+  ansible.builtin.file:
     path: "/var/www/html/{{ cluster }}/install/"
     owner: root
     mode: u=rwx,g=rx,o=rx

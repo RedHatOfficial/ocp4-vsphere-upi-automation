@@ -1,17 +1,17 @@
-  - name: Downloading OpenShift installer initramfs
-    become: true
-    get_url:
-      url: "{{ download.initramfs }}"
-      dest: /var/lib/tftpboot/rhcos/initramfs.img
-      force: yes
-      mode: 0555
-      validate_certs: no
+- name: Downloading OpenShift installer initramfs
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ download.initramfs }}"
+    dest: /var/lib/tftpboot/rhcos/initramfs.img
+    force: true
+    mode: "0555"
+    validate_certs: false
 
-  - name: Downloading OpenShift installer kernel
-    become: true
-    get_url:
-      url: "{{ download.kernel }}"
-      dest: /var/lib/tftpboot/rhcos/kernel
-      force: yes
-      mode: 0555
-      validate_certs: no
+- name: Downloading OpenShift installer kernel
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ download.kernel }}"
+    dest: /var/lib/tftpboot/rhcos/kernel
+    force: true
+    mode: "0555"
+    validate_certs: false

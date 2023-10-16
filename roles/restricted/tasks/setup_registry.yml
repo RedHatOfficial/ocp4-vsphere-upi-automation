@@ -1,32 +1,36 @@
 - name: Create a directory for the registry if one does not exist
-  file:
+  ansible.builtin.file:
     path: /opt/registry/{{ item }}
     state: directory
     mode: '0755'
-  with_items: ["auth","certs","data"]
+  with_items: ["auth", "certs", "data"]
   become: true
 
 - name: Create a cert config file
-  template:
+  ansible.builtin.template:
+    mode: "0644"
     src: ssl-ca.j2
     dest: /opt/registry/certs/ssl-ca.cnf
 
 - name: Create a certificate
-  command:
-    cmd: openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -config ssl-ca.cnf # noqa 301 204
+  ansible.builtin.command:
+    cmd: openssl req -newkey rsa:4096 -nodes -sha256 -keyout domain.key -x509 -days 365 -out domain.crt -config ssl-ca.cnf
     chdir: /opt/registry/certs
   become: true
+  changed_when: false
 
 - name: Create a username and password in a httpasswd file
-  command:
-    cmd: htpasswd -bBc /opt/registry/auth/htpasswd {{ registry.username | default('ansible') }}  {{ registry.password | default('ansible') }} # noqa 301
+  ansible.builtin.command:
+    cmd: htpasswd -bBc /opt/registry/auth/htpasswd {{ registry.username | default('ansible') }}  {{ registry.password | default('ansible') }}
   become: true
+  changed_when: false
 
 - name: Ensure no pods are by default running
-  command: podman rm -af # noqa 301
+  ansible.builtin.command: podman rm -af
+  changed_when: false
 
-- name: Run the registry pod # noqa 301
-  command: |
+- name: Run the registry pod # noqa no-changed-when
+  ansible.builtin.command: |
     podman run --name mirror-registry -p {{ registry.port }}:5000 \
         -v /opt/registry/data:/var/lib/registry:z \
         -v /opt/registry/auth:/auth:z \
@@ -40,23 +44,23 @@
   become: true
 
 - name: Open up the required ports thru firewall
-  firewalld:
+  ansible.posix.firewalld:
     port: "{{ item.port }}/tcp"
     zone: "{{ item.zone }}"
     state: enabled
-    permanent: yes
+    permanent: true
   loop:
     - { port: "{{ registry.port }}", zone: "internal"}
     - { port: "{{ registry.port }}", zone: "public"}
   become: true
 
 - name: If the domain.crt already exists, remove it
-  file:
+  ansible.builtin.file:
     path: /etc/pki/ca-trust/source/anchors/domain.crt
     state: absent
 
 - name: Add the certificate to the trusted certificates on the ansible controller
-  fetch:
+  ansible.builtin.fetch:
     src: /opt/registry/certs/domain.crt
     dest: /etc/pki/ca-trust/source/anchors/
-    flat: yes
+    flat: true

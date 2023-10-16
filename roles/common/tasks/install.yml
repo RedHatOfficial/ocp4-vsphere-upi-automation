@@ -1,33 +1,34 @@
 - name: Generate the ignition manifests
-  command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir" # noqa 301
+  ansible.builtin.command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir" # noqa no-changed-when
+  changed_when: false
 
 - name: Apply the patch to set mastersSchedulable to false
-  patch:
+  ansible.posix.patch:
     src: "cluster-scheduler-02-config.yml.patch"
     dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
   when: not config.master_schedulable | bool
 
 - name: Configure custom isolation mode for network provider
-  when: 
+  when:
     - config.isolationMode is defined
     - config.isolationMode != "NetworkPolicy"
-  include_tasks: isolation_mode.yml
+  ansible.builtin.include_tasks: isolation_mode.yml
 
 - name: Remove Master Machine manifests
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   with_fileglob:
     - "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml"
 
 - name: Remove Worker MachineSet manifest
-  file:
+  ansible.builtin.file:
     path: "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_worker-machineset-0.yaml"
     state: absent
 
 - name: Configure custom ntp servers for masters and workers
   when: ntp.custom
-  include_tasks: configure_ntp.yml
+  ansible.builtin.include_tasks: configure_ntp.yml
 
 - name: Generate the ignition configs
-  command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir" # noqa 301
+  ansible.builtin.command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir" # noqa no-changed-when

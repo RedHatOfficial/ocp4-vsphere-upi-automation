@@ -1,5 +1,5 @@
 - name: Make sure networkType is valid when defined
-  assert:
+  ansible.builtin.assert:
     that:
       - config.networkType in [ 'OpenShiftSDN', 'OVNKubernetes' ]
     fail_msg:
@@ -9,7 +9,7 @@
   when: config.networkType is defined
 
 - name: Make sure isolationMode is valid when defined
-  assert:
+  ansible.builtin.assert:
     that:
       - config.isolationMode in [ 'NetworkPolicy', 'Multitenant', 'Subnet' ]
     fail_msg:
@@ -19,27 +19,29 @@
   when: config.isolationMode is defined
 
 - name: Create ~/.ssh directory if it does not exist
-  file:
+  ansible.builtin.file:
     path: ~/.ssh
     state: directory
     mode: '0755'
 
 - name: Generate a SSH key-pair
-  openssh_keypair:
+  community.crypto.openssh_keypair:
     path: "~/.ssh/{{ cluster }}_id_rsa"
     force: false
+  register: generated_ssh
 
 - name: Set installer ssh key variable
-  set_fact:
-    installer_ssh_key: "{{ lookup('file', '~/.ssh/{{ cluster }}_id_rsa.pub') }}"
+  ansible.builtin.set_fact:
+    #installer_ssh_key: "{{ lookup('file', '~/.ssh/{{ cluster }}_id_rsa.pub') }}"
+    installer_ssh_key: "{{ generated_ssh.public_key }}"
 
 - name: Set the datacenter variable
-  set_fact:
+  ansible.builtin.set_fact:
     datacenter: "{{ vcenter.datacenter }}"
 
 - name: Install the necessary linux packages which will be needed later in the ansible run
   when: ansible_os_family != 'Darwin'
-  package:
+  ansible.builtin.package:
     name:
       - patch
       - gzip
@@ -49,26 +51,26 @@
   become: true
 
 - name: Display Ansible's Python version
-  debug:
+  ansible.builtin.debug:
     var: ansible_python_version
     verbosity: 1
 
 - name: Install python-pip or python2-pip if Ansible uses Python 2
-  package:
+  ansible.builtin.package:
     name:
       - "python2-pip"
   when: ansible_python_version is match("2.*") and ansible_os_family != 'Darwin'
   become: true
 
 - name: Install python3-pip if Ansible uses Python 3
-  package:
+  ansible.builtin.package:
     name:
       - python3-pip
   when: ansible_python_version is match("3.*") and ansible_os_family != 'Darwin'
   become: true
 
 - name: Install Python Modules
-  pip:
+  ansible.builtin.pip:
     name: "{{ item }}"
     extra_args: --user
   loop:
@@ -76,42 +78,44 @@
     - requests
 
 - name: Clean up existing bin, install-dir and downloads folders
-  file:
+  ansible.builtin.file:
     path: "{{ playbook_dir }}/{{ item }}"
     state: absent
   with_items: ["bin", "install-dir", "downloads"]
   when: clean is defined
 
 - name: Must always clean install-dir
-  file:
+  ansible.builtin.file:
     path: "{{ playbook_dir }}/{{ item }}"
     state: absent
   with_items: ["install-dir"]
   when: clean is not defined
 
 - name: Create bin, install-dir and downloads folders
-  file:
+  ansible.builtin.file:
     path: "{{ playbook_dir }}/{{ item }}"
     state: directory
     mode: '0755'
-  with_items: ["bin", "downloads","downloads/ISOs", "install-dir"]
+  with_items: ["bin", "downloads", "downloads/ISOs", "install-dir"]
 
 - name: Download the oc client binary
-  get_url:
+  ansible.builtin.get_url:
+    mode: "0644"
     url: "{{ download.openshiftClient }}"
     dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
-    validate_certs: no
+    validate_certs: false
   register: oc_client_download
 
 - name: Download the openshift-install binary
-  get_url:
+  ansible.builtin.get_url:
+    mode: "0644"
     url: "{{ download.openshiftInstall }}"
     dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
-    validate_certs: no
+    validate_certs: false
   register: openshift_install_download
 
 - name: Unarchive oc client
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
     dest: "{{ playbook_dir }}/bin"
     mode: '0775'
@@ -120,7 +124,7 @@
   when: oc_client_download is changed
 
 - name: Unarchive openshift-install
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
     dest: "{{ playbook_dir }}/bin"
     mode: '0775'
@@ -129,39 +133,41 @@
   when: openshift_install_download is changed
 
 - name: Determine mac or linux client
-  set_fact:
+  ansible.builtin.set_fact:
     family: "{{ ansible_os_family if ansible_os_family == 'Darwin' else 'Linux' }}"
 
 - name: Download govc
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ download.govc }}/govc_{{ family }}_x86_64.tar.gz"
     dest: "{{ playbook_dir }}/downloads/govc.gz"
-    validate_certs: no
+    validate_certs: false
+    mode: "0644"
 
 - name: Unarchive govc
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ playbook_dir }}/downloads/govc.gz"
     dest: "{{ playbook_dir }}/bin"
-    mode: 0755
+    mode: "0755"
     exclude:
       - CHANGELOG.md
       - LICENSE.txt
       - README.md
 
 - name: Copy install-config.yaml file into install-dir
-  template:
+  ansible.builtin.template:
     src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.j2"
     dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
     mode: '0664'
 
 - name: Run steps pertaining to proxy, if any
-  include_tasks: handle_proxy.yml
+  ansible.builtin.include_tasks: handle_proxy.yml
   when:
     - proxy is defined
-    - proxy.enabled == true # noqa 601
+    - proxy.enabled
 
 - name: Backup the install-config.yaml file
-  copy:
+  ansible.builtin.copy:
+    remote_src: true
     src: "{{ playbook_dir }}/install-dir/install-config.yaml"
     dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
     mode: '0664'

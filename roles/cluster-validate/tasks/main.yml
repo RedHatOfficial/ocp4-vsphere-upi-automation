@@ -1,18 +1,22 @@
 - name: Get results from login attempt
-  shell: oc login -u {{ username }} -p {{ password }} --server https://api.{{ cluster }}.{{ config.base_domain }}:6443 --insecure-skip-tls-verify=true
+  kubernetes.core.k8s_cluster_info:
+    host: https://api.{{ cluster }}.{{ config.base_domain }}:6443
+    username: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: false
   register: result
-  until: "'Login successful.' in result['stdout_lines']"
+  until: result.version is defined
   retries: 30
   delay: 30
 
 - name: Get cluster operators
-  k8s_info:
+  kubernetes.core.k8s_info:
     kind: ClusterOperator
     validate_certs: false
   register: operators
 
 - name: Check the operator
-  k8s_info:
+  kubernetes.core.k8s_info:
     kind: ClusterOperator
     name: "{{ item.metadata.name }}"
     validate_certs: false
@@ -28,7 +32,7 @@
     label: "{{ item.metadata.name }}"
 
 - name: Get MachineConfigPools
-  k8s_info:
+  kubernetes.core.k8s_info:
     kind: MachineConfigPool
     validate_certs: false
   register: mcp
@@ -43,7 +47,7 @@
   delay: 15
 
 - name: Check ClusterVersion
-  k8s_info:
+  kubernetes.core.k8s_info:
     kind: ClusterVersion
     validate_certs: false
   register: cv

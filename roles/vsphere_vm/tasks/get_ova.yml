@@ -1,35 +1,36 @@
 - name: Set ova template name
-  set_fact:
-    vcenter: "{{ vcenter | combine({'template_name': 'rhcos-vmware-' +  download.ova | regex_search('4.[0-9]+.[0-9]+') + '.ova'}, recursive=True) }}"
-    
+  ansible.builtin.set_fact:
+    vcenter: "{{ vcenter | combine({'template_name': 'rhcos-vmware-' + download.ova | regex_search('4.[0-9]+.[0-9]+') + '.ova'}, recursive=True) }}"
+
 - name: Download the ova file
-  get_url:
+  ansible.builtin.get_url:
+    mode: "0644"
     url: "{{ download.ova }}"
     dest: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
-    validate_certs: no
+    validate_certs: false
   when: skip_ova is not defined
 
 - name: Deploy the OVF template into the folder
-  vmware_deploy_ovf:
+  community.vmware.vmware_deploy_ovf:
     hostname: "{{ vcenter.ip }}"
     username: "{{ vcenter.username }}"
     password: "{{ vcenter.password }}"
     datacenter: "{{ vcenter.datacenter }}"
     datastore: "{{ vcenter.datastore }}"
-    validate_certs: False
+    validate_certs: false
     folder: "{{ vcenter.folder_absolute_path }}"
     name: '{{ vcenter.template_name }}'
-    allow_duplicates: False
+    allow_duplicates: false
     disk_provisioning: thin
     networks: "{u'VM Network':u'{{ vcenter.network }}'}"
     ova: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
-    power_on: False
+    power_on: false
   when: skip_ova is not defined
 
 - name: Remove the Network Adapter
-  command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0"
+  ansible.builtin.command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0" # noqa no-changed-when
   when: skip_ova is not defined
 
 - name: Update VM options on the template
-  command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah" # noqa 204
+  ansible.builtin.command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"  # noqa no-changed-when
   when: skip_ova is not defined
