@@ -1,2 +1,0 @@
-- name: Run all the install steps
-  ansible.builtin.include_tasks: install.yml

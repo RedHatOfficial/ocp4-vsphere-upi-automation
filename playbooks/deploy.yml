@@ -1,0 +1,9 @@
+---
+- name: Deploy webserver
+  ansible.builtin.import_playbook: "{{ playbook_dir }}/webservers.yml"
+
+- name: Deploy registry
+  ansible.builtin.import_playbook: "{{ playbook_dir }}/registry.yml"
+
+- name: Deploy UPI VmWare
+  ansible.builtin.import_playbook: "{{ playbook_dir }}/upi.yml"

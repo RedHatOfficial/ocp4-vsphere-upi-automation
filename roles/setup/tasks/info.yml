@@ -1,0 +1,4 @@
+- name: info | Display Ansible's Python version
+  ansible.builtin.debug:
+    var: ansible_python_version
+    verbosity: 1

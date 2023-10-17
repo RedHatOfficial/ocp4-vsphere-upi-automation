@@ -1,3 +1,7 @@
+- name: Set cluster base version
+  ansible.builtin.set_fact:
+    __dependencies_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/{{ config.cluster_version | cluster_base_version }}/latest"
+
 - name: Check if parent folders exist (and create if needed)
   when: vcenter.parent_folder is defined and vcenter.parent_folder is string
   block:
@@ -42,30 +46,29 @@
     parent_folder: "{{ parent_folder | default(omit) }}"
     state: present
 
-- name: Encode node ignition files
+- name: Load master ignition file
+  ansible.builtin.slurp:
+    src: "{{ playbook_dir }}/install-dir/master.ign"
+  register: master_content
+
+- name: Load worker ignition file
+  ansible.builtin.slurp:
+    src: "{{ playbook_dir }}/install-dir/worker.ign"
+  register: worker_content
+
+- name: Load bootstrap ignition file
+  ansible.builtin.slurp:
+    src: "{{ playbook_dir }}/install-dir/bootstrap.ign"
+  register: bootstrap_content
+
+- name: Set ova template name
   ansible.builtin.set_fact:
-    master_content: "{{ lookup('file', '{{ playbook_dir }}/install-dir/master.ign') | b64encode }}"
-    worker_content: "{{ lookup('file', '{{ playbook_dir }}/install-dir/worker.ign') | b64encode }}"
-    bootstrap_content: "{{ lookup('file', '{{ playbook_dir }}/install-dir/bootstrap.ign') | b64encode }}"
-
-- name: "Bootstrap base64"
-  ansible.builtin.debug:
-    msg: "{{ bootstrap_content }}"
-    verbosity: 1
-
-- name: "Master base64"
-  ansible.builtin.debug:
-    msg: "{{ master_content }}"
-    verbosity: 1
-
-- name: "Worker base64 "
-  ansible.builtin.debug:
-    msg: "{{ worker_content }}"
-    verbosity: 1
+    vcenter: "{{ vcenter | combine({'template_name': 'rhcos-vmware-' + config.cluster_version | product_release_version + '.ova'}, recursive=True) }}"
 
 - name: Download the OVA file to create the VM
   ansible.builtin.include_tasks:
     file: get_ova.yml
+  when: use_ova
 
 - name: Create VMs
   ansible.builtin.include_tasks:
@@ -74,3 +77,6 @@
     ip_alloc: "{% if dhcp | default(false) %}dhcp{% else %}static{% endif %}"
     medium: "{% if iso | default(false) | bool %}iso{% else %}ova{% endif %}"
     tasks_name: "{% if ip_alloc == 'dhcp' %}{{ ip_alloc }}{% else %}{{ ip_alloc }}-{{ medium }}{% endif %}.yml"
+
+- name: Finish
+  ansible.builtin.include_tasks: finish.yml

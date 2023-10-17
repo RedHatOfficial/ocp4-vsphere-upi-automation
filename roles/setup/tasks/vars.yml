@@ -1,0 +1,25 @@
+- name: vars | Set vcenter folder variables
+  when: vcenter.parent_folder is defined and vcenter.parent_folder
+  block:
+    - name: vars | Check if parent folder looks correct
+      ansible.builtin.fail:
+        msg: "Bailing out: vcenter.parent_folder does not look like a correct path '{{ vcenter.parent_folder }}' (cannot be just /)"
+      when: vcenter.parent_folder is not match('^\/?[a-zA-Z0-9_ -]+(\/[a-zA-Z0-9_ -]+)*\/?$')
+
+    - name: vars | Set parent folder variable
+      ansible.builtin.set_fact:
+        parent_folder: "{{ vcenter.parent_folder | regex_replace('^/', '') | regex_replace('/$', '') }}/"
+
+- name: vars | Set absolute path
+  ansible.builtin.set_fact:
+    vcenter: "{{ vcenter | combine({'folder_absolute_path': '/' + vcenter.datacenter + '/vm/' + parent_folder | default('') + cluster}, recursive=True) }}"
+
+- name: vars | Set product version
+  ansible.builtin.set_fact:
+    __product_release_version: "{{ config.cluster_version | product_release_version }}"
+    __family: "{{ 'mac' if ansible_os_family == 'Darwin' else 'linux' }}"
+
+- name: vars | Set the download facts openshift binaries
+  ansible.builtin.set_fact:
+    __openshift_client: "{{ clients_url }}/openshift-client-{{ __family }}-{{ __product_release_version }}.tar.gz"
+    __openshift_install: "{{ clients_url }}/openshift-install-{{ __family }}-{{ __product_release_version }}.tar.gz"

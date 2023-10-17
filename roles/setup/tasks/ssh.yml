@@ -1,0 +1,15 @@
+- name: ssh | Create ~/.ssh directory if it does not exist
+  ansible.builtin.file:
+    path: ~/.ssh
+    state: directory
+    mode: '0755'
+
+- name: ssh | Generate a SSH key-pair
+  community.crypto.openssh_keypair:
+    path: "~/.ssh/{{ cluster }}_id_rsa"
+    force: false
+  register: generated_ssh
+
+- name: ssh | Set installer ssh key variable
+  ansible.builtin.set_fact:
+    installer_ssh_key: "{{ generated_ssh.public_key }}"

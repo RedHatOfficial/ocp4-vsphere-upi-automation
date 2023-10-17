@@ -1,0 +1,22 @@
+name: ansible-lint
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Ansible Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          pip3 install jmespath
+          ansible-galaxy collection install community.vmware
+
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint-action@main
+        with:
+          path: "roles/"

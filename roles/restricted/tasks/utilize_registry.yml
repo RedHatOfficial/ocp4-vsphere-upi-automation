@@ -41,7 +41,7 @@
   when: registry.create_registry
   ansible.builtin.command: >
     "{{ playbook_dir }}/bin/oc" adm -a {{ role_path }}/files/pull-secret.json release mirror
-    --from=quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}:{{ registry.product_release_version }}
+    --from=quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}:{{ __product_release_version }}
     --to={{ registry.host }}:{{ registry.port }}/{{ registry.repo }}
     --to-release-image={{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}
 

@@ -1,7 +1,15 @@
+- name: vars | Set bootstrap variables
+  ansible.builtin.set_fact:
+    __webserver_uri: "{{ helper_vm_protocol }}://{{ helper_vm }}{{ '' if helper_vm_port == 80 else helper_vm_port }}"
+
+- name: Set cluster base version
+  ansible.builtin.set_fact:
+    __dependencies_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/{{ config.cluster_version | cluster_base_version }}/latest"
+
 - name: Download Openshift 4 ISO file as rhcos-installer.iso
   ansible.builtin.get_url:
     mode: "0644"
-    url: "{{ download.iso }}"
+    url: "{{ __dependencies_url }}/rhcos-live.x86_64.iso"
     dest: "{{ iso_dir }}/rhcos-installer.iso"
 
 - name: Discover old files

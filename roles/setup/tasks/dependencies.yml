@@ -1,0 +1,32 @@
+- name: dependencies | Install the necessary linux packages which will be needed later in the ansible run
+  when: ansible_os_family != 'Darwin'
+  ansible.builtin.package:
+    name:
+      - patch
+      - gzip
+      - genisoimage
+      - jq
+      - rsync
+  become: true
+
+- name: dependencies | Install python-pip or python2-pip if Ansible uses Python 2
+  ansible.builtin.package:
+    name:
+      - "python2-pip"
+  when: ansible_python_version is match("2.*") and ansible_os_family != 'Darwin'
+  become: true
+
+- name: dependencies | Install python3-pip if Ansible uses Python 3
+  ansible.builtin.package:
+    name:
+      - python3-pip
+  when: ansible_python_version is match("3.*") and ansible_os_family != 'Darwin'
+  become: true
+
+- name: dependencies | Install Python Modules
+  ansible.builtin.pip:
+    name: "{{ item }}"
+    extra_args: --user
+  loop:
+    - pyvmomi
+    - requests

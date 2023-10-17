@@ -1,0 +1,6 @@
+---
+- name: Prepare the webservers
+  hosts: webservers
+  roles:
+    - role: webserver
+      when: use_iso | default(false)

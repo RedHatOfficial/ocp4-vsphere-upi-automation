@@ -1,0 +1,3 @@
+- name: Setup LB
+  ansible.builtin.debug:
+    msg: "Setting up LB"

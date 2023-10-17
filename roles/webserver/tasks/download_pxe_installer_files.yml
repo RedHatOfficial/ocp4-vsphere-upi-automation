@@ -1,7 +1,17 @@
+
+- name: Set dependency url
+  ansible.builtin.set_fact:
+    __dependencies_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/{{ config.cluster_version | cluster_base_version }}/latest"
+
+- name: Set kernel and initrafms URL
+  ansible.builtin.set_fact:
+    __kernel: "{{ __dependencies_url }}/rhcos-installer-kernel-x86_64"
+    __initramfs: "{{ __dependencies_url }}/rhcos-installer-initramfs.x86_64.img"
+
 - name: Downloading OpenShift installer initramfs
   become: true
   ansible.builtin.get_url:
-    url: "{{ download.initramfs }}"
+    url: "{{ __initramfs }}"
     dest: /var/lib/tftpboot/rhcos/initramfs.img
     force: true
     mode: "0555"
@@ -10,7 +20,7 @@
 - name: Downloading OpenShift installer kernel
   become: true
   ansible.builtin.get_url:
-    url: "{{ download.kernel }}"
+    url: "{{ __kernel }}"
     dest: /var/lib/tftpboot/rhcos/kernel
     force: true
     mode: "0555"

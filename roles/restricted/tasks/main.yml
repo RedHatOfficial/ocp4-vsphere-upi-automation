@@ -1,0 +1,2 @@
+- name: Setup registry
+  ansible.builtin.include_tasks: setup_registry.yml

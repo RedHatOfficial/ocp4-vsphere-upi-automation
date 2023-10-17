@@ -1,13 +1,19 @@
 - name: Check if OpenShift raw installer already exists
   ansible.builtin.stat:
-    path: /var/www/html/{{ config.cluster_name }}/install/rhcos.raw.gz
+    path: /var/www/html/{{ cluster }}/install/rhcos.raw.gz
   register: rhcos_raw_installer
 
-- name: Downloading OpenShift installer raw image
-  become: true
-  ansible.builtin.get_url:
-    url: "{{ download.raw }}"
-    validate_certs: false
-    dest: /var/www/html/{{ config.cluster_name }}/install/rhcos.raw.gz
-    mode: "0555"
+- name: Downlaod the raw image if not exist
   when: not rhcos_raw_installer.stat.exists
+  block:
+    - name: Set dependency url
+      ansible.builtin.set_fact:
+        __dependencies_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/{{ config.cluster_version | cluster_base_version }}/latest"
+
+    - name: Downloading OpenShift installer raw image
+      become: true
+      ansible.builtin.get_url:
+        url: "{{ __dependencies_url }}/rhcos-metal.x86_64.raw.gz"
+        validate_certs: false
+        dest: /var/www/html/{{ cluster }}/install/rhcos.raw.gz
+        mode: "0555"

@@ -1,14 +1,9 @@
-- name: Set ova template name
-  ansible.builtin.set_fact:
-    vcenter: "{{ vcenter | combine({'template_name': 'rhcos-vmware-' + download.ova | regex_search('4.[0-9]+.[0-9]+') + '.ova'}, recursive=True) }}"
-
 - name: Download the ova file
   ansible.builtin.get_url:
     mode: "0644"
-    url: "{{ download.ova }}"
+    url: "{{ __dependencies_url }}/rhcos-vmware.x86_64.ova"
     dest: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
     validate_certs: false
-  when: skip_ova is not defined
 
 - name: Deploy the OVF template into the folder
   community.vmware.vmware_deploy_ovf:
@@ -25,12 +20,11 @@
     networks: "{u'VM Network':u'{{ vcenter.network }}'}"
     ova: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
     power_on: false
-  when: skip_ova is not defined
 
-- name: Remove the Network Adapter
-  ansible.builtin.command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0" # noqa no-changed-when
-  when: skip_ova is not defined
+# TODO:
+#- name: Remove the Network Adapter
+#  ansible.builtin.command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0" # noqa no-changed-when
+#  when: skip_ova is not defined
 
 - name: Update VM options on the template
   ansible.builtin.command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"  # noqa no-changed-when
-  when: skip_ova is not defined

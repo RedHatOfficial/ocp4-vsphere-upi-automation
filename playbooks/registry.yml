@@ -1,0 +1,6 @@
+---
+- name: Prepare the registry
+  hosts: registries
+  roles:
+    - role: restricted
+      when: use_restricted | default(false)
