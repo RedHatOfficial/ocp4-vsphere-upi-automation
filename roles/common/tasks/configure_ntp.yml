@@ -4,9 +4,10 @@
     dest: /tmp/chrony.conf
     mode: '0664'
 
-- name: Save base64 of config file
-  ansible.builtin.set_fact:
-    chrony_base64: "{{ (lookup('file', '/tmp/chrony.conf') + '\n') | b64encode }}"
+- name: Load chrony config file
+  ansible.builtin.slurp:
+    src: /tmp/chrony.conf
+  register: chrony_base64
 
 - name: Generate the machineconfigs for chrony
   ansible.builtin.template:

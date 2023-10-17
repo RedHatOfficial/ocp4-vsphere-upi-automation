@@ -45,7 +45,7 @@ proxy:
   httpProxy: {{ proxy.http_proxy }}
   httpsProxy: {{ proxy.https_proxy }}
   noProxy: {{ proxy.no_proxy }}
-{% endif %}
+{% endif %} 
 {% if registry is defined and registry.disconnected is defined and registry.disconnected == true %}
 imageContentSources:
 - mirrors:

@@ -46,7 +46,7 @@
     wait_for_ip_address: false
     advanced_settings:
       - key: guestinfo.ignition.config.data
-        value: "{{ bootstrap_content if item.type == 'bootstrap' else master_content }}"
+        value: "{{ bootstrap_content.content if item.type == 'bootstrap' else master_content.content }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
       - key: disk.EnableUUID
@@ -119,7 +119,7 @@
     wait_for_ip_address: false
     advanced_settings:
       - key: guestinfo.ignition.config.data
-        value: "{{ worker_content }}"
+        value: "{{ worker_content.content }}"
       - key: guestinfo.ignition.config.data.encoding
         value: base64
       - key: disk.EnableUUID

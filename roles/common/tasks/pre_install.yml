@@ -32,7 +32,6 @@
 
 - name: Set installer ssh key variable
   ansible.builtin.set_fact:
-    #installer_ssh_key: "{{ lookup('file', '~/.ssh/{{ cluster }}_id_rsa.pub') }}"
     installer_ssh_key: "{{ generated_ssh.public_key }}"
 
 - name: Set the datacenter variable
