@@ -1,0 +1,42 @@
+- name: mc | Create backend-machine-config-server
+  f5networks.f5_modules.bigip_pool:
+    state: present
+    name: "{{ cluster }}-backend-machine-config-server"
+    monitors:
+      - tcp
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no
+
+- name: mc | Add pool member to backend-machine-config-server
+  f5networks.f5_modules.bigip_pool_member:
+    pool: "{{ cluster }}-backend-machine-config-server"
+    name: "{{ item }}"
+    host: "{{ item }}"
+    port: 22623
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no
+  with_items:
+    - "10.1.198.194"
+    - "10.1.198.195"
+    - "10.1.198.196"
+    - "10.1.198.197"
+
+- name: mc | Add virtual server for machine config
+  f5networks.f5_modules.bigip_virtual_server:
+    state: present
+    name: "{{ cluster }}-frontend-machine-config-server"
+    destination: "{{ virtual_ip }}"
+    port: 22623
+    pool: "{{ cluster }}-backend-machine-config-server"
+    snat: Automap
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no

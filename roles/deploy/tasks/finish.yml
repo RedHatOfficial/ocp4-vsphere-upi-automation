@@ -1,5 +1,5 @@
 - name: Wait for bootstrap to complete prior to starting workers
-  ansible.builtin.command: "{{ playbook_dir }}/bin/openshift-install --dir={{ playbook_dir }}/install-dir wait-for bootstrap-complete --log-level debug" # noqa no-changed-when
+  ansible.builtin.command: "{{ install_dir }}/bin/openshift-install --dir={{ install_dir }}/install-dir wait-for bootstrap-complete --log-level debug" # noqa no-changed-when
   retries: 180
   delay: 10
   register: result_bootstrap
@@ -52,8 +52,8 @@
 
 - name: Wait for node-bootstraper csrs to approve
   ansible.builtin.shell: >-
-    {{ playbook_dir }}/bin/oc get csr -o json
-    --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig
+    {{ install_dir }}/bin/oc get csr -o json
+    --kubeconfig={{ install_dir }}/install-dir/auth/kubeconfig
     | jq -r '.items[] | select(.status == {}) | .metadata.name'
   register: result_csr
   until: result_csr['stdout_lines']|count == worker_vms|count
@@ -63,13 +63,13 @@
   changed_when: false
 
 - name: Approve the csrs
-  ansible.builtin.command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa no-changed-when
+  ansible.builtin.command: "{{ install_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ install_dir }}/install-dir/auth/kubeconfig" # noqa no-changed-when
   loop: "{{ result_csr['stdout_lines'] }}"
 
 - name: Wait for system:node csrs to approve
   ansible.builtin.shell: >-
-    {{ playbook_dir }}/bin/oc get csr -o json
-    --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig
+    {{ install_dir }}/bin/oc get csr -o json
+    --kubeconfig={{ install_dir }}/install-dir/auth/kubeconfig
     | jq -r '.items[] | select(.status == {}) | .metadata.name'
   register: result_system
   until: result_system['stdout_lines']|count == worker_vms|count
@@ -79,7 +79,7 @@
   changed_when: false
 
 - name: Approve the csrs
-  ansible.builtin.command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa no-changed-when
+  ansible.builtin.command: "{{ install_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ install_dir }}/install-dir/auth/kubeconfig" # noqa no-changed-when
   loop: "{{ result_system['stdout_lines'] }}"
 
 - name: Create Infra List
@@ -88,7 +88,7 @@
 
 - name: Check for infra nodes and label accordingly
   environment:
-    KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+    KUBECONFIG: "{{ install_dir }}/install-dir/auth/kubeconfig"
   kubernetes.core.k8s:
     state: patched
     merge_type: merge
@@ -104,7 +104,7 @@
 
 - name: Change ingress controller node selector
   environment:
-    KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+    KUBECONFIG: "{{ install_dir }}/install-dir/auth/kubeconfig"
   kubernetes.core.k8s:
     state: patched
     merge_type: merge
@@ -122,7 +122,7 @@
   when: infra_vms | length > 0
 
 - name: Wait for install complete
-  ansible.builtin.command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug # noqa no-changed-when
+  ansible.builtin.command: "{{ install_dir }}/bin/openshift-install wait-for install-complete --dir={{ install_dir }}/install-dir --log-level debug" # noqa no-changed-when
   register: result_complete
 
 - name: Output results from openshift-install wait-for install-complete

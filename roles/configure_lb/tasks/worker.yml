@@ -1,0 +1,40 @@
+- name: worker | Create backend-openshift-router
+  f5networks.f5_modules.bigip_pool:
+    state: present
+    name: "{{ cluster }}-backend-openshift-router"
+    monitors:
+      - tcp
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no
+
+- name: worker | Add pool member to backend-openshift-router
+  f5networks.f5_modules.bigip_pool_member:
+    pool: "{{ cluster }}-backend-openshift-router"
+    name: "{{ item }}"
+    host: "{{ item }}"
+    port: 443
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no
+  with_items:
+    - "10.1.198.198"
+    - "10.1.198.199"
+
+- name: worker | Add virtual server for worker
+  f5networks.f5_modules.bigip_virtual_server:
+    state: present
+    name: "{{ cluster }}-frontend-openshift-router"
+    destination: "{{ virtual_ip_apps }}"
+    port: 443
+    pool: "{{ cluster }}-backend-openshift-router"
+    snat: Automap
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no

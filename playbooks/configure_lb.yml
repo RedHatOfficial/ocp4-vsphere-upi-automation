@@ -1,0 +1,5 @@
+- hosts: openshift
+  gather_facts: false
+
+  roles:
+    - configure_lb

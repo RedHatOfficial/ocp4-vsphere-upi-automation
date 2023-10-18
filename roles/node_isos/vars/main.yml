@@ -1,1 +1,1 @@
-iso_dir: "{{ playbook_dir }}/downloads/ISOs"
+iso_dir: "{{ install_dir }}/downloads/ISOs"

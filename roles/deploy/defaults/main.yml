@@ -1,0 +1,6 @@
+vm_mods:
+  hotadd_cpu: true
+  hotremove_cpu: true
+  hotadd_memory: true
+  master_cores_per_socket: 2
+  worker_cores_per_socket: 2

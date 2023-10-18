@@ -1,4 +1,4 @@
-- name: vars | Set bootstrap variables
+- name: Set bootstrap variables
   ansible.builtin.set_fact:
     __webserver_uri: "{{ helper_vm_protocol }}://{{ helper_vm }}{{ '' if helper_vm_port == 80 else helper_vm_port }}"
 
@@ -114,7 +114,7 @@
 - name: Set permission on custom iso files
   become: true
   ansible.builtin.file:
-    path: "{{ playbook_dir }}/downloads/ISOs"
+    path: "{{ install_dir }}/downloads/ISOs"
     owner: "{{ ansible_user_uid }}"
     group: "{{ ansible_user_gid }}"
     recurse: true

@@ -2,7 +2,7 @@
   ansible.builtin.get_url:
     mode: "0644"
     url: "{{ __dependencies_url }}/rhcos-vmware.x86_64.ova"
-    dest: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
+    dest: "{{ ansible_env.HOME }}/.{{ vcenter.template_name }}.ova"
     validate_certs: false
 
 - name: Deploy the OVF template into the folder
@@ -18,13 +18,13 @@
     allow_duplicates: false
     disk_provisioning: thin
     networks: "{u'VM Network':u'{{ vcenter.network }}'}"
-    ova: "{{ playbook_dir }}/downloads/{{ vcenter.template_name }}.ova"
+    ova: "{{ ansible_env.HOME }}/.{{ vcenter.template_name }}.ova"
     power_on: false
 
 # TODO:
-#- name: Remove the Network Adapter
-#  ansible.builtin.command: "govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0" # noqa no-changed-when
-#  when: skip_ova is not defined
+# - name: Remove the Network Adapter
+#   ansible.builtin.command: "{{ install_dir }}/bin/govc device.remove -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} ethernet-0" # noqa no-changed-when
+#   when: skip_ova is not defined
 
 - name: Update VM options on the template
-  ansible.builtin.command: "govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"  # noqa no-changed-when
+  ansible.builtin.command: "{{ install_dir }}/bin/govc vm.change -vm {{ vcenter.folder_absolute_path }}/{{ vcenter.template_name }} -e=disk.EnableUUID=TRUE -e=guestinfo.ignition.config.data.encoding=base64 -e=guestinfo.ignition.config.data=blah"  # noqa no-changed-when

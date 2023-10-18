@@ -1,11 +1,11 @@
 - name: manifests | Generate the ignition manifests
-  ansible.builtin.command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir" # noqa no-changed-when
+  ansible.builtin.command: "{{ install_dir }}/bin/openshift-install create manifests --dir={{ install_dir }}/install-dir" # noqa no-changed-when
   changed_when: false
 
 - name: manifests | Apply the patch to set mastersSchedulable to false
   ansible.posix.patch:
     src: "cluster-scheduler-02-config.yml.patch"
-    dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
+    dest: "{{ install_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
   when: not config.master_schedulable | bool
 
 - name: manifests | Configure custom isolation mode for network provider
@@ -19,11 +19,11 @@
     path: "{{ item }}"
     state: absent
   with_fileglob:
-    - "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml"
+    - "{{ install_dir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml"
 
 - name: manifests | Remove Worker MachineSet manifest
   ansible.builtin.file:
-    path: "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_worker-machineset-0.yaml"
+    path: "{{ install_dir }}/install-dir/openshift/99_openshift-cluster-api_worker-machineset-0.yaml"
     state: absent
 
 - name: manifests | Configure custom ntp servers for masters and workers
@@ -31,4 +31,4 @@
   ansible.builtin.include_tasks: configure_ntp.yml
 
 - name: manifests | Generate the ignition configs
-  ansible.builtin.command: "openshift-install create ignition-configs --dir={{ playbook_dir }}/install-dir" # noqa no-changed-when
+  ansible.builtin.command: "{{ install_dir }}/bin/openshift-install create ignition-configs --dir={{ install_dir }}/install-dir" # noqa no-changed-when

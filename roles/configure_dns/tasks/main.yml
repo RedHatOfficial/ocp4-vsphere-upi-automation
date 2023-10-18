@@ -1,3 +1,44 @@
-- name: Setup DNS
-  ansible.builtin.debug:
-    msg: "Setting up DNS"
+- name: Configure an A record for machines
+  infoblox.nios_modules.nios_a_record:
+    name: "{{ item.name }}.{{ cluster }}.{{ config.base_domain }}"
+    ipv4: "{{ item.ip }}"
+    state: present
+    provider:
+      host: "{{ dns_provider.host }}"
+      username: "{{ dns_provider.username }}"
+      password: "{{ dns_provider.password }}"
+  loop:
+    # bootstrap
+    - { name: "bootstrap", ip: "10.1.198.194" }
+    # master
+    - { name: "master0", ip: "10.1.198.195" }
+    - { name: "master1", ip: "10.1.198.196" }
+    - { name: "master2", ip: "10.1.198.197" }
+    # worker
+    - { name: "worker0", ip: "10.1.198.198" }
+    - { name: "worker1", ip: "10.1.198.199" }
+    # etrd
+    - { name: "etcd-0", ip: "10.1.198.195" }
+    - { name: "etcd-0", ip: "10.1.198.196" }
+    - { name: "etcd-0", ip: "10.1.198.197" }
+    # virtualIP
+    - { name: "api", ip: "10.1.192.224" }
+    - { name: "api-int", ip: "10.1.192.224" }
+    - { name: "*.apps", ip: "10.1.192.224" }
+
+- name: Configure an SRV records
+  infoblox.nios_modules.nios_srv_record:
+    name: "_etcd-server-ssl._tcp.{{ cluster }}.{{ config.base_domain }}"
+    target: "{{ item }}.{{ cluster }}.{{ config.base_domain }}"
+    state: present
+    priority: 0
+    weight: 10
+    port: 2380
+    provider:
+      host: "{{ dns_provider.host }}"
+      username: "{{ dns_provider.username }}"
+      password: "{{ dns_provider.password }}"
+  loop:
+    - "etcd-0"
+    - "etcd-1"
+    - "etcd-2"

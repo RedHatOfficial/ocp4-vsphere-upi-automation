@@ -2,6 +2,7 @@
   ansible.builtin.include_vars:
     file: '{{ playbook_dir }}/install-dir/install-config.yaml'
     name: install_config
+# FIXME -> install_dir
 
 - name: Add a additionalTrustBundle element to the install_config dict
   ansible.builtin.set_fact:
@@ -10,6 +11,6 @@
 
 - name: Convert the install_config dict back into YAML for installation
   ansible.builtin.copy:
-    content: "{{ install_config | to_nice_yaml }}"
+    content: "{{ playbook_dir | to_nice_yaml }}"
     dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
     mode: '0664'

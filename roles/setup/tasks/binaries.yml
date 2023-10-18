@@ -1,20 +1,20 @@
 - name: binaries | Clean up existing bin, install-dir and downloads folders
   ansible.builtin.file:
-    path: "{{ playbook_dir }}/{{ item }}"
+    path: "{{ install_dir }}/{{ item }}"
     state: absent
   with_items: ["bin", "install-dir", "downloads"]
   when: clean is defined
 
 - name: binaries | Must always clean install-dir
   ansible.builtin.file:
-    path: "{{ playbook_dir }}/{{ item }}"
+    path: "{{ install_dir }}/{{ item }}"
     state: absent
   with_items: ["install-dir"]
   when: clean is not defined
 
 - name: binaries | Create bin, install-dir and downloads folders
   ansible.builtin.file:
-    path: "{{ playbook_dir }}/{{ item }}"
+    path: "{{ install_dir }}/{{ item }}"
     state: directory
     mode: '0755'
   with_items: ["bin", "downloads", "downloads/ISOs", "install-dir"]
@@ -23,7 +23,7 @@
   ansible.builtin.get_url:
     mode: "0644"
     url: "{{ __openshift_client }}"
-    dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
+    dest: "{{ install_dir }}/downloads/oc_client.tar.gz"
     validate_certs: false
   register: oc_client_download
 
@@ -31,15 +31,15 @@
   ansible.builtin.get_url:
     mode: "0644"
     url: "{{ __openshift_install }}"
-    dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
+    dest: "{{ install_dir }}/downloads/openshift_install.tar.gz"
     validate_certs: false
   register: openshift_install_download
 
 - name: binaries | Unarchive oc client
   ansible.builtin.unarchive:
     remote_src: true
-    src: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
-    dest: "{{ playbook_dir }}/bin"
+    src: "{{ install_dir }}/downloads/oc_client.tar.gz"
+    dest: "{{ install_dir }}/bin"
     mode: '0775'
     exclude:
       - README.md
@@ -48,8 +48,8 @@
 - name: binaries | Unarchive openshift-install
   ansible.builtin.unarchive:
     remote_src: true
-    src: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
-    dest: "{{ playbook_dir }}/bin"
+    src: "{{ install_dir }}/downloads/openshift_install.tar.gz"
+    dest: "{{ install_dir }}/bin"
     mode: '0775'
     exclude:
       - README.md
@@ -58,15 +58,15 @@
 - name: binaries | Download govc
   ansible.builtin.get_url:
     url: "{{ govc }}/govc_{{ __family }}_x86_64.tar.gz"
-    dest: "{{ playbook_dir }}/downloads/govc.gz"
+    dest: "{{ install_dir }}/downloads/govc.gz"
     validate_certs: false
     mode: "0644"
 
 - name: binaries | Unarchive govc
   ansible.builtin.unarchive:
     remote_src: true
-    src: "{{ playbook_dir }}/downloads/govc.gz"
-    dest: "{{ playbook_dir }}/bin"
+    src: "{{ install_dir }}/downloads/govc.gz"
+    dest: "{{ install_dir }}/bin"
     mode: "0755"
     exclude:
       - CHANGELOG.md
@@ -76,7 +76,7 @@
 - name: binaries | Copy install-config.yaml file into install-dir
   ansible.builtin.template:
     src: "{{ playbook_dir }}/roles/setup/templates/install-config.yaml.j2"
-    dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
+    dest: "{{ install_dir }}/install-dir/install-config.yaml"
     mode: '0664'
 
 - name: binaries | Run steps pertaining to proxy, if any
@@ -88,6 +88,6 @@
 - name: binaries | Backup the install-config.yaml file
   ansible.builtin.copy:
     remote_src: true
-    src: "{{ playbook_dir }}/install-dir/install-config.yaml"
-    dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
+    src: "{{ install_dir }}/install-dir/install-config.yaml"
+    dest: "{{ install_dir }}/install-dir/install-config.yaml.orig"
     mode: '0664'

@@ -1,9 +1,11 @@
 - name: Copy the all the ignition files over to the webserver
   become: true
   ansible.builtin.copy:
+    remote_src: true
     src: "{{ item }}"
     dest: "/var/www/html/{{ cluster }}/ignition/"
     mode: '0664'
     owner: root
   with_fileglob:
-    - "install-dir/*.ign"
+    - "{{ install_dir }}/install-dir/*.ign"
+# FIXME: should be called, after ignition is created

@@ -3,4 +3,4 @@
   hosts: registries
   roles:
     - role: restricted
-      when: use_restricted | default(false)
+      when: registry is defined and registry.enabled | default(false)

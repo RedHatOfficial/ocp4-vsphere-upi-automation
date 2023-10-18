@@ -1,3 +1,8 @@
-- name: Setup LB
-  ansible.builtin.debug:
-    msg: "Setting up LB"
+- name: Include masters
+  ansible.builtin.include_tasks: master.yml
+
+- name: Include worker
+  ansible.builtin.include_tasks: worker.yml
+
+- name: Include machine config
+  ansible.builtin.include_tasks: mc.yml

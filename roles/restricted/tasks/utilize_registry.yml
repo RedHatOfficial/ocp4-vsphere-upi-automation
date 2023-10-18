@@ -40,7 +40,7 @@
 - name: Mirror the registry # noqa no-changed-when
   when: registry.create_registry
   ansible.builtin.command: >
-    "{{ playbook_dir }}/bin/oc" adm -a {{ role_path }}/files/pull-secret.json release mirror
+    "{{ install_dir }}/bin/oc" adm -a {{ role_path }}/files/pull-secret.json release mirror
     --from=quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}:{{ __product_release_version }}
     --to={{ registry.host }}:{{ registry.port }}/{{ registry.repo }}
     --to-release-image={{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}
@@ -48,10 +48,10 @@
 - name: Extract openshift-install from registry # noqa no-changed-when
   when: registry.create_registry
   ansible.builtin.command: >
-    "{{ playbook_dir }}"/bin/oc adm -a "{{ role_path }}/files/pull-secret.json"
+    "{{ install_dir }}"/bin/oc adm -a "{{ role_path }}/files/pull-secret.json"
     release extract
     --command=openshift-install
-    --to={{ playbook_dir }}/bin
+    --to={{ install_dir }}/bin
     "{{ registry.host }}:{{ registry.port }}/{{ registry.repo }}:{{ registry.product_release_name }}"
 
 - name: Point the pull secret to the local registry
@@ -62,7 +62,7 @@
 
 - name: Create a dictionary out of the install-config.yaml file
   ansible.builtin.include_vars:
-    file: '{{ playbook_dir }}/install-dir/install-config.yaml'
+    file: '{{ install_dir }}/install-dir/install-config.yaml'
     name: install_config
 
 - name: Replace the pull_secret of the install-config.yml with the updated one
@@ -77,13 +77,13 @@
 - name: Convert the install_config dict back into YAML for installation
   ansible.builtin.copy:
     content: "{{ install_config | to_nice_yaml }}"
-    dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
+    dest: "{{ install_dir }}/install-dir/install-config.yaml"
     mode: '0664'
 
 - name: Backup the install-config.yaml file
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/install-dir/install-config.yaml"
-    dest: "{{ playbook_dir }}/install-dir/install-config.yaml.orig"
+    src: "{{ install_dir }}/install-dir/install-config.yaml"
+    dest: "{{ install_dir }}/install-dir/install-config.yaml.orig"
     mode: '0664'
 
 - name: Pause for 10 minutes

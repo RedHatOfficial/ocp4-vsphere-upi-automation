@@ -1,0 +1,54 @@
+- name: master | Add monitor for master node
+  f5networks.f5_modules.bigip_monitor_https:
+    name: "backend-openshift-api-monitor"
+    state: present
+    send: "GET /readyz HTTP/1.1\r\nhost:localhost\r\nconnection:close\r\n\r\n"
+    receive: "ok"
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no
+
+- name: master | Create backend-openshift-router
+  f5networks.f5_modules.bigip_pool:
+    state: present
+    name: "{{ cluster }}-backend-openshift-api-server"
+    monitors:
+      - "backend-openshift-api-monitor"
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no
+
+- name: master | Add pool member to backend-openshift-api-server
+  f5networks.f5_modules.bigip_pool_member:
+    pool: "{{ cluster }}-backend-openshift-api-server"
+    name: "{{ item }}"
+    host: "{{ item }}"
+    port: 6443
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no
+  with_items:
+    - "10.1.198.194"
+    - "10.1.198.195"
+    - "10.1.198.196"
+    - "10.1.198.197"
+
+- name: master | Add virtual server for master
+  f5networks.f5_modules.bigip_virtual_server:
+    state: present
+    name: "{{ cluster }}-frontend-openshift-api-server"
+    destination: "{{ virtual_ip }}"
+    port: 6443
+    pool: "{{ cluster }}-backend-openshift-api-server"
+    snat: Automap
+    provider:
+      server: "{{ lb_provider.host }}"
+      user: "{{ lb_provider.username }}"
+      password: "{{ lb_provider.password }}"
+      validate_certs: no

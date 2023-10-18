@@ -48,17 +48,17 @@
 
 - name: Load master ignition file
   ansible.builtin.slurp:
-    src: "{{ playbook_dir }}/install-dir/master.ign"
+    src: "{{ install_dir }}/install-dir/master.ign"
   register: master_content
 
 - name: Load worker ignition file
   ansible.builtin.slurp:
-    src: "{{ playbook_dir }}/install-dir/worker.ign"
+    src: "{{ install_dir }}/install-dir/worker.ign"
   register: worker_content
 
 - name: Load bootstrap ignition file
   ansible.builtin.slurp:
-    src: "{{ playbook_dir }}/install-dir/bootstrap.ign"
+    src: "{{ install_dir }}/install-dir/bootstrap.ign"
   register: bootstrap_content
 
 - name: Set ova template name
@@ -75,7 +75,7 @@
     file: "{{ tasks_name }}"
   vars:
     ip_alloc: "{% if dhcp | default(false) %}dhcp{% else %}static{% endif %}"
-    medium: "{% if iso | default(false) | bool %}iso{% else %}ova{% endif %}"
+    medium: "{% if use_iso | default(false) | bool %}iso{% else %}ova{% endif %}"
     tasks_name: "{% if ip_alloc == 'dhcp' %}{{ ip_alloc }}{% else %}{{ ip_alloc }}-{{ medium }}{% endif %}.yml"
 
 - name: Finish

@@ -12,7 +12,7 @@
 - name: configure_ntp |Generate the machineconfigs for chrony
   ansible.builtin.template:
     src: mc-chrony-configuration.yaml.j2
-    dest: "{{ playbook_dir }}/install-dir/manifests/99-{{ item }}-chrony-configuration.yaml"
+    dest: "{{ install_dir }}/install-dir/manifests/99-{{ item }}-chrony-configuration.yaml"
     mode: '0664'
   loop:
     - master

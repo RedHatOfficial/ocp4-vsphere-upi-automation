@@ -1,2 +1,6 @@
 clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ config.cluster_version }}"
 govc: "https://github.com/vmware/govmomi/releases/download/v0.30.0"
+ntp:
+  custom: false
+proxy:
+  enabled: false
