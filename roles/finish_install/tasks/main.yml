@@ -116,6 +116,9 @@
 - name: Wait for install complete
   command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug # noqa 301
   register: result_complete
+  until: result_complete.rc == 0
+  retries: 3
+  delay: 5
 
 - name: Output results from openshift-install wait-for install-complete
   debug:
