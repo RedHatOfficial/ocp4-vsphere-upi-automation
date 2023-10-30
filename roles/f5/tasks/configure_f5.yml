@@ -13,19 +13,15 @@
 - name: Configure F5
   block:
 
+    ###################
+    # API
+    ###################
     - name: Create API SNAT Pool
       f5networks.f5_modules.bigip_snat_pool:
         provider: "{{ f5.provider }}"
-        name: ocp-api-snat
+        name: "{{ config.cluster_name }}-api-snat"
         members:
           - "{{ f5.api_vip }}"
-
-    - name: Create APPS SNAT Pool
-      f5networks.f5_modules.bigip_snat_pool:
-        provider: "{{ f5.provider }}"
-        name: ocp-app-snat
-        members:
-          - "{{ f5.app_vip }}"
 
     - name: Create API Pool
       f5networks.f5_modules.bigip_pool:
@@ -41,11 +37,13 @@
       f5networks.f5_modules.bigip_pool_member:
         provider: "{{ f5.provider }}"
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
-        name: "{{ item.name }}.{{ config.base_domain }}"
+        name: "{{ item.name }}.{{ config.cluster_name }}.{{ config.base_domain }}"
         address: "{{ item.ipaddr }}"
         port: "6443"
       delegate_to: localhost
       loop: "{{ nodes }}"
+      loop_control:
+        label: Adding {{ item.name }}
       when: item.type == "master" or item.type == "bootstrap"
 
     - name: Create F5 API VIP
@@ -56,7 +54,7 @@
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
         port: "6443"
         default_persistence_profile: "hash"
-        snat: ocp-api-snat
+        snat: "{{ config.cluster_name }}-api-snat"
       delegate_to: localhost
 
     - name: Create API INT Pool
@@ -73,11 +71,13 @@
       f5networks.f5_modules.bigip_pool_member:
         provider: "{{ f5.provider }}"
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
-        name: "{{ item.name }}.{{ config.base_domain }}"
+        name: "{{ item.name }}.{{ config.cluster_name }}.{{ config.base_domain }}"
         address: "{{ item.ipaddr }}"
         port: "22623"
       delegate_to: localhost
       loop: "{{ nodes }}"
+      loop_control:
+        label: Adding {{ item.name }}
       when: item.type == "master" or item.type == "bootstrap"
 
     - name: Create F5 API INT VIP
@@ -88,8 +88,18 @@
         pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
         port: "22623"
         default_persistence_profile: "hash"
-        snat: ocp-api-snat
+        snat: "{{ config.cluster_name }}-api-snat"
       delegate_to: localhost
+
+    ###################
+    # APPS
+    ###################
+    - name: Create APPS SNAT Pool
+      f5networks.f5_modules.bigip_snat_pool:
+        provider: "{{ f5.provider }}"
+        name: "{{ config.cluster_name }}-app-snat"
+        members:
+          - "{{ f5.app_vip }}"
 
     - name: Create APP HTTPS Pool
       f5networks.f5_modules.bigip_pool:
@@ -104,11 +114,13 @@
       f5networks.f5_modules.bigip_pool_member:
         provider: "{{ f5.provider }}"
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
-        name: "{{ item.name }}.{{ config.base_domain }}"
+        name: "{{ item.name }}.{{ config.cluster_name }}.{{ config.base_domain }}"
         address: "{{ item.ipaddr }}"
         port: "443"
       delegate_to: localhost
       loop: "{{ nodes }}"
+      loop_control:
+        label: Adding {{ item.name }}
       when: item.type == "worker"
 
     - name: Create F5 APP HTTPS VIP
@@ -119,9 +131,8 @@
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
         port: "443"
         default_persistence_profile: "hash"
-        snat: ocp-app-snat
+        snat: "{{ config.cluster_name }}-app-snat"
       delegate_to: localhost
-
 
     - name: Create APP HTTP Pool
       f5networks.f5_modules.bigip_pool:
@@ -136,11 +147,13 @@
       f5networks.f5_modules.bigip_pool_member:
         provider: "{{ f5.provider }}"
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
-        name: "{{ item.name }}.{{ config.base_domain }}"
+        name: "{{ item.name }}.{{ config.cluster_name }}.{{ config.base_domain }}"
         address: "{{ item.ipaddr }}"
         port: "80"
       delegate_to: localhost
       loop: "{{ nodes }}"
+      loop_control:
+        label: Adding {{ item.name }}
       when: item.type == "worker"
 
     - name: Create F5 APP HTTPS VIP
@@ -151,7 +164,23 @@
         pool: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
         port: "80"
         default_persistence_profile: "hash"
-        snat: ocp-app-snat
+        snat: "{{ config.cluster_name }}-app-snat"
+      delegate_to: localhost
+
+    - name: Add monitors to all nodes
+      bigip_node:
+        address: "{{ item.ipaddr }}"
+        name: "{{ item.name }}.{{ config.cluster_name }}.{{ config.base_domain }}"
+        monitors:
+          - /Common/icmp
+          - /Common/gateway_icmp
+        availability_requirements:
+          type: "at_least"
+          at_least: 1
+        provider: "{{ f5.provider }}"
+      loop: "{{ nodes }}"
+      loop_control:
+        label: Adding {{ item.name }}
       delegate_to: localhost
 
   rescue:
