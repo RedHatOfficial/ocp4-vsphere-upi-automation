@@ -15,6 +15,7 @@
     address: "{{ item.ipaddr }}"
     pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
     port: "6443"
+    preserve_node: true
   delegate_to: localhost
   loop: "{{ nodes }}"
   loop_control:
@@ -29,6 +30,7 @@
     address: "{{ item.ipaddr }}"
     pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
     port: "22623"
+    preserve_node: true
   delegate_to: localhost
   loop: "{{ nodes }}"
   loop_control:
