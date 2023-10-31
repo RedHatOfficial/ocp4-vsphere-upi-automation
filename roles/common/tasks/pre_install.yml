@@ -100,6 +100,7 @@
   get_url:
     url: "{{ download.openshiftClient }}"
     dest: "{{ playbook_dir }}/downloads/oc_client.tar.gz"
+    force: true
     validate_certs: no
   register: oc_client_download
 
@@ -107,6 +108,7 @@
   get_url:
     url: "{{ download.openshiftInstall }}"
     dest: "{{ playbook_dir }}/downloads/openshift_install.tar.gz"
+    force: true
     validate_certs: no
   register: openshift_install_download
 

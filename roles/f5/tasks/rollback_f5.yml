@@ -1,0 +1,110 @@
+---
+- name: Delete F5 API VIP
+  f5networks.f5_modules.bigip_virtual_server:
+    provider: "{{ f5.provider }}"
+    name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
+    state: absent
+  ignore_errors: true
+  delegate_to: localhost
+
+- name: Delete F5 Internal API VIP
+  f5networks.f5_modules.bigip_virtual_server:
+    provider: "{{ f5.provider }}"
+    name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
+    state: absent
+  ignore_errors: true
+  delegate_to: localhost
+
+- name: Delete F5 APP HTTPS VIP
+  f5networks.f5_modules.bigip_virtual_server:
+    provider: "{{ f5.provider }}"
+    name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
+    state: absent
+  ignore_errors: true
+  delegate_to: localhost
+
+- name: Delete F5 APP HTTP VIP
+  f5networks.f5_modules.bigip_virtual_server:
+    provider: "{{ f5.provider }}"
+    name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
+    state: absent
+  ignore_errors: true
+  delegate_to: localhost
+
+- name: Delete API Pool
+  f5networks.f5_modules.bigip_pool:
+    provider: "{{ f5.provider }}"
+    name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
+    lb_method: round-robin
+    monitors: /Common/tcp
+    monitor_type: and_list
+    state: absent
+  ignore_errors: true
+  delegate_to: localhost
+
+- name: Delete Internal API Pool
+  f5networks.f5_modules.bigip_pool:
+    provider: "{{ f5.provider }}"
+    name: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
+    lb_method: round-robin
+    monitors: /Common/tcp
+    monitor_type: and_list
+    state: absent
+  ignore_errors: true
+  delegate_to: localhost
+
+- name: Delete APP HTTPS Pool
+  f5networks.f5_modules.bigip_pool:
+    provider: "{{ f5.provider }}"
+    name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-443"
+    lb_method: round-robin
+    monitors: /Common/tcp
+    monitor_type: and_list
+    state: absent
+  ignore_errors: true
+  delegate_to: localhost
+
+- name: Delete APP HTTP Pool
+  f5networks.f5_modules.bigip_pool:
+    provider: "{{ f5.provider }}"
+    name: "apps.{{ config.cluster_name }}.{{ config.base_domain }}-80"
+    lb_method: round-robin
+    monitors: /Common/tcp
+    monitor_type: and_list
+    state: absent
+  ignore_errors: true
+  delegate_to: localhost
+
+- name: Delete API Nodes from F5
+  f5networks.f5_modules.bigip_node:
+    provider: "{{ f5.provider }}"
+    name: "{{ item.name }}.{{ config.base_domain }}"
+    state: absent
+  delegate_to: localhost
+  loop: "{{ nodes }}"
+  when: item.type == "master"
+
+- name: Delete APP Nodes from F5
+  f5networks.f5_modules.bigip_node:
+    provider: "{{ f5.provider }}"
+    name: "{{ item.name }}.{{ config.base_domain }}"
+    state: absent
+  delegate_to: localhost
+  loop: "{{ nodes }}"
+  when: item.type == "worker"
+
+- name: Create API SNAT Pool
+  f5networks.f5_modules.bigip_snat_translation:
+    provider: "{{ f5.provider }}"
+    name: ocp-api-snat
+    state: absent
+
+- name: Create APP SNAT Pool
+  f5networks.f5_modules.bigip_snat_translation:
+    provider: "{{ f5.provider }}"
+    name: ocp-app-snat
+    state: absent
+
+
+- name: End playbook
+  ansible.builtin.meta: end_play

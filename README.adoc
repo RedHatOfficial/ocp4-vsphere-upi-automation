@@ -66,6 +66,7 @@ include::group_vars/all.yml[]
 * The `proxy` key and it's child keys are for configuring cluster-wide proxy settings
 * The `registry` key and it's child keys are for configuring offline or disconnected registries for clusters in restricted networks
 * The `ntp` key and it's child keys are for configuring time servers to keep the cluster in sync
+* The `f5` key and it's child keys are for configuring the F5 Load Balancer (if applicable)
 
 
 

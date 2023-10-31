@@ -82,3 +82,13 @@ ntp:
   # ntp_server_list:
   #   - ntp1.mydomain.com
   #   - ntp2.mydomain.com
+f5:
+  enabled: false
+  # api_vip: 1.1.1.1
+  # app_vip: 2.2.2.2
+  # provider:
+  #   server: f5_address.tld
+  #   server_port: 8443
+  #   user: f5_username
+  #   password: f5_password
+  #   validate_certs: no

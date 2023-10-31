@@ -22,6 +22,11 @@
         name: common
         tasks_from: pre_install
 
+    - name: Configure F5
+      ansible.builtin.import_role:
+        name: f5
+      when: f5.enabled | default(false)
+
 - hosts: registries
   gather_facts: False
   tasks:
@@ -97,3 +102,14 @@
     - name: Run steps to finish cluster install
       import_role:
         name: finish_install
+
+- name: F5 Cleanup
+  hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Remove bootstrap server from API VIP on f5
+      ansible.builtin.import_role:
+        name: f5
+      vars:
+        bootstrap_finished: True
+      when: f5.enabled | default(false)

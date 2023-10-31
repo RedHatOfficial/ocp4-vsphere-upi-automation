@@ -1,0 +1,56 @@
+---
+# get the F5's sync status (used later for sync)
+- name: Get F5 Hardware Data
+  f5networks.f5_modules.bigip_device_info:
+    provider: "{{ f5.provider }}"
+    gather_subset: sync-status
+  register: f5_info
+  delegate_to: localhost
+
+- name: Remove bootstrap node from API pool
+  f5networks.f5_modules.bigip_pool_member:
+    provider: "{{ f5.provider }}"
+    state: absent
+    name: "{{ item.name }}.{{ config.cluster_name }}.{{ config.base_domain }}"
+    address: "{{ item.ipaddr }}"
+    pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-6443"
+    port: "6443"
+    preserve_node: true
+  delegate_to: localhost
+  loop: "{{ nodes }}"
+  loop_control:
+    label: Removing {{ item.name }}
+  when: item.type == "bootstrap"
+
+- name: Remove bootstrap node from API INT pool
+  f5networks.f5_modules.bigip_pool_member:
+    provider: "{{ f5.provider }}"
+    state: absent
+    name: "{{ item.name }}.{{ config.cluster_name }}.{{ config.base_domain }}"
+    address: "{{ item.ipaddr }}"
+    pool: "api.{{ config.cluster_name }}.{{ config.base_domain }}-22623"
+    port: "22623"
+    preserve_node: true
+  delegate_to: localhost
+  loop: "{{ nodes }}"
+  loop_control:
+    label: Removing {{ item.name }}
+  when: item.type == "bootstrap"
+
+- name: Delete bootstrap Node from F5
+  f5networks.f5_modules.bigip_node:
+    provider: "{{ f5.provider }}"
+    name: "{{ item.name }}.{{ config.cluster_name }}.{{ config.base_domain }}"
+    address: "{{ item.ipaddr }}"
+    state: absent
+  delegate_to: localhost
+  loop: "{{ nodes }}"
+  loop_control:
+    label: Removing {{ item.name }}
+  when: item.type == "bootstrap"
+
+- name: Run F5 ConfigSync if F5 in HA
+  f5networks.f5_modules.bigip_configsync_action:
+    provider: "{{ f5.provider }}"
+    sync_device_to_group: true
+  when: f5_info.sync_status.0.mode != "standalone"

@@ -23,6 +23,20 @@
       tags:
       - always
 
+- name: F5 setup
+  hosts: f5
+  gather_facts: false
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+  tasks:
+    - name: Include the cluster vars
+      ansible.builtin.include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
+
+    - name: Configure F5
+      ansible.builtin.import_role:
+        name: f5
+      when: f5.enabled | default(false)
+
 - name: Setup webserver
   hosts: webservers
   gather_facts: False
@@ -80,3 +94,14 @@
     - name: Run steps to finish cluster install
       import_role:
         name: finish_install
+
+- name: F5 Cleanup
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Remove bootstrap server from API VIP on f5
+      ansible.builtin.import_role:
+        name: f5
+      vars:
+        bootstrap_finished: true
+      when: f5.enabled | default(false)

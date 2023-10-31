@@ -1,0 +1,17 @@
+---
+# if the user requests a rollback run the rollback playbook
+- name: Rollback if requested
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/roles/f5/tasks/rollback_f5.yml"
+  when: f5.rollback | default(false)
+
+# if we are done with the cluster install remove the bootstrap
+- name: Remove bootstrap node from f5
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/roles/f5/tasks/remove_bootstrap.yml"
+  when: bootstrap_finished | default(false)
+
+# otherwise configure the F5 device
+- name: Initial F5 Configuration
+  ansible.builtin.include_tasks:
+    file: "{{ playbook_dir }}/roles/f5/tasks/configure_f5.yml"

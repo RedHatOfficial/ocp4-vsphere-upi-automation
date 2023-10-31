@@ -23,6 +23,17 @@
       tags:
       - always
 
+    - name: Configure F5
+      ansible.builtin.import_role:
+        name: f5
+      when: f5.enabled | default(false)
+
+- name: Deploy VMs and finish cluster install
+  hosts: localhost
+  gather_facts: True
+  environment:
+    PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+  tasks:
     - name: Create, Configure and boot the VMs
       environment:
         GOVC_USERNAME: "{{ vcenter.username }}"
@@ -36,3 +47,14 @@
     - name: Run steps to finish cluster install
       import_role:
         name: finish_install
+
+- name: F5 Cleanup
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Remove bootstrap server from API VIP on f5
+      ansible.builtin.import_role:
+        name: f5
+      vars:
+        bootstrap_finished: true
+      when: f5.enabled | default(false)
