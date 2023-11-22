@@ -50,29 +50,16 @@
     label: "Power On {{ item.name }}"
   when: result_bootstrap.rc == 0
 
-- name: Wait for node-bootstraper csrs to approve
-  shell: "{{ playbook_dir }}/bin/oc get csr -o json --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig | jq -r '.items[] | select(.status == {}) | .metadata.name'" # noqa 301 306
-  register: result_csr
-  until: result_csr['stdout_lines']|count == worker_vms|count
-  retries: 60
-  delay: 60
-  ignore_errors: yes
-
-- name: Approve the csrs
-  command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa 301
-  loop: "{{ result_csr['stdout_lines'] }}"
-
-- name: Wait for system:node csrs to approve
-  shell: "{{ playbook_dir }}/bin/oc get csr -o json --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig | jq -r '.items[] | select(.status == {}) | .metadata.name'"  # noqa 301 306
-  register: result_system
-  until: result_system['stdout_lines']|count == worker_vms|count
-  retries: 60
-  delay: 60
-  ignore_errors: yes
-
-- name: Approve the csrs
-  command: "{{ playbook_dir }}/bin/oc adm certificate approve {{ item }} --kubeconfig={{ playbook_dir }}/install-dir/auth/kubeconfig" # noqa 301
-  loop: "{{ result_system['stdout_lines'] }}"
+- name: Approve csrs for worker nodes
+  environment:
+    KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+  shell: |
+    oc get csr -o name | xargs oc adm certificate approve &> /dev/null
+    oc get nodes -l "node-role.kubernetes.io/worker=" -o name | wc -l
+  register: result
+  until: result.stdout | int == worker_replicas
+  retries: 100
+  delay: 10
 
 - name: Create Infra List
   set_fact:
