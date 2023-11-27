@@ -57,7 +57,7 @@
     oc get csr -o name | xargs oc adm certificate approve &> /dev/null
     oc get nodes -l "node-role.kubernetes.io/worker=" -o name | wc -l
   register: result
-  until: result.stdout | int == worker_replicas
+  until: result.stdout | int == worker_vms
   retries: 100
   delay: 10
 
