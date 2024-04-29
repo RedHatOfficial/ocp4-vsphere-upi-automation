@@ -1,0 +1,20 @@
+- name: Encode node ignition files
+  set_fact:
+    workerContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/worker.ign') | b64encode }}"
+
+- name: "Worker base64 "
+  debug:
+    msg: "{{ workerContent }}"
+    verbosity: 1
+
+- name: Create VMs
+  vars:
+    ip_alloc: "{% if dhcp | default(false) %}dhcp{% else %}static{% endif %}"
+    medium: "{% if iso | default(false) | bool %}iso{% else %}ova{% endif %}"
+    name: "{% if ip_alloc == 'dhcp' %}{{ ip_alloc }}{% else %}{{ ip_alloc }}-{{ medium }}{% endif %}.yml"
+  include_tasks:
+    file: "{{ name }}"
+
+- name: Run steps to finish cluster install
+  include_tasks:
+    file: "finish_install.yml"

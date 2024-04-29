@@ -28,6 +28,9 @@ download:
   govc: "https://github.com/vmware/govmomi/releases/download/v0.30.0"
   clients_url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/{{ config.cluster_version }}"
 nodes:
+# Sample node definition:
+#  - By adding isinfra, the node will be labeled as infra node
+# - { name: "worker0", type: "worker", ipaddr: "192.168.66.11", cpu: 8, ram: 16384, size_gb: 120, isinfra: ""}
   - { name: "bootstrap", type: "bootstrap", macaddr: "00:50:56:be:ce:8e", ipaddr: "192.168.1.62", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2}
   - { name: "master0", type: "master", macaddr: "00:50:56:be:1a:89", ipaddr: "192.168.1.43", cpu: 8, ram: 16384, size_gb: 120, cores_per_socket: 2}
   - { name: "master1", type: "master", macaddr: "00:50:56:be:4c:49", ipaddr: "192.168.1.44", cpu: 8, ram: 16384, size_gb: 120, cores_per_socket: 2}

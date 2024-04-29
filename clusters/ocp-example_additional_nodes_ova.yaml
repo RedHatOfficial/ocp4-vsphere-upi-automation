@@ -1,0 +1,16 @@
+# ova: The ova template created in the cluster folder in vSphere
+ova: "rhcos-vmware-4.14.15.ova"
+# additional_nodes: The list of additional nodes to be created
+# -name: The name of the node
+# -macaddr: The mac address of the node
+# -ipaddr: The ip address of the node
+# -cpu: The number of cpus for the node
+# -ram: The amount of ram for the node
+# -size_gb: The size of the disk for the node
+# -cores_per_socket: The number of cores per socket for the node
+# -isinfra: The flag to indicate if the node is an infra node. The node will be labeled as infra.
+# -isodf: The flag to indicate if the node is an odf node. The node will be labeled and tainted for ODF usage.
+additional_nodes:
+  - { name: "worker3", macaddr: "00:50:56:be:d3:cb", ipaddr: "192.168.1.51", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2, isinfra: "", isodf: ""}
+  - { name: "worker4", macaddr: "00:50:56:be:0f:22", ipaddr: "192.168.1.52", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2, isinfra: "", isodf: ""}
+  - { name: "worker5", macaddr: "00:50:56:be:42:8a", ipaddr: "192.168.1.53", cpu: 4, ram: 16384, size_gb: 120, cores_per_socket: 2, isinfra: "", isodf: ""}
