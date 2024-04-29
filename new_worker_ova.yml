@@ -5,11 +5,11 @@
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   vars_files:
-  - "{{ clusters_folder }}/{{ cluster }}_additional_nodes.yaml"
+  - "{{ clusters_folder }}/{{ cluster }}_additional_nodes_ova.yaml"
   tasks:
     - name: Check for additional nodes file
       stat:
-        path: "{{ clusters_folder }}/{{ cluster }}_additional_nodes.yaml"
+        path: "{{ clusters_folder }}/{{ cluster }}_additional_nodes_ova.yaml"
       register: nodes_file
 
     - fail:
@@ -35,7 +35,7 @@
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   vars_files:
-  - "{{ clusters_folder }}/{{ cluster }}_additional_nodes.yaml"
+  - "{{ clusters_folder }}/{{ cluster }}_additional_nodes_ova.yaml"
   tasks:
     - name: Create, Configure and boot the VMs
       environment:
