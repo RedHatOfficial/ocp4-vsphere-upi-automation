@@ -1,0 +1,92 @@
+- name: Power-On the worker VMs
+  vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredon
+  loop: "{{ worker_additional_nodes | default([]) }}"
+  loop_control:
+    label: "Power On {{ item.name }}"
+  when: not config.hybrid | bool
+
+- name: Approve csrs for worker nodes
+  environment:
+    KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+  shell: |
+    oc get csr -o name | xargs oc adm certificate approve &> /dev/null
+    oc get nodes -l "node-role.kubernetes.io/worker=" -o name | grep {{ item.name }} | wc -l
+  register: result
+  until: (result.stdout | int > 0)
+  retries: 100
+  delay: 10
+  loop: "{{ worker_additional_nodes | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+  
+- name: Create Infra List
+  set_fact:
+   infra_vms: "{{ worker_additional_nodes|select('search','isinfra') | list }}"
+
+- name: Check for infra nodes and label accordingly
+  environment:
+   KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+  k8s:
+   state: patched
+   merge_type: merge
+   definition:
+     apiVersion: v1
+     kind: Node
+     metadata:
+       name: "{{ item.name }}.{{ cluster }}.{{ config.base_domain }}"
+       labels:
+         node-role.kubernetes.io/infra: ""
+  loop: "{{ infra_vms }}"
+  when: infra_vms | length > 0
+
+- name: Create ODF node list
+  set_fact:
+   odf_vms: "{{ worker_additional_nodes|select('search','isodf') | list }}"
+
+- name: Check for ODF nodes and label them accordingly
+  environment:
+   KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+  k8s:
+    state: patched
+    merge_type: merge
+    definition:
+      apiVersion: v1
+      kind: Node
+      metadata:
+        name: "{{ item.name }}.{{ cluster }}.{{ config.base_domain }}"
+        labels:
+          cluster.ocs.openshift.io/openshift-storage: ""
+      spec:
+        taints:
+        - effect: NoSchedule
+          key: node.ocs.openshift.io/storage
+          value: "true"
+  loop: "{{ odf_vms }}"
+  when: odf_vms | length > 0
+
+- name: Change ingress controller node selector
+  environment:
+   KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+  k8s:
+   state: patched
+   merge_type: merge
+   definition:
+     apiVersion: "operator.openshift.io/v1"
+     kind: IngressController
+     metadata:
+       name: default
+       namespace: openshift-ingress-operator
+     spec:
+      nodePlacement:
+        nodeSelector:
+          matchLabels:
+            node-role.kubernetes.io/infra: ""
+  when: infra_vms | length > 0

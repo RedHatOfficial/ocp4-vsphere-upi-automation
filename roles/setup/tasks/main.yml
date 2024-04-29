@@ -81,6 +81,14 @@
   loop_control:
     label: "{{ item.name }}"
 
+- name: Set additional nodes list
+  set_fact:
+    worker_additional_nodes: "{{ worker_additional_nodes|default([]) + [item] }}"
+  when: nodes_file is defined and item.type == 'worker'
+  loop: "{{ additional_nodes }}"
+  loop_control:
+    label: "{{ item.name }}"
+
 - name: Display the absolute folder path of the vCenter folder
   debug:
     var: vcenter.folder_absolute_path

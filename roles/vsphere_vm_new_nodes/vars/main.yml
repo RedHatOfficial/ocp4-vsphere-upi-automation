@@ -1,0 +1,1 @@
+workerContent: "{{ lookup('file', '{{ playbook_dir }}/install-dir/worker.ign') | b64encode }}"

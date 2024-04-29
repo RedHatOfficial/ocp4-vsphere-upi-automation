@@ -187,6 +187,7 @@ ansible-playbook -i staging -e cluster=[cluster_name] restricted_static_ips_ova.
 
 == Post Install (Hybrid clusters)
 
+=== Iso Generation for Additional Nodes
 In the event that you need to add nodes to a hybrid cluster post install, there is a `new_worker_iso.yml` that can generate additional ISOs for new nodes. The requirements to this playbook are the same as the other playbooks here with 1 exception, you need to create a new `{{ clusters_folder }}/{{ cluster }}_additional_nodes.yaml` file.
 The format of that file is as follows:
 
@@ -205,6 +206,25 @@ NOTE: The role that we use for this playbook is a shared role and is used by the
 .Example run
 ----
 ansible-playbook -i staging -e "cluster=ocp-example" new_worker_isos.yml
+----
+
+=== OVA template for Additional Nodes
+In the event that you need to add nodes to a hybrid cluster post install, there is a `new_worker_ova.yml` that can reuse the existing OVA template for new nodes. The requirements to this playbook are the same as the other playbooks here with 1 exception, you need to create a new `{{ clusters_folder }}/{{ cluster }}_additional_nodes_ova.yaml` file.
+The format of that file is as follows:
+
+.Additional node file
+[source,yaml]
+====
+include::clusters/ocp-example_additional_nodes_ova.yaml[]
+====
+
+By using this file, the playbook will create only the nodes registered in this file. As per now, this playbook is only adapted to create new worker/infra nodes in an existing cluster.
+
+NOTE: This role uses a new role called _vsphere_vm_new_nodes_.
+
+.Example run
+----
+ansible-playbook -i staging -e "cluster=ocp-example" new_worker_ova.yml
 ----
 
 == Final Check:
