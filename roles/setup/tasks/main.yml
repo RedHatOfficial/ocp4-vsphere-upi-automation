@@ -95,9 +95,6 @@
     worker_count: "{{ (worker_count | int) + (master_vms | length) }}"
   when: config.master_schedulable
 
-- fail:
-    msg: "Found {{ worker_count }} worker nodes "
-
 - name: Display the absolute folder path of the vCenter folder
   debug:
     var: vcenter.folder_absolute_path
