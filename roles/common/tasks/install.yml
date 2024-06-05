@@ -1,11 +1,11 @@
 - name: Generate the ignition manifests
   command: "openshift-install create manifests --dir={{ playbook_dir }}/install-dir" # noqa 301
 
-- name: Apply the patch to set mastersSchedulable to false
-  patch:
+- name: Apply the patch to set mastersSchedulable to true
+  ansible.posix.patch:
     src: "cluster-scheduler-02-config.yml.patch"
     dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
-  when: not config.master_schedulable | bool
+  when: config.master_schedulable | bool
 
 - name: Configure custom isolation mode for network provider
   when: 
