@@ -4,8 +4,8 @@
    creationTimestamp: null
    name: cluster
  spec:
--  mastersSchedulable: true
-+  mastersSchedulable: false
+-  mastersSchedulable: false
++  mastersSchedulable: true
    policy:
      name: ""
  status: {}
