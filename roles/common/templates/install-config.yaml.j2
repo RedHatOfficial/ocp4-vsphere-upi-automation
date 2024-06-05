@@ -15,7 +15,7 @@ controlPlane:
 metadata:
   name: {{ config.cluster_name }}
 networking:
-  networkType: {{ config.networkType | default('OpenShiftSDN') }}
+  networkType: {{ config.networkType | default('OVNKubernetes') }}
 {% if network_modifications is defined and network_modifications.enabled == true %}
   clusterNetwork:
   - cidr: {{ network_modifications.clusterNetwork[0].cidr }}
