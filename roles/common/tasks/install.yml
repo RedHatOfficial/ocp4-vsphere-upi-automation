@@ -7,12 +7,6 @@
     dest: "{{ playbook_dir }}/install-dir/manifests/cluster-scheduler-02-config.yml"
   when: config.master_schedulable | bool
 
-- name: Configure custom isolation mode for network provider
-  when: 
-    - config.isolationMode is defined
-    - config.isolationMode != "NetworkPolicy"
-  include_tasks: isolation_mode.yml
-
 - name: Remove Master Machine manifests
   file:
     path: "{{ item }}"
