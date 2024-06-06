@@ -3,7 +3,7 @@ baseDomain: {{ config.base_domain }}
 compute:
 - hyperthreading: Enabled
   name: worker
-{% if config.provider is defined and not 'none' in config.provider %}
+{% if config.provider is defined and not 'none' in config.provider and worker_vms is defined %}
   replicas: {{ worker_vms | length }}
 {% else %}
   replicas: 0
