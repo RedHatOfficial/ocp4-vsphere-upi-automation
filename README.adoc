@@ -39,7 +39,7 @@ NOTE: In your cluster vars file created in step 2 you only need to add override 
 * `*kubernetes.core*`
 * `*community.general*`
 * `*community.crypto*`
-* `community.vsphere*`
+* `*community.vmware*`
 
 == Installation Steps
 
