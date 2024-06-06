@@ -62,44 +62,48 @@
   retries: 100
   delay: 10
 
-- name: Create Infra List
-  set_fact:
-   infra_vms: "{{ worker_vms|select('search','isinfra') | list }}"
+- name: Infra nodes
+  when: worker_vms is defined
+  block:
 
-- name: Check for infra nodes and label accordingly
-  environment:
-   KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
-  k8s:
-   state: patched
-   merge_type: merge
-   definition:
-     apiVersion: v1
-     kind: Node
-     metadata:
-       name: "{{ item.name }}.{{ cluster }}.{{ config.base_domain }}"
-       labels:
-         node-role.kubernetes.io/infra: ""
-  loop: "{{ infra_vms }}"
-  when: infra_vms | length > 0
-
-- name: Change ingress controller node selector
-  environment:
-   KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
-  k8s:
-   state: patched
-   merge_type: merge
-   definition:
-     apiVersion: "operator.openshift.io/v1"
-     kind: IngressController
-     metadata:
-       name: default
-       namespace: openshift-ingress-operator
-     spec:
-      nodePlacement:
-        nodeSelector:
-          matchLabels:
-            node-role.kubernetes.io/infra: ""
-  when: infra_vms | length > 0
+    - name: Create Infra List
+      set_fact:
+       infra_vms: "{{ [] if worker_vms is defined else (worker_vms|select('search','isinfra') | list) }}"
+    
+    - name: Check for infra nodes and label accordingly
+      environment:
+       KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+      k8s:
+       state: patched
+       merge_type: merge
+       definition:
+         apiVersion: v1
+         kind: Node
+         metadata:
+           name: "{{ item.name }}.{{ cluster }}.{{ config.base_domain }}"
+           labels:
+             node-role.kubernetes.io/infra: ""
+      loop: "{{ infra_vms }}"
+      when: infra_vms | length > 0
+    
+    - name: Change ingress controller node selector
+      environment:
+       KUBECONFIG: "{{ playbook_dir }}/install-dir/auth/kubeconfig"
+      k8s:
+       state: patched
+       merge_type: merge
+       definition:
+         apiVersion: "operator.openshift.io/v1"
+         kind: IngressController
+         metadata:
+           name: default
+           namespace: openshift-ingress-operator
+         spec:
+          nodePlacement:
+            nodeSelector:
+              matchLabels:
+                node-role.kubernetes.io/infra: ""
+      when: infra_vms | length > 0
 
 - name: Wait for install complete
   command: openshift-install wait-for install-complete --dir={{ playbook_dir }}/install-dir --log-level debug # noqa 301
