@@ -46,12 +46,16 @@ proxy:
   httpsProxy: {{ proxy.https_proxy }}
   noProxy: {{ proxy.no_proxy }}
 {% endif %}
+{% if registry is defined and registry.cert_content is defined %}
+additionalTrustBundle: |
+{{ registry.cert_content | indent(width=2, first=true) }}
+{% endif %}
 {% if registry is defined and registry.disconnected is defined and registry.disconnected == true %}
 imageContentSources:
 - mirrors:
-  - {{ registry.host }}/{{ registry.repo }}
+  - {{ registry.host }}:{{ registry.port }}/{{ registry.repo }}
   source: quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}
 - mirrors:
-  - {{ registry.host }}/{{ registry.repo }}
+  - {{ registry.host }}:{{ registry.port }}/{{ registry.repo }}
   source: quay.io/{{ registry.product_repo }}/ocp-v4.0-art-dev
 {% endif %}
