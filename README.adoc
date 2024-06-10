@@ -40,6 +40,7 @@ NOTE: In your cluster vars file created in step 2 you only need to add override 
 * `*community.general*`
 * `*community.crypto*`
 * `*community.vmware*`
+* `*ansible.posix*`
 
 == Installation Steps
 
