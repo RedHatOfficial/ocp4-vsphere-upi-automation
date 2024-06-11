@@ -89,6 +89,20 @@
   loop_control:
     label: "{{ item.name }}"
 
+- name: Set count of worker nodes to 0 by default
+  set_fact:
+    worker_count: "0"
+
+- name: Set count of worker nodes
+  set_fact:
+    worker_count: "{{ worker_vms | length }}"
+  when: worker_vms is defined
+
+- name: Update count of worker nodes if control planes are schedulable
+  set_fact:
+    worker_count: "{{ (worker_count | int) + (master_vms | length) }}"
+  when: config.master_schedulable
+
 - name: Display the absolute folder path of the vCenter folder
   debug:
     var: vcenter.folder_absolute_path
