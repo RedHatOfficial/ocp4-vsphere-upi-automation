@@ -57,6 +57,10 @@
   set_fact:
     download: "{{ download | combine( {'dependencies_url': 'https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/' + config.cluster_base_version + '/latest'} ) }}"
 
+- name: Retrieve the pull secret
+  ansible.builtin.import_role:
+    name: pull_secret
+
 - name: Set the pullsecret
   set_fact:
     config: "{{ config | combine({'pull_secret': pull_secret }, recursive=True) }}"

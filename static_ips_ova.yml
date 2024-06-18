@@ -2,10 +2,10 @@
 - name: Initial Environment setup
   hosts: localhost
   gather_facts: True
-  vars_files:
-    - vars/vars.yaml
+
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
+
   tasks:
     - name: Initial setup and checks
       import_role:

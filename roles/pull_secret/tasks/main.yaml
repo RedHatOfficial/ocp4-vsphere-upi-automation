@@ -1,0 +1,25 @@
+- name: Get the bearer token
+  ansible.builtin.uri:
+    url: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+    method: POST
+    body_format: form-urlencoded
+    body:
+      grant_type: refresh_token
+      client_id: cloud-services
+      refresh_token: "{{ offline_access_token }}"
+    return_content: True
+  register: bearer_result
+
+- name: Get pull secret
+  ansible.builtin.uri:
+    url: https://api.openshift.com/api/accounts_mgmt/v1/access_token
+    method: POST
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{ bearer_result.json.access_token }}"
+    body:
+  register: pull_secret_result
+
+- name: Save the secret
+  ansible.builtin.set_fact:
+    pull_secret: "{{ pull_secret_result.json }}"
