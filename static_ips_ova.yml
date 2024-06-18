@@ -2,6 +2,8 @@
 - name: Initial Environment setup
   hosts: localhost
   gather_facts: True
+  vars_files:
+    - vars/pullsecret.yaml
   environment:
     PATH: "{{ playbook_dir }}/bin:{{ ansible_env.PATH }}"
   tasks:
@@ -27,7 +29,7 @@
       ansible.builtin.import_role:
         name: f5
       when: f5.enabled | default(false)
-
+    - fail:
 - name: Deploy VMs and finish cluster install
   hosts: localhost
   gather_facts: True
