@@ -59,7 +59,7 @@
 
 - name: Set the pullsecret
   set_fact:
-    config: "{{ config | combine( {'pull_secret': {{ pull_secret }} }, recursive=True }}"
+    config: "{{ config | combine({'pull_secret': pull_secret }, recursive=True) }}"
 
 - name: Set bootstrap list
   set_fact:
