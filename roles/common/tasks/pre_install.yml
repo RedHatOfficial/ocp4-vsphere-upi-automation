@@ -37,6 +37,8 @@
       - jq
       - rsync
   become: true
+  tags:
+    - vm
 
 - name: Display Ansible's Python version
   debug:
@@ -49,6 +51,8 @@
       - "python2-pip"
   when: ansible_python_version is match("2.*") and ansible_os_family != 'Darwin'
   become: true
+  tags:
+    - vm
 
 - name: Install python3-pip if Ansible uses Python 3
   package:
@@ -56,6 +60,8 @@
       - python3-pip
   when: ansible_python_version is match("3.*") and ansible_os_family != 'Darwin'
   become: true
+  tags:
+    - vm
 
 - name: Install Python Modules
   pip:
@@ -64,6 +70,8 @@
   loop:
     - pyvmomi
     - requests
+  tags:
+    - vm
 
 - name: Clean up existing bin, install-dir and downloads folders
   file:
