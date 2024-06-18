@@ -61,6 +61,12 @@
   set_fact:
     config: "{{ config | combine({'pull_secret': pull_secret }, recursive=True) }}"
 
+- name: Check pullsecret
+  debug:
+    msg: 
+      - "pull_secret: {{ pull_secret }}"
+      - "config.pull_secret: {{ config.pull_secret }}"
+
 - name: Set bootstrap list
   set_fact:
     bootstrap_vms: "{{ bootstrap_vms|default([]) + [item] }}"
