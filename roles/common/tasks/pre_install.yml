@@ -27,51 +27,10 @@
   set_fact:
     datacenter: "{{ vcenter.datacenter }}"
 
-- name: Install the necessary linux packages which will be needed later in the ansible run
-  when: ansible_os_family != 'Darwin'
-  package:
-    name:
-      - patch
-      - gzip
-      - genisoimage
-      - jq
-      - rsync
-  become: true
-  tags:
-    - vm
-
 - name: Display Ansible's Python version
   debug:
     var: ansible_python_version
     verbosity: 1
-
-- name: Install python-pip or python2-pip if Ansible uses Python 2
-  package:
-    name:
-      - "python2-pip"
-  when: ansible_python_version is match("2.*") and ansible_os_family != 'Darwin'
-  become: true
-  tags:
-    - vm
-
-- name: Install python3-pip if Ansible uses Python 3
-  package:
-    name:
-      - python3-pip
-  when: ansible_python_version is match("3.*") and ansible_os_family != 'Darwin'
-  become: true
-  tags:
-    - vm
-
-- name: Install Python Modules
-  pip:
-    name: "{{ item }}"
-    extra_args: --user
-  loop:
-    - pyvmomi
-    - requests
-  tags:
-    - vm
 
 - name: Clean up existing bin, install-dir and downloads folders
   file:
