@@ -18,8 +18,8 @@
 - name: Ensure that the cluster specific vars file exists in {{ clusters_folder }}
   ansible.builtin.assert:
     that: cluster_file.stat.exists
-    fail_msg: "cluster file is not found in the '{{ clusters_folder }}' folder"
-    success_msg: "cluster file exists in the {{ clusters_folder }} folder"
+    fail_msg: "'{{ cluster }}.yaml' is not found in the '{{ clusters_folder }}' folder"
+    success_msg: "'{{ cluster }}.yaml' exists in the '{ clusters_folder }}' folder"
 
 - include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
 
