@@ -26,6 +26,8 @@
   ansible.builtin.include_tasks:
     file: poweroff-node.yml
   loop: "{{ vm_list }}"
+  loop_control:
+    label: "{{ item.name }}"
 
 - name: Remove control plane VMs
   community.vmware.vmware_guest:
