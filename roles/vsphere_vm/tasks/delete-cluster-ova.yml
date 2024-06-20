@@ -1,3 +1,12 @@
+- name: Setup vm_list with control plane nodes
+  ansible.builtin.set_fact:
+    vm_list: "{{ master_vms }}"
+
+- name: Add workers to vm_list if defined
+  when: worker_vms is defined
+  ansible.builtin.set_fact:
+    vm_list: "{{ vm_list + worker_vms }}"
+
 - name: Stop control plane and worker VMs
   community.vmware.vmware_guest:
     hostname: "{{ vcenter.ip }}"
@@ -8,7 +17,7 @@
     folder: "{{ vcenter.folder_absolute_path }}"
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
     state: poweredoff
-  loop: "{{ master_vms + worker_vms }}"
+  loop: "{{ vm_list }}"
   loop_control:
     label: "{{ item.name }} on"
 
@@ -22,6 +31,6 @@
     folder: "{{ vcenter.folder_absolute_path }}"
     name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
     state: absent
-  loop: "{{ master_vms + worker_vms }}"
+  loop: "{{ vm_list }}"
   loop_control:
     label: "{{ item.name }}"
