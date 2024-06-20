@@ -1,0 +1,33 @@
+- name: Convert name to FQDN
+  set_fact:
+    vm_name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+
+- name: Show the FQDN
+  debug:
+    var: vm_name
+
+- name: Check power state of vm and power off if found running
+  when: vm_name in existing_vms
+  block:
+    - name: Check powerstate of node
+      community.vmware.vmware_vm_info:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.username }}"
+        password: "{{ vcenter.password }}"
+        validate_certs: no
+        folder: "{{ vcenter.folder_absolute_path }}"
+        vm_name: "{{ vm_name }}"
+        vm_type: vm
+      register: vm_state
+
+    - name: Poweroff node
+      when: vm_state.virtual_machines[0].power_state == "poweredOn"
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter.ip }}"
+        username: "{{ vcenter.username }}"
+        password: "{{ vcenter.password }}"
+        datacenter: "{{ vcenter.datacenter }}"
+        validate_certs: no
+        folder: "{{ vcenter.folder_absolute_path }}"
+        name: "{{ vm_name }}"
+        state: poweredoff

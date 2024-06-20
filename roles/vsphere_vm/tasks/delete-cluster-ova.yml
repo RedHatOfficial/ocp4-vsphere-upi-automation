@@ -7,19 +7,25 @@
   ansible.builtin.set_fact:
     vm_list: "{{ vm_list + worker_vms }}"
 
-      #- name: Stop control plane and worker VMs
-      #  community.vmware.vmware_guest:
-      #    hostname: "{{ vcenter.ip }}"
-      #    username: "{{ vcenter.username }}"
-      #    password: "{{ vcenter.password }}"
-      #    datacenter: "{{ vcenter.datacenter }}"
-      #    validate_certs: no
-      #    folder: "{{ vcenter.folder_absolute_path }}"
-      #    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
-      #    state: poweredoff
-      #  loop: "{{ vm_list }}"
-      #  loop_control:
-      #    label: "{{ item.name }} on"
+- name: Gather all VMs from a specific folder
+  community.vmware.vmware_vm_info:
+    hostname: '{{ vcenter.ip }}'
+    username: '{{ vcenter.username }}'
+    password: '{{ vcenter.password }}'
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+  register: vm_info
+
+- name: Save the list of machines
+  ansible.builtin.set_fact:
+    existing_vms: "{{ vm_info.virtual_machines | selectattr('guest_name', 'defined') | map(attribute='guest_name') }}"
+
+- debug: var=existing_vms
+
+- name: Check power state and shutoff if running
+  ansible.builtin.include_tasks:
+    file: poweroff-node.yml
+  loop: "{{ vm_list }}"
 
 - name: Remove control plane VMs
   community.vmware.vmware_guest:
@@ -34,3 +40,18 @@
   loop: "{{ vm_list }}"
   loop_control:
     label: "{{ item.name }}"
+
+      #- name: Delete the RHCOS template
+
+      #- name: Delete the vcenter folder
+      #  when: delete_folder
+      #  community.vmware.vcenter_folder:
+      #    hostname: "{{ vcenter.ip }}"
+      #    username: "{{ vcenter.username }}"
+      #    password: "{{ vcenter.password }}"
+      #    datacenter_name: "{{ vcenter.datacenter }}"
+      #    validate_certs: no
+      #    folder_name: "{{ cluster }}"
+      #    parent_folder: "{{ parent_folder | default(omit) }}"
+      #    state: absent
+
