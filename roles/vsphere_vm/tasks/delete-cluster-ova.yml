@@ -1,0 +1,27 @@
+- name: Stop control plane and worker VMs
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: poweredoff
+  loop: "{{ master_vms + worker_vms }}"
+  loop_control:
+    label: "{{ item.name }} on"
+
+- name: Remove control plane VMs
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter.ip }}"
+    username: "{{ vcenter.username }}"
+    password: "{{ vcenter.password }}"
+    datacenter: "{{ vcenter.datacenter }}"
+    validate_certs: no
+    folder: "{{ vcenter.folder_absolute_path }}"
+    name: "{{ item.name }}.{{config.cluster_name}}.{{config.base_domain}}"
+    state: absent
+  loop: "{{ master_vms + worker_vms }}"
+  loop_control:
+    label: "{{ item.name }}"
