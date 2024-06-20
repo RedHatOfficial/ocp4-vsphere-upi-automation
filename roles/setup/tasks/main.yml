@@ -1,3 +1,8 @@
+- name: Validate that an offline access token is defined
+  ansible.builtin.assert:
+    that: offline_access_token is defined
+    fail_msg: "'offline_access_token' must be provided as an extra_vars or in an AAP credential'"
+
 - fail:
     msg: "Bailing out: this play requires 'cluster'"
   when: cluster is not defined
