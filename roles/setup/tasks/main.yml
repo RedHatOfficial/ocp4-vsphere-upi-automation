@@ -15,7 +15,7 @@
     path: "{{ clusters_folder }}/{{ cluster }}.yaml"
   register: cluster_file
 
-- name: Ensure that the cluster specific vars file exists in {{ clusters_folder }}:
+- name: Ensure that the cluster specific vars file exists in {{ clusters_folder }}
   ansible.builtin.assert:
     that: cluster_file.stat.exists
     fail_msg: "cluster file is not found in the '{{ clusters_folder }}' folder"
