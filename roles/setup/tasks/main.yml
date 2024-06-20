@@ -2,19 +2,24 @@
   ansible.builtin.assert:
     that: offline_access_token is defined
     fail_msg: "'offline_access_token' must be provided as an extra_vars or in an AAP credential'"
+    success_msg: "'offline_access_token' has been properly defined'"
 
-- fail:
-    msg: "Bailing out: this play requires 'cluster'"
-  when: cluster is not defined
+- name: Ensure that a cluster has been defined
+  ansible.builtin.assert:
+    that: cluster is defined
+    fail_msg: "'cluster' must be defined'"
+    success_msg: "'cluster' = {{ cluster }}"
 
 - name: Check for cluster file
   stat:
     path: "{{ clusters_folder }}/{{ cluster }}.yaml"
   register: cluster_file
 
-- fail:
-    msg: "Bailing out: cluster file is not found in the '{{ clusters_folder }}' folder"
-  when: not cluster_file.stat.exists
+- name: Ensure that the cluster specific vars file exists in {{ clusters_folder }}:
+  ansible.builtin.assert:
+    that: cluster_file.stat.exists
+    fail_msg: "cluster file is not found in the '{{ clusters_folder }}' folder"
+    success_msg: "cluster file exists in the {{ clusters_folder }} folder"
 
 - include_vars: "{{ clusters_folder }}/{{ cluster }}.yaml"
 
