@@ -13,6 +13,7 @@
     state: absent
   with_fileglob:
     - "{{ playbook_dir }}/install-dir/openshift/99_openshift-cluster-api_master-machines-*.yaml"
+    - "{{ playbook_dir }}/install-dir/openshift/99_openshift-machine-api_master-control-plane-machine-set.yaml"
 
 - name: Remove Worker MachineSet manifest
   file:

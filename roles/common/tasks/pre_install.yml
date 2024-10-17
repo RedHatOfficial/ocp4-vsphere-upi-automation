@@ -140,11 +140,19 @@
       - LICENSE.txt
       - README.md
 
-- name: Copy install-config.yaml file into install-dir
+- name: Copy install-config.yaml file into install-dir for version < 4.16
   template:
     src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.j2"
     dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
     mode: '0664'
+  when: config.cluster_base_version is version('4.16', '<', version_type='loose')
+
+- name: Copy install-config.yaml file into install-dir for version >= 4.16
+  template:
+    src: "{{ playbook_dir }}/roles/common/templates/install-config.yaml.new.j2"
+    dest: "{{ playbook_dir }}/install-dir/install-config.yaml"
+    mode: '0664'
+  when: config.cluster_base_version is version('4.16', '>=', version_type='loose')
 
 - name: Run steps pertaining to proxy, if any
   include_tasks: handle_proxy.yml
