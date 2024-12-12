@@ -1,0 +1,75 @@
+apiVersion: v1
+baseDomain: {{ config.base_domain }}
+compute:
+- hyperthreading: Enabled
+  name: worker
+{% if config.provider is defined and not 'none' in config.provider and worker_vms is defined %}
+  replicas: {{ worker_vms | length }}
+{% else %}
+  replicas: 0
+{% endif %}
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+  replicas: 3
+metadata:
+  name: {{ config.cluster_name }}
+networking:
+  networkType: {{ config.networkType | default('OVNKubernetes') }}
+{% if network_modifications is defined and network_modifications.enabled == true %}
+  clusterNetwork:
+  - cidr: {{ network_modifications.clusterNetwork[0].cidr }}
+    hostPrefix: {{ network_modifications.clusterNetwork[0].hostPrefix }}
+  serviceNetwork:
+  - {{ network_modifications.serviceNetwork[0].cidr }}
+  machineNetwork:
+  - cidr: {{ network_modifications.machineNetwork[0].cidr }}
+{% endif %}
+platform:
+{% if config.provider is defined and 'none' in config.provider %}
+  none: {}
+{% else %}
+  vsphere:
+    failureDomains:
+    - name: default
+      region: default_region
+      server: {{ vcenter.ip }}
+      topology:
+        computeCluster: "/{{ vcenter.datacenter }}/host/{{ vcenter.cluster }}"
+        datacenter: "{{ vcenter.datacenter }}"
+        datastore: "/{{ vcenter.datacenter }}/datastore/{{ vcenter.datastore }}"
+        networks:
+        - {{ vcenter.network }}
+        folder: "{{ vcenter.folder_absolute_path | default(omit) }}"
+      zone: default_cluster
+    vcenters:
+      - datacenters:
+        - {{ vcenter.datacenter }}
+        user: {{ vcenter.username }}
+        password: {{ vcenter.password }}
+        port: 443
+        server: {{ vcenter.ip }}
+    diskType: thin
+{% endif %}
+fips: {{ config.fips }}
+pullSecret: '{{ config.pull_secret | to_json }}'
+sshKey: '{{ installer_ssh_key }}'
+{% if proxy is defined and proxy.enabled == true %}
+proxy:
+  httpProxy: {{ proxy.http_proxy }}
+  httpsProxy: {{ proxy.https_proxy }}
+  noProxy: {{ proxy.no_proxy }}
+{% endif %}
+{% if registry is defined and registry.cert_content is defined %}
+additionalTrustBundle: |
+{{ registry.cert_content | indent(width=2, first=true) }}
+{% endif %}
+{% if registry is defined and registry.disconnected is defined and registry.disconnected == true %}
+imageContentSources:
+- mirrors:
+  - {{ registry.host }}:{{ registry.port }}/{{ registry.repo }}
+  source: quay.io/{{ registry.product_repo }}/{{ registry.product_release_name }}
+- mirrors:
+  - {{ registry.host }}:{{ registry.port }}/{{ registry.repo }}
+  source: quay.io/{{ registry.product_repo }}/ocp-v4.0-art-dev
+{% endif %}
